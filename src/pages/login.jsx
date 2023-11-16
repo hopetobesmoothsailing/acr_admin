@@ -8,7 +8,7 @@ export default function LoginPage() {
   return (
     <>
       <Helmet>
-        <title> Login | Welcomeland </title>
+        <title> Login | ACR Admin </title>
       </Helmet>
 
       <LoginView />

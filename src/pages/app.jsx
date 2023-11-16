@@ -8,7 +8,7 @@ export default function AppPage() {
   return (
     <>
       <Helmet>
-        <title> ACR Monitor | Admin UI </title>
+        <title> Dashboard | ACR Admin </title>
       </Helmet>
 
       <AppView />

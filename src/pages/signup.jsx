@@ -8,7 +8,7 @@ export default function SignupPage() {
   return (
     <>
       <Helmet>
-        <title> Signup | Welcomeland </title>
+        <title> Signup | ACR Admin </title>
       </Helmet>
 
       <SignupView />
