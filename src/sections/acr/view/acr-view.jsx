@@ -11,13 +11,13 @@ import TablePagination from '@mui/material/TablePagination';
 
 import Scrollbar from 'src/components/scrollbar';
 
+import TableNoData from '../table-no-data';
+import AcrTableRow from '../acr-table-row';
+import AcrTableHead from '../acr-table-head';
 import {SERVER_URL} from "../../../utils/consts";
-import TableNoData from '../../user/table-no-data';
-import UserTableRow from '../../user/user-table-row';
-import UserTableHead from '../../user/user-table-head';
-import TableEmptyRows from '../../user/table-empty-rows';
-import UserTableToolbar from '../../user/user-table-toolbar';
-import {emptyRows, applyFilter, getComparator} from '../../user/utils';
+import TableEmptyRows from '../table-empty-rows';
+import AcrTableToolbar from '../acr-table-toolbar';
+import {emptyRows, applyFilter, getComparator} from '../utils';
 
 // ----------------------------------------------------------------------
 
@@ -42,8 +42,8 @@ export default function AcrView() {
 
     const fetchACRResults = async () => {
         const result = (await axios.post(`${SERVER_URL}/getACRResults`)).data;
-        setACRResults(result);
-        console.log(result);
+        console.log(result.acrResults);
+        setACRResults(result.acrResults);
     };
 
     const handleSort = (event, id) => {
@@ -56,7 +56,7 @@ export default function AcrView() {
 
     const handleSelectAllClick = (event) => {
         if (event.target.checked) {
-            const newSelecteds = acrResults.map((n) => n.name);
+            const newSelecteds = acrResults.map((n) => n.title);
             setSelected(newSelecteds);
             return;
         }
@@ -110,7 +110,7 @@ export default function AcrView() {
             </Typography>
 
             <Card>
-                <UserTableToolbar
+                <AcrTableToolbar
                     numSelected={selected.length}
                     filterName={filterName}
                     onFilterName={handleFilterByName}
@@ -119,7 +119,7 @@ export default function AcrView() {
                 <Scrollbar>
                     <TableContainer sx={{overflow: 'unset'}}>
                         <Table sx={{minWidth: 800}}>
-                            <UserTableHead
+                            <AcrTableHead
                                 order={order}
                                 orderBy={orderBy}
                                 rowCount={acrResults.length}
@@ -127,28 +127,26 @@ export default function AcrView() {
                                 onRequestSort={handleSort}
                                 onSelectAllClick={handleSelectAllClick}
                                 headLabel={[
-                                    {id: 'name', label: 'Name'},
-                                    {id: 'gender', label: 'Gender'},
-                                    {id: 'age', label: 'Age', align: 'center'},
-                                    {id: 'role', label: 'Role'},
-                                    {id: 'status', label: 'Status'},
-                                    {id: ''},
+                                    {id: 'title', label: 'Title'},
+                                    {id: 'total_count', label: 'Total count'},
+                                    {id: 'user_count', label: 'User count',},
+                                    {id: 'phone_count', label: 'Phone count'},
+                                    {id: '', label: 'Status'}
                                 ]}
                             />
                             <TableBody>
                                 {dataFiltered
                                     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                     .map((row) => (
-                                        <UserTableRow
+                                        <AcrTableRow
                                             key={row._id}
-                                            name={`${row.name} ${row.last_name}`}
-                                            role={row.role}
+                                            title={row.title}
+                                            total_count={row.total_count}
                                             status='success'
-                                            gender={row.gender}
-                                            avatarUrl={row.avatarUrl}
-                                            age={row.age}
-                                            selected={selected.indexOf(row.name) !== -1}
-                                            handleClick={(event) => handleClick(event, row.name)}
+                                            user_count={row.user_count}
+                                            phone_count={row.phone_count}
+                                            selected={selected.indexOf(row.title) !== -1}
+                                            handleClick={(event) => handleClick(event, row.title)}
                                         />
                                     ))}
 
