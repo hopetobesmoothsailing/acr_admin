@@ -42,7 +42,6 @@ export default function AcrView() {
 
     const fetchACRResults = async () => {
         const result = (await axios.post(`${SERVER_URL}/getACRResults`)).data;
-        console.log(result.acrResults);
         setACRResults(result.acrResults);
     };
 
@@ -128,6 +127,7 @@ export default function AcrView() {
                                 onSelectAllClick={handleSelectAllClick}
                                 headLabel={[
                                     {id: 'title', label: 'Title'},
+                                    {id: 'date', label: 'Date'},
                                     {id: 'total_count', label: 'Total count'},
                                     {id: 'user_count', label: 'User count',},
                                     {id: 'phone_count', label: 'Phone count'},
@@ -141,6 +141,7 @@ export default function AcrView() {
                                         <AcrTableRow
                                             key={row._id}
                                             title={row.title}
+                                            date={row.date}
                                             total_count={row.total_count}
                                             status='success'
                                             user_count={row.user_count}

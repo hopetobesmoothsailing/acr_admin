@@ -13,6 +13,7 @@ import Label from 'src/components/label';
 export default function AcrTableRow({
     selected,
     title,
+    date,
     total_count,
     user_count,
     phone_count,
@@ -34,6 +35,8 @@ export default function AcrTableRow({
                 </Stack>
             </TableCell>
 
+            <TableCell>{date}</TableCell>
+
             <TableCell>{total_count}</TableCell>
 
             <TableCell>{user_count}</TableCell>
@@ -49,6 +52,7 @@ export default function AcrTableRow({
 
 AcrTableRow.propTypes = {
     title: PropTypes.any,
+    date: PropTypes.any,
     total_count: PropTypes.any,
     handleClick: PropTypes.func,
     user_count: PropTypes.any,
