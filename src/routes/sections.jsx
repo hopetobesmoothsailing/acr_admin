@@ -8,6 +8,7 @@ export const UserPage = lazy(() => import('src/pages/user'));
 export const LoginPage = lazy(() => import('src/pages/login'));
 export const SignupPage = lazy(() => import('src/pages/signup'));
 export const AcrPage = lazy(() => import('src/pages/acr'));
+export const RisultatiPage = lazy(() => import('src/pages/risultati'));
 export const Page404 = lazy(() => import('src/pages/page-not-found'));
 
 // ----------------------------------------------------------------------
@@ -26,6 +27,7 @@ export default function Router() {
         { element: <IndexPage />, index: true },
         { path: 'user', element: <UserPage /> },
         { path: 'acr', element: <AcrPage /> },
+        { path: 'risultati', element: <RisultatiPage /> },
       ],
     },
     {
