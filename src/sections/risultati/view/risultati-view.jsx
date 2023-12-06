@@ -28,7 +28,7 @@ export default function RisultatiView() {
     const [selectedDate, setSelectedDate] = useState(format(new Date('04/12/2023'), 'dd/MM/yyyy'));
 
     const handleDateChange = (date) => {
-        setSelectedDate(date);
+        setSelectedDate(date.format('DD/MM/YYYY'));
     };
     // Function to handle date change from date picker
 
