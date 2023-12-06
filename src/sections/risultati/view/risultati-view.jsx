@@ -1,5 +1,4 @@
 import axios from "axios";
-import {format} from 'date-fns'; // Import the format function from date-fns
 import dayjs from "dayjs";
 import {useMemo, useState, useEffect} from 'react';
 
@@ -25,7 +24,7 @@ export default function RisultatiView() {
     const [groupedData] = useState([]);
     const [acrDetails, setACRDetails] = useState([]);
     // const [acrDetailsTimeslot, setACRDetailsTimeslot] = useState([])
-    const [selectedDate, setSelectedDate] = useState(format(new Date('04/12/2023'), 'dd/MM/yyyy'));
+    const [selectedDate, setSelectedDate] = useState('04/12/2023');
 
     const handleDateChange = (date) => {
         setSelectedDate(date.format('DD/MM/YYYY'));
@@ -91,7 +90,6 @@ export default function RisultatiView() {
             date.setMinutes(minutes);
             const formattedDate = `${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}/${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
 
-            console.log(formattedDate)
             return formattedDate; // Change to your desired date format
         });
 
@@ -189,13 +187,11 @@ export default function RisultatiView() {
             {/* Material-UI DatePicker component */}
 
             {/* Display graph for a single day with x-axis corresponding to every minute */}
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en-gb">
                 <DemoContainer components={['DatePicker']}>
                     <DatePicker
                         onChange={handleDateChange}
-                        value={dayjs(selectedDate)}
-                        defaultValue={dayjs('04/12/2023')}
-                        format="DD/MM/YYYY"
+                        value={dayjs(selectedDate, 'DD/MM/YYYY')}
                     />
                 </DemoContainer>
             </LocalizationProvider>
