@@ -22,7 +22,7 @@ import AppWebsiteAudience from "../app-website-audience";
 export default function RisultatiView() {
 
 
-    const [groupedData] = useState([]);
+    // const [groupedData] = useState([]);
     const [acrDetails, setACRDetails] = useState([]);
     // const [acrDetailsTimeslot, setACRDetailsTimeslot] = useState([])
     const [selectedDate, setSelectedDate] = useState('04/12/2023');
@@ -176,6 +176,19 @@ export default function RisultatiView() {
     );
 
 
+    const calculateAudienceShare = (listeners, channel) =>
+  timeSlotLabels.reduce(
+    (accumulator, label) => accumulator + (timeSlots[label][channel] || 0),
+    0
+  ) === 0
+    ? '0%'
+    : `${((listeners || 0) /
+        timeSlotLabels.reduce(
+          (accumulator, label) => accumulator + (timeSlots[label][channel] || 0),
+          0
+        ) *
+        100
+      ).toFixed(2)}%`;
     console.log("TSSERIES");
     console.log(timeSlotSeries);
     console.log(timeSlotKeys);
@@ -202,6 +215,9 @@ export default function RisultatiView() {
                 subheader="Audience calcolata sulla base del minuto di ascolto"
                 chart={minuteBasedData}
             />
+            <Typography variant="h5" sx={{ml: 0, mt: 3}}>
+                ASCOLTI
+            </Typography>
             <TableContainer sx={{overflow: 'unset'}}>
                 <Table sx={{minWidth: 800}}>
                     <TableHead>
@@ -229,34 +245,46 @@ export default function RisultatiView() {
                 </Table>
             </TableContainer>
             <Card>
+            <Typography variant="h5" sx={{ml: 0, mt: 3,mb:2}}>
+                SHARE
+            </Typography>
+                {/* Remaining pagination logic */}
+            </Card>
+            <Card>
                 <Scrollbar>
-                    <TableContainer sx={{overflow: 'unset'}}>
-                        <Table sx={{minWidth: 800}}>
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>ACR Result</TableCell>
-                                    <TableCell>Recorded At</TableCell>
-                                    <TableCell>Audience</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {groupedData.map((item, index) => (
-                                    <TableRow key={index}>
-                                        <TableCell>{item.acr_result}</TableCell>
-                                        <TableCell>{item.recorded_at}</TableCell>
-                                        <TableCell>{item.audience}</TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
+                <TableContainer sx={{ overflow: 'unset' }}>
+                    <Table sx={{ minWidth: 800 }}>
+                        <TableHead>
+                        <TableRow>
+                            <TableCell>Channel Name</TableCell>
+                            {Object.keys(timeSlots).map((timeSlotKey) => (
+                            <TableCell key={timeSlotKey}>{timeSlotKey}</TableCell>
+                            ))}
+                        </TableRow>
+                        </TableHead>
+                        <TableBody>
+                {channelNames.map((channel, index) => (
+                    <TableRow key={index}>
+                    <TableCell>{channel}</TableCell>
+                    {timeSlotLabels.map((timeSlotKey) => (
+                        <TableCell style={{ textAlign: 'center' }} key={timeSlotKey}>
+                        {calculateAudienceShare(timeSlots[timeSlotKey][channel], channel)}
+                        </TableCell>
+                    ))}
+                    </TableRow>
+                ))}
+                </TableBody>
+                    </Table>
                     </TableContainer>
                 </Scrollbar>
-                {/* Remaining pagination logic */}
             </Card>
             <Card>
                 {/* Existing table components and logic */}
                 <Scrollbar>
-                    <TableContainer sx={{overflow: 'unset'}}>
+                <Typography variant="h5" sx={{ml: 0, mt: 3,mb:2}}>
+                DETTAGLIO
+            </Typography>
+             <TableContainer sx={{overflow: 'unset'}}>
                         <Table sx={{minWidth: 800}}>
                             {/* Your table head component goes here */}
                             <TableHead>

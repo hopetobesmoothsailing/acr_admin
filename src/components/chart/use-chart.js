@@ -1,4 +1,5 @@
 import merge from 'lodash/merge';
+import { format } from 'date-fns';
 
 import { alpha, useTheme } from '@mui/material/styles';
 
@@ -50,7 +51,22 @@ export default function useChart(options) {
       foreColor: theme.palette.text.disabled,
       fontFamily: theme.typography.fontFamily,
     },
-
+    xaxis: {
+      type: 'datetime',
+      labels: {
+        formatter: (value) => {
+          const date = new Date(value);
+          return format(date, 'dd/MM/yyyy HH:mm');
+        },
+        style: {
+          fontSize: theme.typography.caption.fontSize,
+          fontWeight: theme.typography.caption.fontWeight,
+          lineHeight: theme.typography.caption.lineHeight,
+          color: theme.palette.text.secondary,
+        },
+      },
+      tickAmount: 1440, // 24 hours * 60 minutes
+    },
     // States
     states: {
       hover: {
@@ -102,12 +118,7 @@ export default function useChart(options) {
       },
     },
 
-    // Xaxis
-    xaxis: {
-      axisBorder: { show: false },
-      axisTicks: { show: false },
-    },
-
+ 
     // Markers
     markers: {
       size: 0,
