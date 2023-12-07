@@ -1,5 +1,6 @@
 import axios from "axios";
 import dayjs from "dayjs";
+import moment from "moment";
 import {useMemo, useState, useEffect} from 'react';
 
 import Card from '@mui/material/Card';
@@ -39,6 +40,8 @@ export default function RisultatiView() {
                 const formattedDate = selectedDate; // Encode the date for URL
 
                 const response = (await axios.post(`${SERVER_URL}/getACRDetailsByDate`, {date: formattedDate})).data; // Adjust the endpoint to match your server route
+                console.log('response')
+                console.log(response)
                 setACRDetails(response.acrDetails);
             } catch (error) {
                 console.error('Error fetching ACR details:', error);
@@ -68,7 +71,6 @@ export default function RisultatiView() {
             if (!minuteData[minuteKeyX]) {
                 minuteData[minuteKeyX] = {};
             }
-//      console.log(minuteKeyX)
             if (!minuteData[minuteKeyX][item.acr_result]) {
                 // console.log(minuteData[minuteKeyX][item.acr_result]);
                 minuteData[minuteKeyX][item.acr_result] = 1;
@@ -85,10 +87,10 @@ export default function RisultatiView() {
         const labels = Array.from({length: 24 * 60}, (_, index) => {
             const minutes = index % 60;
             const hours = Math.floor(index / 60);
-            const date = new Date(selectedDate);
+            const date = moment(selectedDate, 'DD/MM/YYYY').toDate();
             date.setHours(hours);
             date.setMinutes(minutes);
-            const formattedDate = `${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}/${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+            const formattedDate = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
 
             return formattedDate; // Change to your desired date format
         });
