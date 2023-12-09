@@ -46,8 +46,8 @@ export default function useChart(options) {
     // Chart
     chart: {
       toolbar: { show: false },
-      zoom: { enabled: false },
-      // animations: { enabled: false },
+      zoom: { enabled: true },
+      animations: { enabled: true },
       foreColor: theme.palette.text.disabled,
       fontFamily: theme.typography.fontFamily,
     },
