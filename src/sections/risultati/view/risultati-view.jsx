@@ -17,6 +17,7 @@ import {Table, TableRow, TableHead, TableBody, TableCell, TableContainer} from '
 
 import Scrollbar from 'src/components/scrollbar';
 
+import ExportExcel from "../export-to-excel"; 
 import {SERVER_URL} from "../../../utils/consts";
 import AppWebsiteAudience from "../app-website-audience";
 
@@ -43,8 +44,6 @@ export default function RisultatiView() {
   
     // const [selectedDate, setSelectedDate] = useState('04/12/2023');
     const  setDisplayTable = useState('ASCOLTI');
-    
-    
       
     // Function to handle button click to change the displayed table
     const handleDisplayTable = (table) => {
@@ -132,10 +131,8 @@ export default function RisultatiView() {
 
         const series = uniqueChannels.map((channel) => ({
             name: channel,
-            dir:"ltr",
-            type:"line",
+            type: 'area',
             fill: 'solid',
-            zoom: 'true',
             data: labels.map((label) => (minuteData[label]?.[channel] || 0)),
         }));
         // console.log(series);
@@ -148,7 +145,7 @@ export default function RisultatiView() {
     }, [selectedDate, acrDetails]);
 
     const fiveMinuteBasedData = useMemo(() => {
-        const generateTimeSlots = (num) => {
+            const generateTimeSlots = (num) => {
             const interval = num; // 5 minutes interval
             const totalMinutes = 24 * 60; // Total minutes in a day
           
@@ -163,9 +160,9 @@ export default function RisultatiView() {
               return { start, end };
             });
           };
-          
-          const findTimeSlot = (dateTime, timeSlots) =>
-          timeSlots.find((slot) => dateTime >= slot.start && dateTime < slot.end);
+
+          const findTimeSlot = (dateTime, timeSlotsX) =>
+          timeSlotsX.find((slot) => dateTime >= slot.start && dateTime < slot.end);
           
            
         const minuteData = {}; // Use an object to store data for each minute
@@ -180,9 +177,9 @@ export default function RisultatiView() {
                 minuteData[minuteKeyX] = {};
             }
 //      console.log(minuteKeyX)
-            const timeSlots = generateTimeSlots(5);
+            const timeSlotsX = generateTimeSlots(5);
             const dateToCheck = date; // Example date to check
-            const result = findTimeSlot(dateToCheck, timeSlots);
+            const result = findTimeSlot(dateToCheck, timeSlotsX);
 
             if (result) {
                 const newdate = new Date(result.start);
@@ -256,11 +253,10 @@ export default function RisultatiView() {
 
     acrDetails.forEach((item) => {
         const recordedDate = item.recorded_at;
-        const [time] = recordedDate.split(' ');
+        const [, time] = recordedDate.split(' ');
         const [hours] = time.split(':');
         const minuteKey = `${hours.padStart(2, '0')}`;
-
-
+        console.log(minuteKey);
         const slot = (() => {
             const hour = parseInt(minuteKey, 10);
             if (hour >= 0 && hour <= 2) return '00:00 - 02:59';
@@ -273,8 +269,8 @@ export default function RisultatiView() {
             if (hour >= 21 && hour <= 23) return '21:00 - 23:59';
             return '';
         })();
-        // console.log("SLOT");
-        // console.log(slot);
+         console.log("SLOT");
+         console.log(slot);
         if (slot !== '') {
             if (!timeSlots[slot][item.acr_result]) {
                 timeSlots[slot][item.acr_result] = 1;
@@ -296,7 +292,7 @@ export default function RisultatiView() {
 
         acrDetails.forEach((item) => {
             const recordedDate = item.recorded_at;
-            const [time] = recordedDate.split(' ');
+            const [,time] = recordedDate.split(' ');
             const [hours] = time.split(':');
             const minuteKey = `${hours.padStart(2, '0')}`;
         
@@ -410,9 +406,10 @@ export default function RisultatiView() {
             />
  
             <Typography variant="h5" sx={{ml: 2, mt: 3}}>
-                ASCOLTI (durata in minuti totali di ascolto)
-            </Typography>
-            <TableContainer sx={{overflow: 'unset'}}>
+                ASCOLTI (durata in minuti totali di ascolto) 
+                <ExportExcel  exdata={channelNames} fileName="Excel-Export-Ascolti" idelem="export-table"/>
+           </Typography>
+           <TableContainer id="export-table"  sx={{overflow: 'unset'}}>
                 <Table sx={{minWidth: 800}}>
                     <TableHead>
                         <TableRow>
@@ -441,12 +438,13 @@ export default function RisultatiView() {
              
             <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2}}>
                 SHARE (su un totale di {panelNum})
+                <ExportExcel  exdata={channelNames} fileName="Excel-Export-Share" idelem="export-table-share"/>
             </Typography>
                 {/* Remaining pagination logic */}
             
                 <Card>
                     <Scrollbar>
-                        <TableContainer sx={{ overflow: 'unset' }}>
+                        <TableContainer id="export-table-share" sx={{ overflow: 'unset' }}>
                             <Table sx={{ minWidth: 800 }}>
                                 <TableHead>
                                     <TableRow>
@@ -476,10 +474,11 @@ export default function RisultatiView() {
             <Card>
                 {/* Existing table components and logic */}
                 <Scrollbar>
-                <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2}}>
+                <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2, mr:4, pr:3}}>
                 DETTAGLIO
+                <ExportExcel    exdata={acrDetails} fileName="Excel-Export-Dettaglio" idelem="export-table-dett"/>
             </Typography>
-             <TableContainer sx={{overflow: 'unset'}}>
+             <TableContainer id="export-table-dett" sx={{overflow: 'unset'}}>
                         <Table sx={{minWidth: 800}}>
                             {/* Your table head component goes here */}
                             <TableHead>
