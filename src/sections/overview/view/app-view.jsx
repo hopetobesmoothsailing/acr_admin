@@ -1,4 +1,13 @@
+import axios from "axios";
 import { faker } from '@faker-js/faker';
+import { Link } from 'react-router-dom';
+import {useState, useEffect} from 'react';
+
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
 
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Unstable_Grid2';
@@ -8,6 +17,7 @@ import Iconify from 'src/components/iconify';
 
 import AppTasks from '../app-tasks';
 import AppNewsUpdate from '../app-news-update';
+import {SERVER_URL} from "../../../utils/consts";
 import AppOrderTimeline from '../app-order-timeline';
 import AppCurrentVisits from '../app-current-visits';
 import AppWebsiteVisits from '../app-website-visits';
@@ -16,52 +26,63 @@ import AppTrafficBySite from '../app-traffic-by-site';
 import AppCurrentSubject from '../app-current-subject';
 import AppConversionRates from '../app-conversion-rates';
 
+
 // ----------------------------------------------------------------------
 
 export default function AppView() {
+  const [users, setUsers] = useState([]);
+  const clist = ['RAIRadio1','RAIRadio2','RAIRadio3','RAIIsoRadio','RAIRadio4','RAIRadio5','RadioDeejay','Radio24','RTL','RDS']
+    useEffect(() => {
+        fetchUsers();
+    }, []);
+
+    const fetchUsers = async () => {
+        const result = (await axios.post(`${SERVER_URL}/getUsers`)).data;
+        setUsers(result.users);
+
+    }
+    // console.log(users.length);
   return (
     <Container maxWidth="xl">
       <Typography variant="h4" sx={{ mb: 5 }}>
-        Hi, Welcome back 👋
+        Dashboard Panel 👋
       </Typography>
 
       <Grid container spacing={3}>
-        <Grid xs={12} sm={6} md={3}>
-          <AppWidgetSummary
-            title="Weekly Sales"
-            total={714000}
-            color="success"
-            icon={<img alt="icon" src="/assets/icons/glass/ic_glass_bag.png" />}
-          />
-        </Grid>
+
 
         <Grid xs={12} sm={6} md={3}>
           <AppWidgetSummary
-            title="New Users"
-            total={1352831}
+            title="Panel"
+            total={2000}
             color="info"
             icon={<img alt="icon" src="/assets/icons/glass/ic_glass_users.png" />}
           />
         </Grid>
 
-        <Grid xs={12} sm={6} md={3}>
-          <AppWidgetSummary
-            title="Item Orders"
-            total={1723315}
-            color="warning"
-            icon={<img alt="icon" src="/assets/icons/glass/ic_glass_buy.png" />}
-          />
-        </Grid>
+  
 
         <Grid xs={12} sm={6} md={3}>
           <AppWidgetSummary
-            title="Bug Reports"
-            total={234}
-            color="error"
+            title="Utenti registrati"
+            total={users.length}
+            color="primary"
             icon={<img alt="icon" src="/assets/icons/glass/ic_glass_message.png" />}
           />
         </Grid>
-
+        <Grid xs={12} sm={6} md={3}>
+        <div>
+          <h2>Giornaliero Canali</h2>
+          <ul>
+            {clist.map((item) => (
+              <li key={item}>
+                <Link to={`/giornaliero?channel_name=${item}`}>{item}</Link>
+                {/* Add image, postedAt, etc. */}
+              </li>
+            ))}
+          </ul>
+        </div>
+        </Grid>
         <Grid xs={12} md={6} lg={8}>
           <AppWebsiteVisits
             title="Website Visits"

@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from "axios"; 
 import dayjs from "dayjs";
 import 'leaflet/dist/leaflet.css';
 import {useMemo, useState, useEffect} from 'react';
@@ -7,6 +7,7 @@ import {Popup,  Marker,TileLayer, MapContainer  } from 'react-leaflet';
 import Card from '@mui/material/Card';
 import Button  from '@mui/material/Button';
 import Container from '@mui/material/Container';
+import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -23,7 +24,7 @@ import AppWebsiteAudience from "../app-website-audience";
 
 // ----------------------------------------------------------------------
 
-export default function RisultatiView() {
+export default function GiornalieroView() {
 
 
     // const [groupedData] = useState([]);
@@ -58,16 +59,19 @@ export default function RisultatiView() {
     const handleDateChange = (date) => {
         setSelectedDate(date.format('DD/MM/YYYY'));
     };
-    // Function to handle date change from date picker
+    // Get the URL search parameters from the current URL
+    const urlParams = new URLSearchParams(window.location.search);
 
+    // Get the value of a specific parameter (e.g., 'channel_name')
+    const channel_name = urlParams.get('channel_name');
 
     useEffect(() => {
         // Function to fetch ACR details by date
-        const fetchACRDetailsByDate = async () => {
+        const fetchResultsByDateAndChannel = async () => {
             try {
                 const formattedDate = selectedDate; // Encode the date for URL
 
-                const response = (await axios.post(`${SERVER_URL}/getACRDetailsByDate`, {date: formattedDate})).data; // Adjust the endpoint to match your server route
+                const response = (await axios.post(`${SERVER_URL}/getResultsByDateAndChannel`, {date: formattedDate,acr_result:channel_name})).data; // Adjust the endpoint to match your server route
                 setACRDetails(response.acrDetails);
             } catch (error) {
                 console.error('Error fetching ACR details:', error);
@@ -76,10 +80,10 @@ export default function RisultatiView() {
         };
 
 
-        fetchACRDetailsByDate(); // Call the function to fetch ACR details by date
+        fetchResultsByDateAndChannel(); // Call the function to fetch ACR details by date
 
 
-    }, [selectedDate]);
+    }, [selectedDate,channel_name]);
 
     
       
@@ -349,7 +353,7 @@ export default function RisultatiView() {
     return (
         <Container>
             <Typography variant="h4" sx={{mb: 5}}>
-                FASCICOLO degli ascolti per la data {selectedDate}
+                Giornaliero canale {channel_name} per la data {selectedDate}
             </Typography>
             {/* ... (existing code) */}
             {/* Material-UI DatePicker component */}
@@ -366,86 +370,18 @@ export default function RisultatiView() {
                     <Button onClick={handlePrint}>STAMPA</Button>
                   </DemoContainer>
             </LocalizationProvider>
-            <Card sx={{ mt: 3 }}>
-                <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                        User Location Map
-                    </Typography>
-                    <MapContainer
-                        center={[44.4837486, 11.2789241]}
-                        zoom={12}
-                        style={{ height: '400px', width: '100%' }}
-                    >
-                        <TileLayer
-                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                        />
 
-                        {acrDetails.map((row) => {
-                            const latitude = parseFloat(row.latitude);
-                            const longitude = parseFloat(row.longitude);
-
-                            if (!Number.isNaN(latitude) && !Number.isNaN(longitude)) {
-                                return (
-                                    <Marker
-                                        key={row._id}
-                                        position={[latitude, longitude]}
-                                    >
-                                <Popup>
-                                    {`${row.brand} ${row.model}`} <br />
-                                    {`Channel: ${row.acr_result}`} <br />
-                                    {`Recorded At: ${row.recorded_at}`} <br />
-                                    {`Location: ${row.location_address}`}
-                                </Popup>
-                                        {/* ... */}
-                                    </Marker>
-                                );
-                            }
-                            return null; // Skip rendering marker for invalid coordinates
-                        })}
-                    </MapContainer>
-                </CardContent>
-            </Card>
             <AppWebsiteAudience
                 title="Ascolti"
                 subheader="Audience (n.ascoltatori) per canale calcolata sulla base del minuto di ascolto"
                 chart={minuteBasedData}
             />
+            <Grid container spacing={3}>
 
- 
-            <Typography variant="h5" sx={{ml: 2, mt: 3}}>
-                ASCOLTI (durata in minuti totali di ascolto) 
-                <ExportExcel  exdata={channelNames} fileName="Excel-Export-Ascolti" idelem="export-table"/>
-           </Typography>
-           <TableContainer id="export-table"  sx={{overflow: 'unset'}}>
-                <Table sx={{minWidth: 800}}>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>Channel Name</TableCell>
-                            {Object.keys(timeSlots).map((timeSlotKey) => (
-                                <TableCell key={timeSlotKey}>{timeSlotKey}</TableCell>
-                            ))}
-                        </TableRow>
-                    </TableHead>
 
-                    <TableBody>
-                        {channelNames.map((channel, index) => (
-                            <TableRow key={index}>
-
-                                <TableCell>{channel}</TableCell>
-                                {Object.keys(timeSlots).map((timeSlotKey) => (
-                                    <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
-                                        {timeSlots[timeSlotKey][channel] || '0'}
-                                    </TableCell>
-                                ))}
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-             
-            <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2}}>
-                SHARE (su un totale di {panelNum} utenti)
+                <Grid xs={12} sm={6} md={6}>
+                <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2}}>
+                Trasmissioni con maggior ascolto
                 <ExportExcel  exdata={channelNames} fileName="Excel-Export-Share" idelem="export-table-share"/>
             </Typography>
                 {/* Remaining pagination logic */}
@@ -479,47 +415,98 @@ export default function RisultatiView() {
                         </TableContainer>
                     </Scrollbar>
                 </Card>
-                <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2}}>
-                Ascolti
-                <ExportExcel  exdata={channelNames} fileName="Excel-Export-Share" idelem="export-table-audience"/>
-            </Typography>
-                {/* Remaining pagination logic */}
-            
+                <Card sx={{ mt: 3 }}>
+                <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                        User Location Map
+                    </Typography>
+                    <MapContainer
+                        center={[44.4837486, 11.2789241]}
+                        zoom={12}
+                        style={{ height: '200px', width: '100%' }}
+                    >
+                        <TileLayer
+                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        />
+
+                        {acrDetails.map((row) => {
+                            const latitude = parseFloat(row.latitude);
+                            const longitude = parseFloat(row.longitude);
+
+                            if (!Number.isNaN(latitude) && !Number.isNaN(longitude)) {
+                                return (
+                                    <Marker
+                                        key={row._id}
+                                        position={[latitude, longitude]}
+                                    >
+                                <Popup>
+                                    {`${row.brand} ${row.model}`} <br />
+                                    {`Channel: ${row.acr_result}`} <br />
+                                    {`Recorded At: ${row.recorded_at}`} <br />
+                                    {`Location: ${row.location_address}`}
+                                </Popup>
+                                        {/* ... */}
+                                    </Marker>
+                                );
+                            }
+                            return null; // Skip rendering marker for invalid coordinates
+                        })}
+                    </MapContainer>
+                </CardContent>
+            </Card>
+                </Grid>
+                <Grid xs={12} sm={6} md={6}>
                 <Card>
-                    <Scrollbar>
-                        <TableContainer id="export-table-audience" sx={{ overflow: 'unset' }}>
-                            <Table sx={{ minWidth: 800 }}>
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>Channel Name</TableCell>
-                                        {timeSlotLabels.map((timeSlotKey) => (
-                                            <TableCell key={timeSlotKey}>{timeSlotKey}</TableCell>
-                                        ))}
+                <Scrollbar>
+                    <Typography variant="h5" sx={{ml: 2, mt: 3,mb:3}}>
+                    Dati del giorno {selectedDate} 
+                    <ExportExcel  exdata={channelNames} fileName="Excel-Export-Datigiornalieri_{channel_name}" idelem="export-table-daily_{channel_name}"/>
+                    </Typography>
+                    <TableContainer id="export-table-daily_{channel_name}"  sx={{overflow: 'unset'}}>
+                    <Table sx={{minWidth: 500}}>
+                        <TableHead>
+                            <TableRow >
+                                <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>Risultati Fasce Auditel</TableCell>
+                                <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>Ascolto Individui</TableCell>
+                                <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>Share Individui</TableCell>
+                                <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>Durata</TableCell>
+                                
+                                
+                            </TableRow>
+                        </TableHead>
+
+                        <TableBody>
+                                {Object.keys(timeSlots).map((timeSlotKey) => (
+                                    <TableRow key={timeSlotKey}>
+                                        <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>{timeSlotKey}</TableCell>
+                                        <TableCell style={{textAlign:"center"}}>{calculateAudience(channel_name, timeSlotKey)}</TableCell>
+                                        <TableCell style={{textAlign:"center"}}>{calculateAudienceShare(channel_name, timeSlotKey)}</TableCell>
+                                        <TableCell style={{textAlign:"center"}}>{timeSlots[timeSlotKey][channel_name] || '0'}</TableCell>
+
                                     </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {Object.keys(userListeningMap).map((channel, index) => (
-                                        <TableRow key={index}>
-                                            <TableCell>{channel}</TableCell>
-                                            {timeSlotLabels.map((timeSlotKey) => (
-                                                <TableCell style={{ textAlign: 'center' }} key={timeSlotKey}>
-                                                    {/* Use calculateAudienceShare to retrieve data */}
-                                                    {calculateAudience(channel, timeSlotKey)}
-                                                </TableCell>
-                                            ))}
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-                    </Scrollbar>
-                </Card>                
+                                ))}
+
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                  </Scrollbar>
+
+                </Card>
+
+                </Grid>
+            </Grid>
+            
+
+             
+            
+               
             <Card>
                 {/* Existing table components and logic */}
                 <Scrollbar>
                 <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2, mr:4, pr:3}}>
                 DETTAGLIO
-                <ExportExcel    exdata={acrDetails} fileName="Excel-Export-Dettaglio" idelem="export-table-dett"/>
+                <ExportExcel    exdata={acrDetails} fileName="Excel-Export-Dettaglio_Daily_{channel_name}" idelem="export-table-dett"/>
             </Typography>
              <TableContainer id="export-table-dett" sx={{overflow: 'unset'}}>
                         <Table sx={{minWidth: 800}}>
@@ -555,6 +542,7 @@ export default function RisultatiView() {
 
                 {/* Remaining pagination logic */}
             </Card>
+
         </Container>
     );
 
