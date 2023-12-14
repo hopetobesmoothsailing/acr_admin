@@ -5,7 +5,7 @@ import {useMemo, useState, useEffect} from 'react';
 import {Popup,  Marker,TileLayer, MapContainer  } from 'react-leaflet';
 
 import Card from '@mui/material/Card';
-import Button  from '@mui/material/Button';
+// import Button  from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
@@ -44,17 +44,8 @@ export default function GiornalieroView() {
     const [selectedDate, setSelectedDate] = useState(formattedYesterday);
   
     // const [selectedDate, setSelectedDate] = useState('04/12/2023');
-    const  setDisplayTable = useState('ASCOLTI');
       
-    // Function to handle button click to change the displayed table
-    const handleDisplayTable = (table) => {
-      setDisplayTable(table);
-    };
-  
-    const handlePrint = () => {
-      window.print();
-    };
-  
+    
  
     const handleDateChange = (date) => {
         setSelectedDate(date.format('DD/MM/YYYY'));
@@ -92,12 +83,11 @@ export default function GiornalieroView() {
 
         acrDetails.forEach((item) => {
             const recordedDate = item.recorded_at;
-
             // Extracting minuteKey from the recorded_at string
             const [date, time] = recordedDate.split(' ');
             const [day, month, year] = date.split('/');
             const [hours, minutes] = time.split(':');
-            const minuteKey = `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year} ${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+            const minuteKey = `${month.padStart(2, '0')}/${day.padStart(2, '0')}/${year} ${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
             const minuteKeyX = minuteKey;
             if (!minuteData[minuteKeyX]) {
                 minuteData[minuteKeyX] = {};
@@ -114,16 +104,24 @@ export default function GiornalieroView() {
             // console.log(minuteData[minuteKeyX][item.acr_result]);
         });
 
-        // console.log(minuteData);
         // Convert minuteData into series data for the chart
         const labels = Array.from({length: 24 * 60}, (_, index) => {
             const minutes = index % 60;
             const hours = Math.floor(index / 60);
-            const date = new Date(selectedDate);
+            const parts = selectedDate.split('/'); // Split by '/' delimiter
+            const day = parts[0];
+            const month = parts[1];
+            const year = parts[2];
+            // Create a valid date string in 'MM/dd/yyyy' format that JavaScript can parse
+            const formattedDateCorretta = `${month}/${day}/${year}`;
+
+
+            const date = new Date(formattedDateCorretta);
             date.setHours(hours);
             date.setMinutes(minutes);
             const formattedDate = `${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}/${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-
+            console.log("LABELELSL");
+            console.log(formattedDate);
             return formattedDate; // Change to your desired date format
         });
 
@@ -156,100 +154,7 @@ export default function GiornalieroView() {
 
     }, [selectedDate, acrDetails]);
 
-    const fiveMinuteBasedData = useMemo(() => {
-            const generateTimeSlots = (num) => {
-            const interval = num; // 5 minutes interval
-            const totalMinutes = 24 * 60; // Total minutes in a day
-          
-            return Array.from({ length: totalMinutes / interval }, (_, index) => {
-              const start = new Date(selectedDate);
-              start.setHours(Math.floor((index * interval) / 60));
-              start.setMinutes((index * interval) % 60);
-          
-              const end = new Date(start);
-              end.setMinutes(end.getMinutes() + interval);
-          
-              return { start, end };
-            });
-          };
-
-          const findTimeSlot = (dateTime, timeSlotsX) =>
-          timeSlotsX.find((slot) => dateTime >= slot.start && dateTime < slot.end);
-          
-           
-        const minuteData = {}; // Use an object to store data for each minute
-
-        acrDetails.forEach((item) => {
-            // Extracting minuteKey from the recorded_at string
-            const date = new Date(item.recorded_at);
-            const minuteKey = `${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}/${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-            
-            const minuteKeyX = minuteKey;
-            if (!minuteData[minuteKeyX]) {
-                minuteData[minuteKeyX] = {};
-            }
-//      console.log(minuteKeyX)
-            const timeSlotsX = generateTimeSlots(5);
-            const dateToCheck = date; // Example date to check
-            const result = findTimeSlot(dateToCheck, timeSlotsX);
-
-            if (result) {
-                const newdate = new Date(result.start);
-                const newminuteKey = `${(newdate.getMonth() + 1).toString().padStart(2, '0')}/${newdate.getDate().toString().padStart(2, '0')}/${newdate.getFullYear()} ${newdate.getHours().toString().padStart(2, '0')}:${newdate.getMinutes().toString().padStart(2, '0')}`;
-               
-            console.log("newmkey");
-            console.log(newminuteKey);
-            console.log(`${dateToCheck} belongs to the interval between ${result.start.toLocaleString()} and ${result.end.toLocaleString()}`);
-                if (!minuteData[newminuteKey]) {
-                    minuteData[newminuteKey] = {};
-                }
-                if (!minuteData[newminuteKey][item.acr_result]) {
-                    // console.log(minuteData[minuteKeyX][item.acr_result]);
-                    minuteData[newminuteKey][item.acr_result] = 1;
-                } else {
-                    // console.log(minuteData[minuteKeyX][item.acr_result]);
-                    minuteData[newminuteKey][item.acr_result] += 1;
-                }
-            } else {
-            console.log(`${dateToCheck} does not fall within any time slot`);
-            }
-
-            // console.log(item.acr_result);
-            // console.log(minuteData[minuteKeyX][item.acr_result]);
-        });
-
-        // console.log(minuteData);
-        // Convert minuteData into series data for the chart
-        const labels = Array.from({length: 24 * 60}, (_, index) => {
-            const minutes = index % 60;
-            const hours = Math.floor(index / 60);
-            const date = new Date(selectedDate);
-            date.setHours(hours);
-            date.setMinutes(minutes);
-            const formattedDate = `${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}/${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-
-            return formattedDate; // Change to your desired date format
-        });
-
-
-        const uniqueChannels = [...new Set(acrDetails.map((item) => item.acr_result))];
-
-        const series = uniqueChannels.map((channel) => ({
-            name: channel,
-            dir:"ltr",
-            type:"line",
-            fill: 'solid',
-            zoom: 'true',
-            data: labels.map((label) => (minuteData[label]?.[channel] || 0)),
-        }));
-        // console.log(series);
-        return {
-            labels,
-            series,
-        };
-
-
-    }, [selectedDate, acrDetails]);
+    
 
     
     const timeSlots = {
@@ -281,8 +186,8 @@ export default function GiornalieroView() {
             if (hour >= 21 && hour <= 23) return '21:00 - 23:59';
             return '';
         })();
-         console.log("SLOT");
-         console.log(slot);
+//         console.log("SLOT");
+//         console.log(slot);
         if (slot !== '') {
             if (!timeSlots[slot][item.acr_result]) {
                 timeSlots[slot][item.acr_result] = 1;
@@ -349,7 +254,7 @@ export default function GiornalieroView() {
             return uniqueUsersListening;
         };
 
-    console.log(fiveMinuteBasedData);
+//    console.log(fiveMinuteBasedData);
     return (
         <Container>
             <Typography variant="h4" sx={{mb: 5}}>
@@ -359,16 +264,13 @@ export default function GiornalieroView() {
             {/* Material-UI DatePicker component */}
 
             {/* Display graph for a single day with x-axis corresponding to every minute */}
-            <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en-gb">
+            <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="it">
                 <DemoContainer components={['DatePicker']}>
                     <DatePicker
                         onChange={handleDateChange}
                         value={dayjs(selectedDate, 'DD/MM/YYYY')}
                     />
-                    <Button onClick={() => handleDisplayTable('ASCOLTI')}>ASCOLTI</Button>
-                    <Button onClick={() => handleDisplayTable('SHARE')}>SHARE</Button>
-                    <Button onClick={handlePrint}>STAMPA</Button>
-                  </DemoContainer>
+                    </DemoContainer>
             </LocalizationProvider>
 
             <AppWebsiteAudience

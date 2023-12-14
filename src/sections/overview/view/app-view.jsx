@@ -5,10 +5,11 @@ import {useState, useEffect} from 'react';
 
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
+// import ListItemButton from '@mui/material/ListItemButton';
+// import ListItemIcon from '@mui/material/ListItemIcon';
+// import ListItemText from '@mui/material/ListItemText';
 
+import Card from '@mui/material/Card';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
@@ -71,17 +72,16 @@ export default function AppView() {
           />
         </Grid>
         <Grid xs={12} sm={6} md={3}>
-        <div>
-          <h2>Giornaliero Canali</h2>
-          <ul>
-            {clist.map((item) => (
-              <li key={item}>
-                <Link to={`/giornaliero?channel_name=${item}`}>{item}</Link>
-                {/* Add image, postedAt, etc. */}
-              </li>
+        <Card>
+          <Typography variant="h4" sx={{ ml: 1, mt:2}}>
+            Giornaliero Canali 👋
+          </Typography>
+          <List>
+          {clist.map((item) => (
+             <ListItem> <Link to={`/giornaliero?channel_name=${item}`}>{item}</Link></ListItem>
             ))}
-          </ul>
-        </div>
+          </List>
+          </Card>
         </Grid>
         <Grid xs={12} md={6} lg={8}>
           <AppWebsiteVisits
