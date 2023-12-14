@@ -14,7 +14,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import {Table, TableRow, TableHead, TableBody, TableCell, TableContainer} from '@mui/material';
+import {Table, TableRow, TableHead, TableBody, TableCell, TableContainer } from '@mui/material';
 
 import Scrollbar from 'src/components/scrollbar';
 
@@ -198,7 +198,6 @@ export default function GiornalieroView() {
         }
     });
 
-    const timeSlotLabels = Object.keys(timeSlots);
 
     // const channelNames = Object.keys(timeSlotSeries);
     const channelNames = Array.from(
@@ -284,43 +283,29 @@ export default function GiornalieroView() {
                 <Grid xs={12} sm={6} md={6}>
                 <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2}}>
                 Trasmissioni con maggior ascolto
-                <ExportExcel  exdata={channelNames} fileName="Excel-Export-Share" idelem="export-table-share"/>
+                 
             </Typography>
                 {/* Remaining pagination logic */}
             
                 <Card>
+                    <CardContent>
                     <Scrollbar>
-                        <TableContainer id="export-table-share" sx={{ overflow: 'unset' }}>
-                            <Table sx={{ minWidth: 800 }}>
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>Channel Name</TableCell>
-                                        {timeSlotLabels.map((timeSlotKey) => (
-                                            <TableCell key={timeSlotKey}>{timeSlotKey}</TableCell>
-                                        ))}
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {Object.keys(userListeningMap).map((channel, index) => (
-                                        <TableRow key={index}>
-                                            <TableCell>{channel}</TableCell>
-                                            {timeSlotLabels.map((timeSlotKey) => (
-                                                <TableCell style={{ textAlign: 'center' }} key={timeSlotKey}>
-                                                    {/* Use calculateAudienceShare to retrieve data */}
-                                                    {calculateAudienceShare(channel, timeSlotKey)}
-                                                </TableCell>
-                                            ))}
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
+                    <Typography variant="p" gutterBottom>
+                    <ul>
+                    <li>12.50 TG (???, ???%, ???)</li>    
+                    <li>12.56 PROGRAMMA 1 (???, ???%, ???)</li>    
+                    <li>13.50 PROGRAMMA 3 (???, ???%, ???)</li>    
+                    </ul>
+                    
+                    </Typography>
+
                     </Scrollbar>
+                    </CardContent>
                 </Card>
                 <Card sx={{ mt: 3 }}>
                 <CardContent>
                     <Typography variant="h6" gutterBottom>
-                        User Location Map
+                        Mappa Utenti Panel
                     </Typography>
                     <MapContainer
                         center={[44.4837486, 11.2789241]}
