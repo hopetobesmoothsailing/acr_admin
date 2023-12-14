@@ -52,7 +52,7 @@ export default function AppView() {
       <Grid container spacing={3}>
 
 
-        <Grid xs={12} sm={6} md={3}>
+        <Grid xs={12} sm={6} md={6}>
           <AppWidgetSummary
             title="Panel"
             total={2000}
@@ -63,7 +63,7 @@ export default function AppView() {
 
   
 
-        <Grid xs={12} sm={6} md={3}>
+        <Grid xs={12} sm={6} md={6}>
           <AppWidgetSummary
             title="Utenti registrati"
             total={users.length}
@@ -71,10 +71,24 @@ export default function AppView() {
             icon={<img alt="icon" src="/assets/icons/glass/ic_glass_message.png" />}
           />
         </Grid>
+        
+        <Grid xs={12} sm={3} md={3}>
+        <Card>
+          <Typography variant="h4" sx={{ ml: 1, mt:2}}>
+            Fascicolo Ascolti
+          </Typography>
+          <List>
+           
+             <ListItem> <Link to="/fascicolo">Visualizza Fascicolo </Link></ListItem>
+            
+          </List>
+          </Card>
+        </Grid>
+
         <Grid xs={12} sm={6} md={3}>
         <Card>
           <Typography variant="h4" sx={{ ml: 1, mt:2}}>
-            Giornaliero Canali 👋
+            Giornaliero Canali
           </Typography>
           <List>
           {clist.map((item) => (
