@@ -309,8 +309,8 @@ export default function GiornalieroView() {
                     </Typography>
                     <MapContainer
                         center={[44.4837486, 11.2789241]}
-                        zoom={12}
-                        style={{ height: '200px', width: '100%' }}
+                        zoom={5}
+                        style={{ height: '280px', width: '100%' }}
                     >
                         <TileLayer
                             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

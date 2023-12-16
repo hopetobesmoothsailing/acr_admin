@@ -378,7 +378,7 @@ export default function RisultatiView() {
                     </Typography>
                     <MapContainer
                         center={[44.4837486, 11.2789241]}
-                        zoom={12}
+                        zoom={5}
                         style={{ height: '400px', width: '100%' }}
                     >
                         <TileLayer
