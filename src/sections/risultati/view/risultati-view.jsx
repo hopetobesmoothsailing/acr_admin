@@ -49,7 +49,6 @@ export default function RisultatiView() {
             }
         };
 
-
         fetchACRDetailsByDate(); // Call the function to fetch ACR details by date
 
 
