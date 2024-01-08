@@ -53,7 +53,9 @@ export default function RisultatiView() {
   
     // Set yesterday's date as selectedDate
     const [selectedDate, setSelectedDate] = useState(formattedYesterday);
-  
+    const [users, setUsers] = useState([]);
+    const [idToEmailMap, setIdToEmailMap] = useState({});
+
     // const [selectedDate, setSelectedDate] = useState('04/12/2023');
   
   
@@ -95,14 +97,29 @@ export default function RisultatiView() {
 
         sendEmailReminder(); 
         */
+        
         fetchACRDetailsByDate(); // Call the function to fetch ACR details by date
-
+        fetchUsers();
 
     }, [selectedDate]);
 
+    const fetchUsers = async () => {
+        const result = (await axios.post(`${SERVER_URL}/getUsers`)).data;
+        setUsers(result.users);
+    }
     
-      
-    const minuteBasedData = useMemo(() => {
+    
+    
+      // Create the mapping of _id to email
+      useEffect(() => {
+        const idToEmail = {};
+        users.forEach(user => {
+          idToEmail[user._id] = user.email;
+        });
+        setIdToEmailMap(idToEmail);
+      }, [users]);
+
+      const minuteBasedData = useMemo(() => {
         const minuteData = {}; // Use an object to store data for each minute
 
         acrDetails.forEach((item) => {
@@ -124,6 +141,8 @@ export default function RisultatiView() {
                 // console.log(minuteData[minuteKeyX][item.acr_result]);
                 minuteData[minuteKeyX][item.acr_result] += 1;
             }
+
+
             // console.log(item.acr_result);
             // console.log(minuteData[minuteKeyX][item.acr_result]);
         });
@@ -208,8 +227,8 @@ export default function RisultatiView() {
             if (hour >= 21 && hour <= 23) return '21:00 - 23:59';
             return '';
         })();
-         console.log("SLOT");
-         console.log(slot);
+         // console.log("SLOT");
+         // console.log(slot);
          audienceGiornaliera += 1 * pesoNum; 
          if (channels.indexOf(item.acr_result) === -1) {
             channels.push(item.acr_result);
@@ -224,7 +243,7 @@ export default function RisultatiView() {
         }
     });
 
-    console.log("MINUTI TOTALI GIORNO: %s", audienceGiornaliera);
+    console.log ("MINUTI TOTALI GIORNO: %s", audienceGiornaliera);
     // let audienceGiornalieraReale = audienceGiornaliera/pesoNum 
     // audienceGiornalieraReale = parseFloat(audienceGiornalieraReale).toFixed(0);
     const timeSlotLabels = Object.keys(timeSlots);
@@ -270,6 +289,7 @@ export default function RisultatiView() {
             }
             }
         });
+        console.log("USER LISTENING MAP");
         console.log(userListeningMap);
 
       // Now you can calculate the unique users listening to each channel
@@ -282,6 +302,15 @@ export default function RisultatiView() {
         return sharePercentage;
         };
         */
+        // Calculate the total sum across all channels
+        const totalSum = minuteBasedData.series.reduce((total, channel) => {
+            const sum = channel.data.reduce((acc, value) => acc + value, 0);
+            return total + sum;
+        }, 0);
+
+        // Display the total sum
+        console.log("Total Sum across all channels:", totalSum);
+
         const calculateAudience = (channel, slot) => {
             const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
             // Calculate the share percentage for the channel in the given time slot
@@ -290,9 +319,9 @@ export default function RisultatiView() {
         const calculateAudienceByMinute = (channel, slot) => {
             const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
             const minutoMedio = parseFloat((timeSlots[slot][channel]/uniqueUsersListening).toFixed(1)) || 0 ;
-            console.log("MINUTO MEDIO %s", minutoMedio);
+            // console.log("MINUTO MEDIO %s", minutoMedio);
             const audienceByMinute = minutoMedio*(uniqueUsersListening*pesoNum);
-            console.log("AUDIENCE BY MINUTE canale %s slot %s audiencexmin %s", channel,slot, audienceByMinute);
+            // console.log("AUDIENCE BY MINUTE canale %s slot %s audiencexmin %s", channel,slot, audienceByMinute);
             // Calculate the share percentage for the channel in the given time slot
             return audienceByMinute.toFixed(1);
         };
@@ -304,7 +333,7 @@ export default function RisultatiView() {
                 }
             });
     
-            console.log("AUDIENCE CANALE %s FASCIA ORARIA %s %s %s", channel, slot, audienceSlotCanali,timeSlots[slot][channel]);
+            // console.log("AUDIENCE CANALE %s FASCIA ORARIA %s %s %s", channel, slot, audienceSlotCanali,timeSlots[slot][channel]);
             const shareSlotCanale = parseFloat((((timeSlots[slot][channel])/audienceSlotCanali)*100).toFixed(1)) || 0 ;
             return shareSlotCanale;
         };
@@ -312,9 +341,9 @@ export default function RisultatiView() {
         const displayTitle = (channel,slot) => {
             const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
             const minutoMedio = parseFloat((timeSlots[slot][channel]/uniqueUsersListening).toFixed(0)) || 0 ;
-            console.log("MINUTO MEDIO %s", minutoMedio);
+            // console.log("MINUTO MEDIO %s", minutoMedio);
             const audienceByMinute = minutoMedio*(uniqueUsersListening*pesoNum);
-            console.log("AUDIENCE BY MINUTE canale %s slot %s audiencexmin %s", channel,slot, audienceByMinute);
+            // console.log("AUDIENCE BY MINUTE canale %s slot %s audiencexmin %s", channel,slot, audienceByMinute);
             return `#Canale: ${channel}, #Utenti reali per canale ${uniqueUsersListening}, n. Individui ${uniqueUsersListening*pesoNum} #Minuti Totali ${timeSlots[slot][channel]/pesoNum} #Minuto medio ${minutoMedio}, #Audience pesata ${audienceByMinute}`;
 
         }
@@ -333,6 +362,18 @@ export default function RisultatiView() {
         <Container>
             <Typography variant="h4" sx={{mb: 5}}>
                 Dati raccolti senza applicare alcun peso relativo alla popolazione
+            </Typography>
+            <Typography variant="p" sx={{mb: 5}}>
+            Ascolto minuto	AMM. Indica il numero di persone sintonizzate su una determinata stazione.	Giornaliero	No	<br />
+Ascoltatori Radio	AU	∑AMM x minuto	Giornaliero	No	<br />
+Ascolto medio	AMR	∑AMM di un canale-programma/Minuti periodo selezionato	Giornaliero	Sì	In caso di periodo pari a 1 minuto AMR=AMM<br />
+Share	SH	AMR/AU	Giornaliero	Sì	<br />
+Penetrazione	PE	Percentuale ascoltatori riferiti ad uno specifico target (es. donne)  sull&apos;universo (es. totale donne del panel)	Da decidere	?	Si riesce a dare giornaliero?<br />
+Copertura netta	CO	Numero di pesone (senza duplicazioni) che ascoltano un certo programma (anche canale?) per almeno 5 minuti (?)	Giornaliero	Sì	Sono i contatti netti<br />
+Minuti ascoltati	MA	AMR*Durata programma/CO	Giornaliero	Sì	Si riesce a dare giornaliero?<br />
+Permanenza	PR	MA/Durata programma	Giornaliero	Sì	Si riesce a dare giornaliero?<br />
+Share cumulato		Non è chiaro esattamente su cosa va calcolato	Da decidere	Sì	Solo riferito ai programmi o anche alle reti?<br />
+Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
             </Typography>
             {/* ... (existing code) */}
             {/* Material-UI DatePicker component */}
@@ -388,8 +429,8 @@ export default function RisultatiView() {
                 </CardContent>
             </Card>
             <AppWebsiteAudience
-                title="Ascolti"
-                subheader="Audience per canale calcolata sulla base del minuto di ascolto"
+                title="AMM"
+                subheader="Numero di persone sintonizzate su un particolare canale ogni minuto"
                 chart={minuteBasedData}
             />
 
@@ -527,6 +568,7 @@ export default function RisultatiView() {
                             <TableHead>
                                 <TableRow>
                                     <TableCell>UID</TableCell>
+                                    <TableCell>Email</TableCell>
                                     <TableCell>Model</TableCell>
                                     <TableCell>Brand</TableCell>
                                     <TableCell>Canale</TableCell>
@@ -537,9 +579,11 @@ export default function RisultatiView() {
                             </TableHead>
                             <TableBody>
                                 {acrDetails.map((row) => (
+                                    
                                     <TableRow key={row._id}>
                                         {/* Customize this based on your data structure */}
                                         <TableCell>{row.user_id}</TableCell>
+                                        <TableCell>{idToEmailMap[row.user_id]}</TableCell>
                                         <TableCell>{row.model}</TableCell>
                                         <TableCell>{row.brand}</TableCell>
                                         <TableCell>{row.acr_result}</TableCell>
