@@ -46,8 +46,8 @@ export default function useChart(options) {
     // Chart
     chart: {
       toolbar: { show: false },
-      zoom: { enabled: false },
-      // animations: { enabled: false },
+      zoom: { enabled: true },
+      animations: { enabled: true },
       foreColor: theme.palette.text.disabled,
       fontFamily: theme.typography.fontFamily,
     },
@@ -56,16 +56,17 @@ export default function useChart(options) {
       labels: {
         formatter: (value) => {
           const date = new Date(value);
-          return format(date, 'dd/MM/yyyy HH:mm');
+          return format(date, 'HH:mm');
         },
         style: {
-          fontSize: theme.typography.caption.fontSize,
+          fontSize: '10px',
           fontWeight: theme.typography.caption.fontWeight,
           lineHeight: theme.typography.caption.lineHeight,
           color: theme.palette.text.secondary,
         },
+        rotate: -90, // Rotate labels vertically
       },
-      tickAmount: 1440, // 24 hours * 60 minutes
+      tickAmount: 100, // 24 hours * 60 minutes
     },
     // States
     states: {

@@ -25,12 +25,6 @@ export default function AppWebsiteAudience({ title, subheader, chart, ...other }
     labels,
     xaxis: {
       type: 'datetime',
-      datetimeFormatter: {
-        year: 'yyyy',
-        month: 'MMM \'yy',
-        day: 'dd MMM',
-        hour: 'HH:mm'
-      }
     },
     /* yaxis: [
     {

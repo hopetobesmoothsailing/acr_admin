@@ -1,20 +1,20 @@
-import axios from "axios";
+import axios from "axios"; 
 import dayjs from "dayjs";
-import moment from "moment";
 import 'leaflet/dist/leaflet.css';
 import {useMemo, useState, useEffect} from 'react';
 import {Popup,  Marker,TileLayer, MapContainer  } from 'react-leaflet';
 
 import Card from '@mui/material/Card';
-import Button  from '@mui/material/Button';
+// import Button  from '@mui/material/Button';
 import Container from '@mui/material/Container';
+import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import {Table, TableRow, TableHead, TableBody, TableCell, TableContainer} from '@mui/material';
+import {Table, TableRow, TableHead, TableBody, TableCell, TableContainer } from '@mui/material';
 
 import Scrollbar from 'src/components/scrollbar';
 
@@ -24,7 +24,7 @@ import AppWebsiteAudience from "../app-website-audience";
 
 // ----------------------------------------------------------------------
 
-export default function RisultatiView() {
+export default function GiornalieroView() {
 
 
     // const [groupedData] = useState([]);
@@ -44,33 +44,25 @@ export default function RisultatiView() {
     const [selectedDate, setSelectedDate] = useState(formattedYesterday);
   
     // const [selectedDate, setSelectedDate] = useState('04/12/2023');
-    const  setDisplayTable = useState('ASCOLTI');
       
-    // Function to handle button click to change the displayed table
-    const handleDisplayTable = (table) => {
-      setDisplayTable(table);
-    };
-  
-    const handlePrint = () => {
-      window.print();
-    };
-  
+    
  
     const handleDateChange = (date) => {
         setSelectedDate(date.format('DD/MM/YYYY'));
     };
-    // Function to handle date change from date picker
+    // Get the URL search parameters from the current URL
+    const urlParams = new URLSearchParams(window.location.search);
 
+    // Get the value of a specific parameter (e.g., 'channel_name')
+    const channel_name = urlParams.get('channel_name');
 
     useEffect(() => {
         // Function to fetch ACR details by date
-        const fetchACRDetailsByDate = async () => {
+        const fetchResultsByDateAndChannel = async () => {
             try {
                 const formattedDate = selectedDate; // Encode the date for URL
 
-                const response = (await axios.post(`${SERVER_URL}/getACRDetailsByDate`, {date: formattedDate})).data; // Adjust the endpoint to match your server route
-                console.log('response')
-                console.log(response)
+                const response = (await axios.post(`${SERVER_URL}/getResultsByDateAndChannel`, {date: formattedDate,acr_result:channel_name})).data; // Adjust the endpoint to match your server route
                 setACRDetails(response.acrDetails);
             } catch (error) {
                 console.error('Error fetching ACR details:', error);
@@ -78,10 +70,11 @@ export default function RisultatiView() {
             }
         };
 
-        fetchACRDetailsByDate(); // Call the function to fetch ACR details by date
+
+        fetchResultsByDateAndChannel(); // Call the function to fetch ACR details by date
 
 
-    }, [selectedDate]);
+    }, [selectedDate,channel_name]);
 
     
       
@@ -99,6 +92,7 @@ export default function RisultatiView() {
             if (!minuteData[minuteKeyX]) {
                 minuteData[minuteKeyX] = {};
             }
+//      console.log(minuteKeyX)
             if (!minuteData[minuteKeyX][item.acr_result]) {
                 // console.log(minuteData[minuteKeyX][item.acr_result]);
                 minuteData[minuteKeyX][item.acr_result] = 1;
@@ -126,6 +120,8 @@ export default function RisultatiView() {
             date.setHours(hours);
             date.setMinutes(minutes);
             const formattedDate = `${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}/${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+            console.log("LABELELSL");
+            console.log(formattedDate);
             return formattedDate; // Change to your desired date format
         });
 
@@ -158,100 +154,7 @@ export default function RisultatiView() {
 
     }, [selectedDate, acrDetails]);
 
-    const fiveMinuteBasedData = useMemo(() => {
-            const generateTimeSlots = (num) => {
-            const interval = num; // 5 minutes interval
-            const totalMinutes = 24 * 60; // Total minutes in a day
-          
-            return Array.from({ length: totalMinutes / interval }, (_, index) => {
-              const start = new Date(selectedDate);
-              start.setHours(Math.floor((index * interval) / 60));
-              start.setMinutes((index * interval) % 60);
-          
-              const end = new Date(start);
-              end.setMinutes(end.getMinutes() + interval);
-          
-              return { start, end };
-            });
-          };
-
-          const findTimeSlot = (dateTime, timeSlotsX) =>
-          timeSlotsX.find((slot) => dateTime >= slot.start && dateTime < slot.end);
-          
-           
-        const minuteData = {}; // Use an object to store data for each minute
-
-        acrDetails.forEach((item) => {
-            // Extracting minuteKey from the recorded_at string
-            const date = new Date(item.recorded_at);
-            const minuteKey = `${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}/${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-            
-            const minuteKeyX = minuteKey;
-            if (!minuteData[minuteKeyX]) {
-                minuteData[minuteKeyX] = {};
-            }
-//      console.log(minuteKeyX)
-            const timeSlotsX = generateTimeSlots(5);
-            const dateToCheck = date; // Example date to check
-            const result = findTimeSlot(dateToCheck, timeSlotsX);
-
-            if (result) {
-                const newdate = new Date(result.start);
-                const newminuteKey = `${(newdate.getMonth() + 1).toString().padStart(2, '0')}/${newdate.getDate().toString().padStart(2, '0')}/${newdate.getFullYear()} ${newdate.getHours().toString().padStart(2, '0')}:${newdate.getMinutes().toString().padStart(2, '0')}`;
-               
-            console.log("newmkey");
-            console.log(newminuteKey);
-            console.log(`${dateToCheck} belongs to the interval between ${result.start.toLocaleString()} and ${result.end.toLocaleString()}`);
-                if (!minuteData[newminuteKey]) {
-                    minuteData[newminuteKey] = {};
-                }
-                if (!minuteData[newminuteKey][item.acr_result]) {
-                    // console.log(minuteData[minuteKeyX][item.acr_result]);
-                    minuteData[newminuteKey][item.acr_result] = 1;
-                } else {
-                    // console.log(minuteData[minuteKeyX][item.acr_result]);
-                    minuteData[newminuteKey][item.acr_result] += 1;
-                }
-            } else {
-            console.log(`${dateToCheck} does not fall within any time slot`);
-            }
-
-            // console.log(item.acr_result);
-            // console.log(minuteData[minuteKeyX][item.acr_result]);
-        });
-
-        // console.log(minuteData);
-        // Convert minuteData into series data for the chart
-        const labels = Array.from({length: 24 * 60}, (_, index) => {
-            const minutes = index % 60;
-            const hours = Math.floor(index / 60);
-            const date = moment(selectedDate, 'DD/MM/YYYY').toDate();
-            date.setHours(hours);
-            date.setMinutes(minutes);
-            const formattedDate = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-
-            return formattedDate; // Change to your desired date format
-        });
-
-
-        const uniqueChannels = [...new Set(acrDetails.map((item) => item.acr_result))];
-
-        const series = uniqueChannels.map((channel) => ({
-            name: channel,
-            dir:"ltr",
-            type:"line",
-            fill: 'solid',
-            zoom: 'true',
-            data: labels.map((label) => (minuteData[label]?.[channel] || 0)),
-        }));
-        // console.log(series);
-        return {
-            labels,
-            series,
-        };
-
-
-    }, [selectedDate, acrDetails]);
+    
 
     
     const timeSlots = {
@@ -283,8 +186,8 @@ export default function RisultatiView() {
             if (hour >= 21 && hour <= 23) return '21:00 - 23:59';
             return '';
         })();
-         console.log("SLOT");
-         console.log(slot);
+//         console.log("SLOT");
+//         console.log(slot);
         if (slot !== '') {
             if (!timeSlots[slot][item.acr_result]) {
                 timeSlots[slot][item.acr_result] = 1;
@@ -295,7 +198,6 @@ export default function RisultatiView() {
         }
     });
 
-    const timeSlotLabels = Object.keys(timeSlots);
 
     // const channelNames = Object.keys(timeSlotSeries);
     const channelNames = Array.from(
@@ -351,36 +253,64 @@ export default function RisultatiView() {
             return uniqueUsersListening;
         };
 
-    console.log(fiveMinuteBasedData);
+//    console.log(fiveMinuteBasedData);
     return (
         <Container>
             <Typography variant="h4" sx={{mb: 5}}>
-                Dati raccolti (solo admin)
+                Giornaliero canale {channel_name} per la data {selectedDate}
             </Typography>
             {/* ... (existing code) */}
             {/* Material-UI DatePicker component */}
 
             {/* Display graph for a single day with x-axis corresponding to every minute */}
-            <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en-gb">
+            <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="it">
                 <DemoContainer components={['DatePicker']}>
                     <DatePicker
                         onChange={handleDateChange}
                         value={dayjs(selectedDate, 'DD/MM/YYYY')}
                     />
-                    <Button onClick={() => handleDisplayTable('ASCOLTI')}>ASCOLTI</Button>
-                    <Button onClick={() => handleDisplayTable('SHARE')}>SHARE</Button>
-                    <Button onClick={handlePrint}>STAMPA</Button>
-                  </DemoContainer>
+                    </DemoContainer>
             </LocalizationProvider>
-            <Card sx={{ mt: 3 }}>
+
+            <AppWebsiteAudience
+                title="Ascolti"
+                subheader="Audience (n.ascoltatori) per canale calcolata sulla base del minuto di ascolto"
+                chart={minuteBasedData}
+            />
+            <Grid container spacing={3}>
+
+
+                <Grid xs={12} sm={6} md={6}>
+                <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2}}>
+                Trasmissioni con maggior ascolto
+                 
+            </Typography>
+                {/* Remaining pagination logic */}
+            
+                <Card>
+                    <CardContent>
+                    <Scrollbar>
+                    <Typography variant="p" gutterBottom>
+                    <ul>
+                    <li>12.50 TG (???, ???%, ???)</li>    
+                    <li>12.56 PROGRAMMA 1 (???, ???%, ???)</li>    
+                    <li>13.50 PROGRAMMA 3 (???, ???%, ???)</li>    
+                    </ul>
+                    
+                    </Typography>
+
+                    </Scrollbar>
+                    </CardContent>
+                </Card>
+                <Card sx={{ mt: 3 }}>
                 <CardContent>
                     <Typography variant="h6" gutterBottom>
-                        User Location Map
+                        Mappa Utenti Panel
                     </Typography>
                     <MapContainer
                         center={[44.4837486, 11.2789241]}
                         zoom={5}
-                        style={{ height: '400px', width: '100%' }}
+                        style={{ height: '280px', width: '100%' }}
                     >
                         <TileLayer
                             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -412,120 +342,58 @@ export default function RisultatiView() {
                     </MapContainer>
                 </CardContent>
             </Card>
-            <AppWebsiteAudience
-                title="Ascolti"
-                subheader="Audience (n.ascoltatori) per canale calcolata sulla base del minuto di ascolto"
-                chart={minuteBasedData}
-            />
-
- 
-            <Typography variant="h5" sx={{ml: 2, mt: 3}}>
-                ASCOLTI (durata in minuti totali di ascolto) 
-                <ExportExcel  exdata={channelNames} fileName="Excel-Export-Ascolti" idelem="export-table"/>
-           </Typography>
-           <TableContainer id="export-table"  sx={{overflow: 'unset'}}>
-                <Table sx={{minWidth: 800}}>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>Channel Name</TableCell>
-                            {Object.keys(timeSlots).map((timeSlotKey) => (
-                                <TableCell key={timeSlotKey}>{timeSlotKey}</TableCell>
-                            ))}
-                        </TableRow>
-                    </TableHead>
-
-                    <TableBody>
-                        {channelNames.map((channel, index) => (
-                            <TableRow key={index}>
-
-                                <TableCell>{channel}</TableCell>
-                                {Object.keys(timeSlots).map((timeSlotKey) => (
-                                    <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
-                                        {timeSlots[timeSlotKey][channel] || '0'}
-                                    </TableCell>
-                                ))}
+                </Grid>
+                <Grid xs={12} sm={6} md={6}>
+                <Card>
+                <Scrollbar>
+                    <Typography variant="h5" sx={{ml: 2, mt: 3,mb:3}}>
+                    Dati del giorno {selectedDate} 
+                    <ExportExcel  exdata={channelNames} fileName="Excel-Export-Datigiornalieri_{channel_name}" idelem="export-table-daily_{channel_name}"/>
+                    </Typography>
+                    <TableContainer id="export-table-daily_{channel_name}"  sx={{overflow: 'unset'}}>
+                    <Table sx={{minWidth: 500}}>
+                        <TableHead>
+                            <TableRow >
+                                <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>Risultati Fasce Auditel</TableCell>
+                                <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>Ascolto Individui</TableCell>
+                                <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>Share Individui</TableCell>
+                                <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>Durata</TableCell>
+                                
+                                
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-             
-            <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2}}>
-                SHARE (su un totale di {panelNum} utenti)
-                <ExportExcel  exdata={channelNames} fileName="Excel-Export-Share" idelem="export-table-share"/>
-            </Typography>
-                {/* Remaining pagination logic */}
-            
-                <Card>
-                    <Scrollbar>
-                        <TableContainer id="export-table-share" sx={{ overflow: 'unset' }}>
-                            <Table sx={{ minWidth: 800 }}>
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>Channel Name</TableCell>
-                                        {timeSlotLabels.map((timeSlotKey) => (
-                                            <TableCell key={timeSlotKey}>{timeSlotKey}</TableCell>
-                                        ))}
+                        </TableHead>
+
+                        <TableBody>
+                                {Object.keys(timeSlots).map((timeSlotKey) => (
+                                    <TableRow key={timeSlotKey}>
+                                        <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>{timeSlotKey}</TableCell>
+                                        <TableCell style={{textAlign:"center"}}>{calculateAudience(channel_name, timeSlotKey)}</TableCell>
+                                        <TableCell style={{textAlign:"center"}}>{calculateAudienceShare(channel_name, timeSlotKey)}</TableCell>
+                                        <TableCell style={{textAlign:"center"}}>{timeSlots[timeSlotKey][channel_name] || '0'}</TableCell>
+
                                     </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {Object.keys(userListeningMap).map((channel, index) => (
-                                        <TableRow key={index}>
-                                            <TableCell>{channel}</TableCell>
-                                            {timeSlotLabels.map((timeSlotKey) => (
-                                                <TableCell style={{ textAlign: 'center' }} key={timeSlotKey}>
-                                                    {/* Use calculateAudienceShare to retrieve data */}
-                                                    {calculateAudienceShare(channel, timeSlotKey)}
-                                                </TableCell>
-                                            ))}
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-                    </Scrollbar>
+                                ))}
+
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                  </Scrollbar>
+
                 </Card>
-                <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2}}>
-                Ascolti
-                <ExportExcel  exdata={channelNames} fileName="Excel-Export-Share" idelem="export-table-audience"/>
-            </Typography>
-                {/* Remaining pagination logic */}
+
+                </Grid>
+            </Grid>
             
-                <Card>
-                    <Scrollbar>
-                        <TableContainer id="export-table-audience" sx={{ overflow: 'unset' }}>
-                            <Table sx={{ minWidth: 800 }}>
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>Channel Name</TableCell>
-                                        {timeSlotLabels.map((timeSlotKey) => (
-                                            <TableCell key={timeSlotKey}>{timeSlotKey}</TableCell>
-                                        ))}
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {Object.keys(userListeningMap).map((channel, index) => (
-                                        <TableRow key={index}>
-                                            <TableCell>{channel}</TableCell>
-                                            {timeSlotLabels.map((timeSlotKey) => (
-                                                <TableCell style={{ textAlign: 'center' }} key={timeSlotKey}>
-                                                    {/* Use calculateAudienceShare to retrieve data */}
-                                                    {calculateAudience(channel, timeSlotKey)}
-                                                </TableCell>
-                                            ))}
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-                    </Scrollbar>
-                </Card>                
+
+             
+            
+               
             <Card>
                 {/* Existing table components and logic */}
                 <Scrollbar>
                 <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2, mr:4, pr:3}}>
                 DETTAGLIO
-                <ExportExcel    exdata={acrDetails} fileName="Excel-Export-Dettaglio" idelem="export-table-dett"/>
+                <ExportExcel    exdata={acrDetails} fileName="Excel-Export-Dettaglio_Daily_{channel_name}" idelem="export-table-dett"/>
             </Typography>
              <TableContainer id="export-table-dett" sx={{overflow: 'unset'}}>
                         <Table sx={{minWidth: 800}}>
@@ -561,6 +429,7 @@ export default function RisultatiView() {
 
                 {/* Remaining pagination logic */}
             </Card>
+
         </Container>
     );
 
