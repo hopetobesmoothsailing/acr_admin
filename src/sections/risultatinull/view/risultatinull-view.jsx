@@ -3,13 +3,13 @@ import dayjs from "dayjs";
 import 'leaflet/dist/leaflet.css';
 import { Tooltip } from 'react-tooltip'
 import {useMemo, useState, useEffect} from 'react';
-import {Popup,  Marker,TileLayer, MapContainer  } from 'react-leaflet';
+// import {Popup,  Marker,TileLayer, MapContainer  } from 'react-leaflet';
 
 import Card from '@mui/material/Card';
 import Button  from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
-import CardContent from '@mui/material/CardContent';
+// import CardContent from '@mui/material/CardContent';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
@@ -20,12 +20,12 @@ import Scrollbar from 'src/components/scrollbar';
 
 import ExportExcel from "../export-to-excel"; 
 import {SERVER_URL} from "../../../utils/consts";
-import AppWebsiteAudience from "../app-website-audience";
+// import AppWebsiteAudience from "../app-website-audience";
 
 
 // ----------------------------------------------------------------------
 
-export default function RisultatiView() {
+export default function RisultatinullView() {
 
 
     // Audience giornaliera: È la somma totale dei minuti guardati da tutti gli spettatori durante l'intera giornata. Utilizzando gli stessi numeri dell'esempio precedente, se i 2000 utenti hanno guardato la TV per 60.000 minuti in un giorno, l'audience giornaliera sarà di 60.000 minuti.
@@ -249,12 +249,12 @@ export default function RisultatiView() {
     console.log ("MINUTI TOTALI GIORNO: %s", audienceGiornaliera);
     // let audienceGiornalieraReale = audienceGiornaliera/pesoNum 
     // audienceGiornalieraReale = parseFloat(audienceGiornalieraReale).toFixed(0);
-    const timeSlotLabels = Object.keys(timeSlots);
+    // const timeSlotLabels = Object.keys(timeSlots);
    
     // const channelNames = Object.keys(timeSlotSeries);
-    const channelNames = Array.from(
+    /* const channelNames = Array.from(
         new Set(Object.values(timeSlots).flatMap((data) => Object.keys(data)))
-    );
+    ); */
     // Initialize userListeningMap
         const userListeningMap = {};
 
@@ -313,7 +313,7 @@ export default function RisultatiView() {
 
         // Display the total sum
         console.log("Total Sum across all channels:", totalSum);
-
+        /* 
         const calculateAudience = (channel, slot) => {
             const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
             // Calculate the share percentage for the channel in the given time slot
@@ -350,6 +350,7 @@ export default function RisultatiView() {
             return `#Canale: ${channel}, #Utenti reali per canale ${uniqueUsersListening}, n. Individui ${uniqueUsersListening*pesoNum} #Minuti Totali ${timeSlots[slot][channel]/pesoNum} #Minuto medio ${minutoMedio}, #Audience pesata ${audienceByMinute}`;
 
         }
+        
         const displayTitleShare = (channel,slot) =>  {
             let audienceSlotCanali = 0;
             channels.forEach(canalealtro => {
@@ -360,24 +361,13 @@ export default function RisultatiView() {
     
             return `(#Audience pesata fascia oraria canale ${timeSlots[slot][channel] || 0} minuti / #Audience canali complessiva  ${audienceSlotCanali} minuti) * 100`;
         }
-        
+        */
     return (
         <Container>
             <Typography variant="h4" sx={{mb: 5}}>
-                Dati raccolti senza applicare alcun peso relativo alla popolazione
+               Solo dati invio con e senza riconoscimenti
             </Typography>
-            <Typography variant="p" sx={{mb: 5}}>
-            Ascolto minuto	AMM. Indica il numero di persone sintonizzate su una determinata stazione.	Giornaliero	No	<br />
-Ascoltatori Radio	AU	∑AMM x minuto	Giornaliero	No	<br />
-Ascolto medio	AMR	∑AMM di un canale-programma/Minuti periodo selezionato	Giornaliero	Sì	In caso di periodo pari a 1 minuto AMR=AMM<br />
-Share	SH	AMR/AU	Giornaliero	Sì	<br />
-Penetrazione	PE	Percentuale ascoltatori riferiti ad uno specifico target (es. donne)  sull&apos;universo (es. totale donne del panel)	Da decidere	?	Si riesce a dare giornaliero?<br />
-Copertura netta	CO	Numero di pesone (senza duplicazioni) che ascoltano un certo programma (anche canale?) per almeno 5 minuti (?)	Giornaliero	Sì	Sono i contatti netti<br />
-Minuti ascoltati	MA	AMR*Durata programma/CO	Giornaliero	Sì	Si riesce a dare giornaliero?<br />
-Permanenza	PR	MA/Durata programma	Giornaliero	Sì	Si riesce a dare giornaliero?<br />
-Share cumulato		Non è chiaro esattamente su cosa va calcolato	Da decidere	Sì	Solo riferito ai programmi o anche alle reti?<br />
-Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
-            </Typography>
+           
             {/* ... (existing code) */}
             {/* Material-UI DatePicker component */}
 
@@ -391,182 +381,18 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
                   <Button onClick={handlePrint}>STAMPA</Button>
                   </DemoContainer>
             </LocalizationProvider>
-            <Card sx={{ mt: 3 }}>
-                <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                        Mappa utenti
-                    </Typography>
-                    <MapContainer
-                        center={[44.4837486, 11.2789241]}
-                        zoom={5}
-                        style={{ height: '400px', width: '100%' }}
-                    >
-                        <TileLayer
-                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                        />
-                               
-
-                        {acrDetails 
-                            .filter(row => row.acr_result !== "NULL") // Filter out rows with null acr_result
-                            .map((row) => {
-                            const latitude = parseFloat(row.latitude);
-                            const longitude = parseFloat(row.longitude);
-
-                            if (!Number.isNaN(latitude) && !Number.isNaN(longitude)) {
-                                return (
-                                    <Marker
-                                        key={row._id}
-                                        position={[latitude, longitude]}
-                                    >
-                                <Popup>
-                                    {`${row.brand} ${row.model}`} <br />
-                                    {`Channel: ${row.acr_result}`} <br />
-                                    {`Recorded At: ${row.recorded_at}`} <br />
-                                    {`Location: ${row.location_address}`}
-                                </Popup>
-                                        {/* ... */}
-                                    </Marker>
-                                );
-                            }
-                            return null; // Skip rendering marker for invalid coordinates
-                        })}
-                    </MapContainer>
-                </CardContent>
-            </Card>
-            <AppWebsiteAudience
-                title="AMM"
-                subheader="Numero di persone sintonizzate su un particolare canale ogni minuto"
-                chart={minuteBasedData}
-            />
-
  
-           <Typography variant="h5" sx={{ml: 2, mt: 3}}>
-                ASCOLTI (durata in minuti totali di ascolto) 
-                <ExportExcel  exdata={channelNames} fileName="Excel-Export-Ascolti" idelem="export-table"/>
-           </Typography>
-           <Typography variant="p" sx={{ml: 2, mt: 3,mb:2}}>
-                Ascolti (Audience) data da: (somma minuti tot di ascolto di ogni canale  * numero individui * peso(1 user = {pesoNum} individui) nella fascia oraria considerata
-            </Typography>           
-            <TableContainer id="export-table"  sx={{overflow: 'unset'}}>
-                <Table sx={{minWidth: 800}}>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>Channel Name</TableCell>
-                            {Object.keys(timeSlots).map((timeSlotKey) => (
-                                <TableCell key={timeSlotKey}>{timeSlotKey} </TableCell>
-                            ))}
-                        </TableRow>
-                    </TableHead>
-
-                    <TableBody>
-                        {channelNames.map((channel, index) => (
-                            <TableRow key={index}>
-
-                                <TableCell>{channel}</TableCell>
-                                {Object.keys(timeSlots).map((timeSlotKey) => (
-                                    <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
-                                           <span data-tooltip-id="my-tooltip" data-tooltip-content={displayTitle(channel,timeSlotKey)} >{calculateAudienceByMinute(channel, timeSlotKey)}</span>
-
-                                       
-                                    </TableCell>
-                                    
-                                ))}
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-             
-                <Card >
-                    <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2}}>
-                    SHARE 
-                    <ExportExcel  exdata={channelNames} fileName="Excel-Export-Share" idelem="export-table-share"/>
-                    </Typography>
-                    <Typography variant="p" sx={{ml: 2, mt: 3,mb:2}}>
-                    Data da rapporto tra min. di ascolto per canale nell&apos;intervallo considerato e la somma dei minuti di tutti i canali nello stesso intervallo. 
-                    </Typography>
-                    <br/>
-                    <Typography variant="p" sx={{ml: 2, mt: 3,mb:2}}>
-                    I minuti di ascolto per canale sono dati dalla somma dei minuti ascoltati (reali in questo caso) dagli utenti senza il peso di ogni utente = {pesoNum} 
-                    </Typography>
-                    {/* Remaining pagination logic */}
-                        <Scrollbar>
-                            <TableContainer id="export-table-share" sx={{ overflow: 'unset' }}>
-                                <Table sx={{ minWidth: 800 }}>
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell>Channel Name</TableCell>
-                                            {timeSlotLabels.map((timeSlotKey) => (
-                                                <TableCell key={timeSlotKey}>{timeSlotKey}</TableCell>
-                                            ))}
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {Object.keys(userListeningMap).map((channel, index) => (
-                                            <TableRow key={index}>
-                                                <TableCell>{channel}</TableCell>
-                                                {timeSlotLabels.map((timeSlotKey) => (
-                                                    <TableCell style={{ textAlign: 'center' }} key={timeSlotKey}>
-                                                        {/* Use calculateAudienceShare to retrieve data */}
-                                                        <span data-tooltip-id="my-tooltip" data-tooltip-content={displayTitleShare(channel,timeSlotKey)} >{calculateShareSlotCanale(channel, timeSlotKey)}%</span>
-                                                    </TableCell>
-                                                ))}
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-                        </Scrollbar>
-                    </Card>
-                <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2}}>
-                Audience
-                <ExportExcel  exdata={channelNames} fileName="Excel-Export-Contatti" idelem="export-table-contatti"/>
-                </Typography>
-                <Typography variant="p" sx={{ml: 2, mt: 3,mb:2}}>
-                Data dal prodotto degli utenti per canale nell&apos;intervallo considerato e valore &quot;pesato&quot; dove 1 utente unico è pari a {pesoNum} individui
-                </Typography>
-
-                {/* Remaining pagination logic */}
-            
-                <Card>
-                    <Scrollbar>
-                        <TableContainer id="export-table-contatti" sx={{ overflow: 'unset' }}>
-                            <Table sx={{ minWidth: 800 }}>
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>Channel Name</TableCell>
-                                        {timeSlotLabels.map((timeSlotKey) => (
-                                            <TableCell key={timeSlotKey}>{timeSlotKey}</TableCell>
-                                        ))}
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {Object.keys(userListeningMap).map((channel, index) => (
-                                        <TableRow key={index}>
-                                            <TableCell>{channel}</TableCell>
-                                            {timeSlotLabels.map((timeSlotKey) => (
-                                                <TableCell style={{ textAlign: 'center' }} key={timeSlotKey}>
-                                                    {/* Use calculateAudienceShare to retrieve data */}
-                                                    {calculateAudience(channel, timeSlotKey)}
-                                                </TableCell>
-                                            ))}
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-                    </Scrollbar>
-                </Card>                
+ 
             <Card>
                 {/* Existing table components and logic */}
                 <Scrollbar>
                 <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2, mr:4, pr:3}}>
-                DETTAGLIO RAW CON RICONOSCIMENTI
+                DETTAGLIO RAW CON E SENZA RICONOSCIMENTI
                 <ExportExcel    exdata={acrDetails} fileName="Excel-Export-Dettaglio" idelem="export-table-dett"/>
                 </Typography>
                 <Typography variant="p" sx={{ml: 2, mt: 3,mb:2}}>
                 Dati dei singoli record prodotti da ogni utente nel giorno preso in considerazione ovvero {selectedDate}
+                Ordinati dall&apos;ultimo record registato al primo del giorno.
                 </Typography>
              <TableContainer id="export-table-dett" sx={{overflow: 'unset'}}>
                         <Table sx={{minWidth: 800}}>
@@ -585,7 +411,10 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
                             </TableHead>
                             <TableBody>
                                 {acrDetails 
-                                    .filter(row => row.acr_result !== "NULL") // Filter out rows with null acr_result
+                                .slice() // Create a copy of the array to avoid mutating the original
+                                .reverse() // Reverse the order of the copied array
+                                
+//                                    .filter(row => row.acr_result !== "NULL") // Filter out rows with null acr_result
                                     .map((row) => ( 
    
                                     

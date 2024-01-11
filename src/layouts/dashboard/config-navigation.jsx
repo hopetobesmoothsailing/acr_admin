@@ -22,6 +22,11 @@ const navConfig = [
     path: '/acr',
     icon: icon('ic_cart'),
   },
+  {
+    title: 'Null Result',
+    path: '/risultatinull',
+    icon: icon('ic_cart'),
+  },
 ];
 
 export default navConfig;
