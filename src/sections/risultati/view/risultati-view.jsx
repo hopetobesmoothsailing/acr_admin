@@ -1,6 +1,5 @@
 import axios from "axios";
 import dayjs from "dayjs";
-import moment from "moment";
 import 'leaflet/dist/leaflet.css';
 import { Tooltip } from 'react-tooltip'
 import {useMemo, useState, useEffect} from 'react';
@@ -78,8 +77,6 @@ export default function RisultatiView() {
                 const formattedDate = selectedDate; // Encode the date for URL
 
                 const response = (await axios.post(`${SERVER_URL}/getACRDetailsByDate`, {date: formattedDate})).data; // Adjust the endpoint to match your server route
-                console.log('response')
-                console.log(response)
                 setACRDetails(response.acrDetails);
             } catch (error) {
                 console.error('Error fetching ACR details:', error);
@@ -98,12 +95,9 @@ export default function RisultatiView() {
             }
         };
 
-<<<<<<< HEAD
-=======
         sendEmailReminder(); 
         */
         
->>>>>>> b0071dbf2bf7cb1509fcbfc87eca245c7765aa1c
         fetchACRDetailsByDate(); // Call the function to fetch ACR details by date
         fetchUsers();
 
@@ -128,7 +122,10 @@ export default function RisultatiView() {
       const minuteBasedData = useMemo(() => {
         const minuteData = {}; // Use an object to store data for each minute
 
-        acrDetails.forEach((item) => {
+        acrDetails
+        .forEach(
+            (item) => {
+                if (item.acr_result !== "NULL") {
             const recordedDate = item.recorded_at;
             // Extracting minuteKey from the recorded_at string
             const [date, time] = recordedDate.split(' ');
@@ -139,6 +136,7 @@ export default function RisultatiView() {
             if (!minuteData[minuteKeyX]) {
                 minuteData[minuteKeyX] = {};
             }
+//      console.log(minuteKeyX)
             if (!minuteData[minuteKeyX][item.acr_result]) {
                 // console.log(minuteData[minuteKeyX][item.acr_result]);
                 minuteData[minuteKeyX][item.acr_result] = 1 ;
@@ -146,7 +144,7 @@ export default function RisultatiView() {
                 // console.log(minuteData[minuteKeyX][item.acr_result]);
                 minuteData[minuteKeyX][item.acr_result] += 1;
             }
-
+            }
 
             // console.log(item.acr_result);
             // console.log(minuteData[minuteKeyX][item.acr_result]);
@@ -201,88 +199,6 @@ export default function RisultatiView() {
     }, [selectedDate, acrDetails]);
 
 
-<<<<<<< HEAD
-          const findTimeSlot = (dateTime, timeSlotsX) =>
-          timeSlotsX.find((slot) => dateTime >= slot.start && dateTime < slot.end);
-          
-           
-        const minuteData = {}; // Use an object to store data for each minute
-
-        acrDetails.forEach((item) => {
-            // Extracting minuteKey from the recorded_at string
-            const date = new Date(item.recorded_at);
-            const minuteKey = `${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}/${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-            
-            const minuteKeyX = minuteKey;
-            if (!minuteData[minuteKeyX]) {
-                minuteData[minuteKeyX] = {};
-            }
-//      console.log(minuteKeyX)
-            const timeSlotsX = generateTimeSlots(5);
-            const dateToCheck = date; // Example date to check
-            const result = findTimeSlot(dateToCheck, timeSlotsX);
-
-            if (result) {
-                const newdate = new Date(result.start);
-                const newminuteKey = `${(newdate.getMonth() + 1).toString().padStart(2, '0')}/${newdate.getDate().toString().padStart(2, '0')}/${newdate.getFullYear()} ${newdate.getHours().toString().padStart(2, '0')}:${newdate.getMinutes().toString().padStart(2, '0')}`;
-               
-            console.log("newmkey");
-            console.log(newminuteKey);
-            console.log(`${dateToCheck} belongs to the interval between ${result.start.toLocaleString()} and ${result.end.toLocaleString()}`);
-                if (!minuteData[newminuteKey]) {
-                    minuteData[newminuteKey] = {};
-                }
-                if (!minuteData[newminuteKey][item.acr_result]) {
-                    // console.log(minuteData[minuteKeyX][item.acr_result]);
-                    minuteData[newminuteKey][item.acr_result] = 1;
-                } else {
-                    // console.log(minuteData[minuteKeyX][item.acr_result]);
-                    minuteData[newminuteKey][item.acr_result] += 1;
-                }
-            } else {
-            console.log(`${dateToCheck} does not fall within any time slot`);
-            }
-
-            // console.log(item.acr_result);
-            // console.log(minuteData[minuteKeyX][item.acr_result]);
-        });
-
-        // console.log(minuteData);
-        // Convert minuteData into series data for the chart
-        const labels = Array.from({length: 24 * 60}, (_, index) => {
-            const minutes = index % 60;
-            const hours = Math.floor(index / 60);
-            const date = moment(selectedDate, 'DD/MM/YYYY').toDate();
-            date.setHours(hours);
-            date.setMinutes(minutes);
-            const formattedDate = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-
-            return formattedDate; // Change to your desired date format
-        });
-
-
-        const uniqueChannels = [...new Set(acrDetails.map((item) => item.acr_result))];
-
-        const series = uniqueChannels.map((channel) => ({
-            name: channel,
-            dir:"ltr",
-            type:"line",
-            fill: 'solid',
-            zoom: 'true',
-            data: labels.map((label) => (minuteData[label]?.[channel] || 0)),
-        }));
-        // console.log(series);
-        return {
-            labels,
-            series,
-        };
-
-
-    }, [selectedDate, acrDetails]);
-
-    
-=======
->>>>>>> b0071dbf2bf7cb1509fcbfc87eca245c7765aa1c
     const timeSlots = {
         '00:00 - 02:59': [],
         '03:00 - 05:59': [],
@@ -489,8 +405,11 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
                             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                         />
+                               
 
-                        {acrDetails.map((row) => {
+                        {acrDetails 
+                            .filter(row => row.acr_result !== "NULL") // Filter out rows with null acr_result
+                            .map((row) => {
                             const latitude = parseFloat(row.latitude);
                             const longitude = parseFloat(row.longitude);
 
@@ -665,7 +584,10 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {acrDetails.map((row) => (
+                                {acrDetails 
+                                    .filter(row => row.acr_result !== "NULL") // Filter out rows with null acr_result
+                                    .map((row) => ( 
+   
                                     
                                     <TableRow key={row._id}>
                                         {/* Customize this based on your data structure */}
@@ -678,6 +600,7 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
                                         <TableCell>{row.latitude},{row.longitude}</TableCell>
                                         <TableCell>{row.recorded_at}</TableCell>
                                     </TableRow>
+                                    
                                 ))}
                             </TableBody>
                         </Table>
