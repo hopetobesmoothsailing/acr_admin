@@ -35,19 +35,48 @@ export default function UserPage() {
 
     const [filterName, setFilterName] = useState('');
 
-    const [rowsPerPage, setRowsPerPage] = useState(5);
+    const [rowsPerPage, setRowsPerPage] = useState(1500);
 
     const [users, setUsers] = useState([]);
+    
+    const [detailsUser, setDetailsUser] = useState([]);
+    const [idToEmailMap, setIdToEmailMap] = useState({});
 
+    const today = new Date(); // Get today's date
+    const yesterday = new Date(today); // Create a new date object with today's date
+    yesterday.setDate(today.getDate() - 1); // Set it to yesterday
+  
+    // Format the date to DD/MM/YYYY
+    const formattedYesterday = `${yesterday.getDate().toString().padStart(2, '0')}/${(
+      yesterday.getMonth() + 1
+    ).toString().padStart(2, '0')}/${yesterday.getFullYear()}`;
+  
     useEffect(() => {
+        const fetchUsers = async () => {
+            const result = (await axios.post(`${SERVER_URL}/getUsers`)).data;
+            setUsers(result.users);
+        }
+        const fetchDetailUsers = async () => {
+            const response = (await axios.post(`${SERVER_URL}/getAppStatusUsers`, {date: formattedYesterday})).data; // Adjust the endpoint to match your server route
+            setDetailsUser(response.activeUsers);
+        }
         fetchUsers();
-    }, []);
+        fetchDetailUsers();
+    }, [formattedYesterday]);
 
-    const fetchUsers = async () => {
-        const result = (await axios.post(`${SERVER_URL}/getUsers`)).data;
-        setUsers(result.users);
-    }
+  
 
+    console.log(detailsUser);
+      // Create the mapping of _id to email
+    useEffect(() => {
+        const idToEmail = {};
+        users.forEach(user => {
+          idToEmail[user._id] = user.email;
+        });
+        setIdToEmailMap(idToEmail);
+      }, [users]);
+
+      
     const handleSort = (event, id) => {
         const isAsc = orderBy === id && order === 'asc';
         if (id !== '') {
@@ -105,6 +134,16 @@ export default function UserPage() {
 
     const notFound = !dataFiltered.length && !!filterName;
 
+    function getUserStatus(userId, activeUsers) {
+        console.log(activeUsers);
+        let ret = "inactive";
+        if (activeUsers.some(user => user._id === userId)) {
+          ret = "active";
+        } 
+        return ret;
+         
+      }
+    
     return (
         <Container>
             <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
@@ -134,10 +173,10 @@ export default function UserPage() {
                                 onSelectAllClick={handleSelectAllClick}
                                 headLabel={[
                                     {id: 'name', label: 'Name'},
-                                    {id: 'gender', label: 'Gender'},
-                                    {id: 'age', label: 'Age', align: 'center'},
-                                    {id: 'role', label: 'Role'},
-                                    {id: 'status', label: 'Status'},
+                                    {id: 'email', label: 'Email'},
+                                    {id: 'age', label: '', align: 'center'},
+                                    {id: 'id', label: 'ID'},
+                                    {id: 'status', label: 'Ultime 24h'},
                                     {id: ''},
                                 ]}
                             />
@@ -147,10 +186,10 @@ export default function UserPage() {
                                     .map((row) => (
                                         <UserTableRow
                                             key={row._id}
-                                            name={`${row.name} ${row.last_name}`}
-                                            role={row.role}
-                                            status='success'
-                                            gender={row.gender}
+                                            name={`${row.name} `}
+                                            role={row._id}
+                                            status={getUserStatus(row._id, detailsUser)}
+                                            gender={idToEmailMap[row._id]}
                                             avatarUrl={row.avatarUrl}
                                             age={row.age}
                                             selected={selected.indexOf(row.name) !== -1}
@@ -175,10 +214,11 @@ export default function UserPage() {
                     count={users.length}
                     rowsPerPage={rowsPerPage}
                     onPageChange={handleChangePage}
-                    rowsPerPageOptions={[5, 10, 25]}
+                    rowsPerPageOptions={[1500, 3000]}
                     onRowsPerPageChange={handleChangeRowsPerPage}
                 />
             </Card>
         </Container>
     );
 }
+ 
