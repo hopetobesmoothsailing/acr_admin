@@ -40,9 +40,14 @@ export default function UserPage() {
     const [users, setUsers] = useState([]);
     
     const [detailsUser, setDetailsUser] = useState([]);
+    const [details24User, setDetails24User] = useState([]);
     const [idToEmailMap, setIdToEmailMap] = useState({});
 
     const today = new Date(); // Get today's date
+    console.log ("TODAY:",today);
+    const startday = new Date("2024-01-09T00:00:00.000Z"); // Create a new date object with today's date
+    console.log ("STARTDAY:",startday);
+    startday.setDate(startday.getDate()); // Set it to yesterday
     const yesterday = new Date(today); // Create a new date object with today's date
     yesterday.setDate(today.getDate() - 1); // Set it to yesterday
   
@@ -50,19 +55,27 @@ export default function UserPage() {
     const formattedYesterday = `${yesterday.getDate().toString().padStart(2, '0')}/${(
       yesterday.getMonth() + 1
     ).toString().padStart(2, '0')}/${yesterday.getFullYear()}`;
-  
+    const formattedStartday = `${startday.getDate().toString().padStart(2, '0')}/${(
+        startday.getMonth() + 1
+      ).toString().padStart(2, '0')}/${startday.getFullYear()}`;
+    
     useEffect(() => {
         const fetchUsers = async () => {
             const result = (await axios.post(`${SERVER_URL}/getUsers`)).data;
             setUsers(result.users);
         }
         const fetchDetailUsers = async () => {
-            const response = (await axios.post(`${SERVER_URL}/getAppStatusUsers`, {date: formattedYesterday})).data; // Adjust the endpoint to match your server route
+            const response = (await axios.post(`${SERVER_URL}/getAppActivatedUsers`, {date: formattedStartday})).data; // Adjust the endpoint to match your server route
             setDetailsUser(response.activeUsers);
+        }
+        const fetchDetailLast24hoursUsers = async () => {
+            const response = (await axios.post(`${SERVER_URL}/getAppActivatedUsers`, {date: formattedYesterday})).data; // Adjust the endpoint to match your server route
+            setDetails24User(response.activeUsers);
         }
         fetchUsers();
         fetchDetailUsers();
-    }, [formattedYesterday]);
+        fetchDetailLast24hoursUsers();
+    }, [formattedYesterday,formattedStartday]);
 
   
 
@@ -136,9 +149,18 @@ export default function UserPage() {
 
     function getUserStatus(userId, activeUsers) {
         console.log(activeUsers);
-        let ret = "inactive";
+        let ret = "no";
         if (activeUsers.some(user => user._id === userId)) {
-          ret = "active";
+          ret = "si";
+        } 
+        return ret;
+         
+      }
+      function getUserActivated(userId, activeUsers) {
+        console.log(activeUsers);
+        let ret = "non attivata";
+        if (activeUsers.some(user => user._id === userId)) {
+          ret = "attivata";
         } 
         return ret;
          
@@ -174,9 +196,9 @@ export default function UserPage() {
                                 headLabel={[
                                     {id: 'name', label: 'Name'},
                                     {id: 'email', label: 'Email'},
-                                    {id: 'age', label: '', align: 'center'},
+                                    {id: 'age', label: 'Ultime 24h', align: 'center'},
                                     {id: 'id', label: 'ID'},
-                                    {id: 'status', label: 'Ultime 24h'},
+                                    {id: 'status', label: 'APP-ATTIVATA'},
                                     {id: ''},
                                 ]}
                             />
@@ -191,7 +213,7 @@ export default function UserPage() {
                                             status={getUserStatus(row._id, detailsUser)}
                                             gender={idToEmailMap[row._id]}
                                             avatarUrl={row.avatarUrl}
-                                            age={row.age}
+                                            age={getUserActivated(row._id, details24User)}
                                             selected={selected.indexOf(row.name) !== -1}
                                             handleClick={(event) => handleClick(event, row.name)}
                                         />

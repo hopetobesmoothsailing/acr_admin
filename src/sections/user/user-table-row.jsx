@@ -54,12 +54,13 @@ export default function UserTableRow({
 
         <TableCell>{gender}</TableCell>
 
-        <TableCell align="center">{age}</TableCell>
-
+        <TableCell>
+          <Label color={(age === 'non attivata' && 'error') || 'primary'}>{age}</Label>
+        </TableCell>
         <TableCell>{role}</TableCell>
 
         <TableCell>
-          <Label color={(status === 'inactive' && 'error') || 'success'}>{status}</Label>
+          <Label color={(status === 'no' && 'error') || 'success'}>{status}</Label>
         </TableCell>
 
         <TableCell align="right">
