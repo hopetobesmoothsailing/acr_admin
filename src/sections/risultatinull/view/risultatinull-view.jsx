@@ -14,7 +14,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import {Table, TableRow, TableHead, TableBody, TableCell, TableContainer} from '@mui/material';
+import {Table, Select,MenuItem,TableRow, TableHead, TableBody, TableCell, InputLabel,FormControl, TableContainer, TablePagination} from '@mui/material';
 
 import Scrollbar from 'src/components/scrollbar';
 
@@ -29,22 +29,17 @@ export default function RisultatinullView() {
 
 
     // Audience giornaliera: È la somma totale dei minuti guardati da tutti gli spettatori durante l'intera giornata. Utilizzando gli stessi numeri dell'esempio precedente, se i 2000 utenti hanno guardato la TV per 60.000 minuti in un giorno, l'audience giornaliera sarà di 60.000 minuti.
-    let audienceGiornaliera = 0;
+    // let audienceGiornaliera = 0;
     // Audience media al minuto: Si calcola dividendo il totale dei minuti visti da tutti gli spettatori per il numero totale di minuti nel periodo considerato. Ad esempio, se i 2000 utenti hanno guardato la TV per un totale di 60.000 minuti in un giorno, l'audience media al minuto sarà 60.000 / 2000 = 30 minuti.
     // const audienceMediaMinuto = 0; 
     // Share: Lo share indica la percentuale dell'audience totale che ha guardato un particolare programma rispetto all'audience totale al momento della messa in onda. Se si conosce l'audience totale al momento della trasmissione, basta dividere l'audience del programma per l'audience totale e moltiplicare per 100 per ottenere la percentuale.
     // const [groupedData] = useState([]);
-    const populationNum = 52155073;
-    const panelNum = 2000;
-    let pesoNum = parseFloat(populationNum / panelNum).toFixed(0)
-    pesoNum = 1;
-    const channels = [];
-
+    
     const [acrDetails, setACRDetails] = useState([]);
     // const [acrDetailsTimeslot, setACRDetailsTimeslot] = useState([])
     const today = new Date(); // Get today's date
     const yesterday = new Date(today); // Create a new date object with today's date
-    yesterday.setDate(today.getDate() - 1); // Set it to yesterday
+    yesterday.setDate(today.getDate()); // Set it to yesterday
   
     // Format the date to DD/MM/YYYY
     const formattedYesterday = `${yesterday.getDate().toString().padStart(2, '0')}/${(
@@ -56,8 +51,59 @@ export default function RisultatinullView() {
     const [users, setUsers] = useState([]);
     const [idToEmailMap, setIdToEmailMap] = useState({});
 
-    // const [selectedDate, setSelectedDate] = useState('04/12/2023');
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(100);
+    const [selectedHourRange, setSelectedHourRange] = useState(null);
+
+    const handleChangePage = (event, newPage) => {
+      setPage(newPage);
+    };
   
+    const handleChangeRowsPerPage = (event) => {
+      setRowsPerPage(parseInt(event.target.value, 10));
+      setPage(0);
+    };
+    const handleChangeHourRange = (event) => {
+        setSelectedHourRange(event.target.value);
+        setPage(0); // Reset to the first page when changing the hour range
+      };
+
+    const filterByHourRange = (row) => {
+        if (!selectedHourRange) {
+          return true; // No filter applied
+        }
+    
+        const hour = new Date(row.f_recorded_at).getHours();
+        switch (selectedHourRange) {
+          case '0-3':
+            return hour >= 0 && hour < 3;
+          case '3-6':
+            return hour >= 3 && hour < 6;
+          case '6-9':
+            return hour >= 6 && hour < 9;
+          case '9-12':
+            return hour >= 9 && hour < 12;
+          case '12-15':
+            return hour >= 12 && hour < 15;
+          case '15-18':
+            return hour >= 15 && hour < 18;
+          case '18-21':
+            return hour >= 18 && hour < 21;
+          case '21-23':
+            return hour >= 21 && hour <= 23;
+          // Add more cases for other hour ranges
+          default:
+            return true;
+        }
+      };
+    const paginatedAcrDetails = acrDetails
+      .slice()
+      .reverse() // Reverse the order of the copied array
+      // .filter(row => row.acr_result !== "NULL") // Filter out rows with null acr_result
+      .filter(filterByHourRange)
+      .slice(page * rowsPerPage, (page + 1) * rowsPerPage);
+  
+    
   
     const handlePrint = () => {
       window.print();
@@ -199,63 +245,7 @@ export default function RisultatinullView() {
     }, [selectedDate, acrDetails]);
 
 
-    const timeSlots = {
-        '00:00 - 02:59': [],
-        '03:00 - 05:59': [],
-        '06:00 - 08:59': [],
-        '09:00 - 11:59': [],
-        '12:00 - 14:59': [],
-        '15:00 - 17:59': [],
-        '18:00 - 20:59': [],
-        '21:00 - 23:59': [],
-    };
-
-    acrDetails.forEach((item) => {
-        const recordedDate = item.recorded_at;
-        const [, time] = recordedDate.split(' ');
-        const [hours] = time.split(':');
-        const minuteKey = `${hours.padStart(2, '0')}`;
-        console.log(minuteKey);
-        if (item.acr_result !== 'NULL') {
-      
-        const slot = (() => {
-            const hour = parseInt(minuteKey, 10);
-            if (hour >= 0 && hour <= 2) return '00:00 - 02:59';
-            if (hour >= 3 && hour <= 5) return '03:00 - 05:59';
-            if (hour >= 6 && hour <= 8) return '06:00 - 08:59';
-            if (hour >= 9 && hour <= 11) return '09:00 - 11:59';
-            if (hour >= 12 && hour <= 14) return '12:00 - 14:59';
-            if (hour >= 15 && hour <= 17) return '15:00 - 17:59';
-            if (hour >= 18 && hour <= 20) return '18:00 - 20:59';
-            if (hour >= 21 && hour <= 23) return '21:00 - 23:59';
-            return '';
-        })();
-         // console.log("SLOT");
-         // console.log(slot);
-         audienceGiornaliera += 1 * pesoNum; 
-         if (channels.indexOf(item.acr_result) === -1) {
-            channels.push(item.acr_result);
-         }
-        if (slot !== '') {
-            if (!timeSlots[slot][item.acr_result]) {
-                timeSlots[slot][item.acr_result] = 1;
-            } else {
-                timeSlots[slot][item.acr_result] += 1;
-            }
-        }
-        }
-    });
-
-    console.log ("MINUTI TOTALI GIORNO: %s", audienceGiornaliera);
-    // let audienceGiornalieraReale = audienceGiornaliera/pesoNum 
-    // audienceGiornalieraReale = parseFloat(audienceGiornalieraReale).toFixed(0);
-    // const timeSlotLabels = Object.keys(timeSlots);
-   
-    // const channelNames = Object.keys(timeSlotSeries);
-    /* const channelNames = Array.from(
-        new Set(Object.values(timeSlots).flatMap((data) => Object.keys(data)))
-    ); */
-    // Initialize userListeningMap
+    
         const userListeningMap = {};
 
         acrDetails.forEach((item) => {
@@ -295,16 +285,6 @@ export default function RisultatinullView() {
         console.log("USER LISTENING MAP");
         console.log(userListeningMap);
 
-      // Now you can calculate the unique users listening to each channel
-        /* 
-        const calculateAudienceShare = (channel, slot) => {
-        const totalUsers = panelNum; // Total number of users (replace this with your actual number)
-        const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
-        // Calculate the share percentage for the channel in the given time slot
-        const sharePercentage = `${((uniqueUsersListening / totalUsers) * 100).toFixed(2)}%`;
-        return sharePercentage;
-        };
-        */
         // Calculate the total sum across all channels
         const totalSum = minuteBasedData.series.reduce((total, channel) => {
             const sum = channel.data.reduce((acc, value) => acc + value, 0);
@@ -313,55 +293,7 @@ export default function RisultatinullView() {
 
         // Display the total sum
         console.log("Total Sum across all channels:", totalSum);
-        /* 
-        const calculateAudience = (channel, slot) => {
-            const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
-            // Calculate the share percentage for the channel in the given time slot
-            return uniqueUsersListening*pesoNum;
-        };
-        const calculateAudienceByMinute = (channel, slot) => {
-            const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
-            const minutoMedio = parseFloat((timeSlots[slot][channel]/uniqueUsersListening).toFixed(1)) || 0 ;
-            // console.log("MINUTO MEDIO %s", minutoMedio);
-            const audienceByMinute = minutoMedio*(uniqueUsersListening*pesoNum);
-            // console.log("AUDIENCE BY MINUTE canale %s slot %s audiencexmin %s", channel,slot, audienceByMinute);
-            // Calculate the share percentage for the channel in the given time slot
-            return audienceByMinute.toFixed(1);
-        };
-        const calculateShareSlotCanale = (channel, slot) => {
-            let audienceSlotCanali = 0;
-            channels.forEach(canalealtro => {
-                if ((canalealtro !== "NULL")) {
-                    audienceSlotCanali += parseFloat(timeSlots[slot][canalealtro] || 0)
-                }
-            });
-    
-            // console.log("AUDIENCE CANALE %s FASCIA ORARIA %s %s %s", channel, slot, audienceSlotCanali,timeSlots[slot][channel]);
-            const shareSlotCanale = parseFloat((((timeSlots[slot][channel])/audienceSlotCanali)*100).toFixed(1)) || 0 ;
-            return shareSlotCanale;
-        };
-    
-        const displayTitle = (channel,slot) => {
-            const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
-            const minutoMedio = parseFloat((timeSlots[slot][channel]/uniqueUsersListening).toFixed(0)) || 0 ;
-            // console.log("MINUTO MEDIO %s", minutoMedio);
-            const audienceByMinute = minutoMedio*(uniqueUsersListening*pesoNum);
-            // console.log("AUDIENCE BY MINUTE canale %s slot %s audiencexmin %s", channel,slot, audienceByMinute);
-            return `#Canale: ${channel}, #Utenti reali per canale ${uniqueUsersListening}, n. Individui ${uniqueUsersListening*pesoNum} #Minuti Totali ${timeSlots[slot][channel]/pesoNum} #Minuto medio ${minutoMedio}, #Audience pesata ${audienceByMinute}`;
-
-        }
-        
-        const displayTitleShare = (channel,slot) =>  {
-            let audienceSlotCanali = 0;
-            channels.forEach(canalealtro => {
-                if ((canalealtro !== "NULL")) {
-                    audienceSlotCanali += parseFloat(timeSlots[slot][canalealtro] || 0)
-                }
-            });
-    
-            return `(#Audience pesata fascia oraria canale ${timeSlots[slot][channel] || 0} minuti / #Audience canali complessiva  ${audienceSlotCanali} minuti) * 100`;
-        }
-        */
+       
     return (
         <Container>
             <Typography variant="h4" sx={{mb: 5}}>
@@ -378,6 +310,27 @@ export default function RisultatinullView() {
                         onChange={handleDateChange}
                         value={dayjs(selectedDate, 'DD/MM/YYYY')}
                     />
+                    <FormControl sx={{ margin: 1, minWidth: 120 }}>
+        <InputLabel id="hour-range-select-label">Hour Range</InputLabel>
+        <Select
+          labelId="hour-range-select-label"
+          id="hour-range-select"
+          value={selectedHourRange}
+          label="Hour Range"
+          onChange={handleChangeHourRange}
+        >
+          <MenuItem value={null}>All</MenuItem>
+          <MenuItem value="0-3">00-03</MenuItem>
+          <MenuItem value="3-6">03-06</MenuItem>
+          <MenuItem value="6-9">06-09</MenuItem>
+          <MenuItem value="9-12">09-12</MenuItem>
+          <MenuItem value="12-15">12-15</MenuItem>
+          <MenuItem value="15-18">15-18</MenuItem>
+          <MenuItem value="18-21">18-21</MenuItem>
+          <MenuItem value="21-23">21-23</MenuItem>
+          {/* Add more MenuItem components for other hour ranges */}
+        </Select>
+      </FormControl>
                   <Button onClick={handlePrint}>STAMPA</Button>
                   </DemoContainer>
             </LocalizationProvider>
@@ -390,50 +343,48 @@ export default function RisultatinullView() {
                 DETTAGLIO RAW CON E SENZA RICONOSCIMENTI
                 <ExportExcel    exdata={acrDetails} fileName="Excel-Export-Dettaglio" idelem="export-table-dett"/>
                 </Typography>
-                <Typography variant="p" sx={{ml: 2, mt: 3,mb:2}}>
-                Dati dei singoli record prodotti da ogni utente nel giorno preso in considerazione ovvero {selectedDate}
-                Ordinati dall&apos;ultimo record registato al primo del giorno.
+                <Typography variant="p" sx={{ml: 2, mt: 3, mb:2}}>
+                Dati dei singoli record prodotti da ogni utente nel giorno  {selectedDate}. Ordinati dall&apos;ultimo record al primo ricevuto per fascia oraria.
                 </Typography>
              <TableContainer id="export-table-dett" sx={{overflow: 'unset'}}>
-                        <Table sx={{minWidth: 800}}>
-                            {/* Your table head component goes here */}
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>UID</TableCell>
-                                    <TableCell>Email</TableCell>
-                                    <TableCell>Model</TableCell>
-                                    <TableCell>Brand</TableCell>
-                                    <TableCell>Canale</TableCell>
-                                    <TableCell>Durata</TableCell>
-                                    <TableCell>LatLon</TableCell>
-                                    <TableCell>Time</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {acrDetails 
-                                .slice() // Create a copy of the array to avoid mutating the original
-                                .reverse() // Reverse the order of the copied array
-                                
-//                                    .filter(row => row.acr_result !== "NULL") // Filter out rows with null acr_result
-                                    .map((row) => ( 
-   
-                                    
-                                    <TableRow key={row._id}>
-                                        {/* Customize this based on your data structure */}
-                                        <TableCell>{row.user_id}</TableCell>
-                                        <TableCell>{idToEmailMap[row.user_id]}</TableCell>
-                                        <TableCell>{row.model}</TableCell>
-                                        <TableCell>{row.brand}</TableCell>
-                                        <TableCell>{row.acr_result}</TableCell>
-                                        <TableCell>{row.duration*6}</TableCell>
-                                        <TableCell>{row.latitude},{row.longitude}</TableCell>
-                                        <TableCell>{row.recorded_at}</TableCell>
-                                    </TableRow>
-                                    
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
+                    <Table sx={{ minWidth: 800 }}>
+                    <TableHead>
+                        <TableRow>
+                        <TableCell>UID</TableCell>
+                        <TableCell>Email</TableCell>
+                        <TableCell>Model</TableCell>
+                        <TableCell>Brand</TableCell>
+                        <TableCell>Canale</TableCell>
+                        <TableCell>Durata</TableCell>
+                        <TableCell>LatLon</TableCell>
+                        <TableCell>Time</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {paginatedAcrDetails.map((row) => (
+                        <TableRow key={row._id}>
+                            <TableCell>{row.user_id}</TableCell>
+                            <TableCell>{idToEmailMap[row.user_id]}</TableCell>
+                            <TableCell>{row.model}</TableCell>
+                            <TableCell>{row.brand}</TableCell>
+                            <TableCell>{row.acr_result}</TableCell>
+                            <TableCell>{row.duration * 6}</TableCell>
+                            <TableCell>{row.latitude},{row.longitude}</TableCell>
+                            <TableCell>{row.recorded_at}</TableCell>
+                        </TableRow>
+                        ))}
+                    </TableBody>
+                    </Table>
+                </TableContainer>
+                <TablePagination
+                    rowsPerPageOptions={[500, 3000, 10000]}
+                    component="div"
+                    count={acrDetails.length}
+                    rowsPerPage={rowsPerPage}
+                    page={page}
+                    onPageChange={handleChangePage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                />
                 </Scrollbar>
 
                 {/* Remaining pagination logic */}

@@ -35,7 +35,7 @@ export default function UserPage() {
 
     const [filterName, setFilterName] = useState('');
 
-    const [rowsPerPage, setRowsPerPage] = useState(1500);
+    const [rowsPerPage, setRowsPerPage] = useState(500);
 
     const [users, setUsers] = useState([]);
     
@@ -170,11 +170,13 @@ export default function UserPage() {
         <Container>
             <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
                 <Typography variant="h4">Users</Typography>
-
                 <Button variant="contained" color="inherit" startIcon={<Iconify icon="eva:plus-fill"/>}>
                     New User
                 </Button>
             </Stack>
+            <Typography variant="p">
+                    I dati delle ultime 24/48 ore corrispondono alle 00:00:01 del giorno {formattedYesterday} a quello attuale. <br /> APP-ATTIVATA indica se dal giorno {formattedStartday} ad ora utente ha mai inviato risultati.
+                    </Typography>
 
             <Card>
                 <UserTableToolbar
@@ -196,7 +198,7 @@ export default function UserPage() {
                                 headLabel={[
                                     {id: 'name', label: 'Name'},
                                     {id: 'email', label: 'Email'},
-                                    {id: 'age', label: 'Ultime 24h', align: 'center'},
+                                    {id: 'age', label: 'Ultime 24/48h', align: 'center'},
                                     {id: 'id', label: 'ID'},
                                     {id: 'status', label: 'APP-ATTIVATA'},
                                     {id: ''},
@@ -236,7 +238,7 @@ export default function UserPage() {
                     count={users.length}
                     rowsPerPage={rowsPerPage}
                     onPageChange={handleChangePage}
-                    rowsPerPageOptions={[1500, 3000]}
+                    rowsPerPageOptions={[500, 2000]}
                     onRowsPerPageChange={handleChangeRowsPerPage}
                 />
             </Card>
