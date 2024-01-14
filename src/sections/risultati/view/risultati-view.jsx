@@ -29,7 +29,7 @@ export default function RisultatiView() {
 
 
     // Audience giornaliera: È la somma totale dei minuti guardati da tutti gli spettatori durante l'intera giornata. Utilizzando gli stessi numeri dell'esempio precedente, se i 2000 utenti hanno guardato la TV per 60.000 minuti in un giorno, l'audience giornaliera sarà di 60.000 minuti.
-    let audienceGiornaliera = 0;
+    // let audienceGiornaliera = 0;
     // Audience media al minuto: Si calcola dividendo il totale dei minuti visti da tutti gli spettatori per il numero totale di minuti nel periodo considerato. Ad esempio, se i 2000 utenti hanno guardato la TV per un totale di 60.000 minuti in un giorno, l'audience media al minuto sarà 60.000 / 2000 = 30 minuti.
     // const audienceMediaMinuto = 0; 
     // Share: Lo share indica la percentuale dell'audience totale che ha guardato un particolare programma rispetto all'audience totale al momento della messa in onda. Se si conosce l'audience totale al momento della trasmissione, basta dividere l'audience del programma per l'audience totale e moltiplicare per 100 per ottenere la percentuale.
@@ -266,7 +266,7 @@ export default function RisultatiView() {
         const [, time] = recordedDate.split(' ');
         const [hours] = time.split(':');
         const minuteKey = `${hours.padStart(2, '0')}`;
-        console.log(minuteKey);
+        // console.log(minuteKey);
         if (item.acr_result !== 'NULL') {
       
         const slot = (() => {
@@ -283,7 +283,7 @@ export default function RisultatiView() {
         })();
          // console.log("SLOT");
          // console.log(slot);
-         audienceGiornaliera += 1 * pesoNum; 
+         // audienceGiornaliera += 1 * pesoNum; 
          if (channels.indexOf(item.acr_result) === -1) {
             channels.push(item.acr_result);
          }
@@ -297,7 +297,7 @@ export default function RisultatiView() {
         }
     });
 
-    console.log ("MINUTI TOTALI GIORNO: %s", audienceGiornaliera);
+    // console.log ("MINUTI TOTALI GIORNO: %s", audienceGiornaliera);
     // let audienceGiornalieraReale = audienceGiornaliera/pesoNum 
     // audienceGiornalieraReale = parseFloat(audienceGiornalieraReale).toFixed(0);
     const timeSlotLabels = Object.keys(timeSlots);
@@ -411,7 +411,20 @@ export default function RisultatiView() {
     
             return `(#Audience pesata fascia oraria canale ${timeSlots[slot][channel] || 0} minuti / #Audience canali complessiva  ${audienceSlotCanali} minuti) * 100`;
         }
-        
+
+        const counts = {};
+        acrDetails.forEach((detail) => {
+            const key = `${detail.user_id}-${detail.email}`;
+          
+            counts[key] = (counts[key] || 0) + 1;
+          });
+          
+          // Filter unique values
+          const uniqueDetails = Object.keys(counts).map((key) => {
+            const [user_id, email] = key.split('-');
+            return { user_id: parseInt(user_id, 10), email, count: counts[key] };
+          });
+          console.log("Unique Details",uniqueDetails);
     return (
         <Container>
             <Typography variant="h4" sx={{mb: 5}}>
@@ -599,7 +612,10 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
                 </Typography>
                 <Typography variant="p" sx={{ml: 2, mt: 3,mb:2}}>
                 Dati dei singoli record prodotti da ogni utente nel giorno preso in considerazione ovvero {selectedDate}
-                </Typography>
+               <br /> </Typography>
+                    <Typography variant="p" sx={{ml: 2, mt: 3,mb:2}}>
+                    Utenti attivi {uniqueDetails.length}, utenti non attivi {(users.length - uniqueDetails.length)} su un totale di {users.length} utenti. 
+                     </Typography>
                 <TableContainer id="export-table-dett" sx={{overflow: 'unset'}}>
                     <Table sx={{ minWidth: 800 }}>
                     <TableHead>
