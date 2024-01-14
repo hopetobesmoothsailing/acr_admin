@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 import 'leaflet/dist/leaflet.css';
 import { Tooltip } from 'react-tooltip'
 import {useMemo, useState, useEffect} from 'react';
-import {Popup,  Marker,TileLayer, MapContainer  } from 'react-leaflet';
+// import {Popup,  Marker,TileLayer, MapContainer  } from 'react-leaflet';
 
 import Card from '@mui/material/Card';
 import Button  from '@mui/material/Button';
@@ -14,7 +14,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import {Table, TableRow, TableHead, TableBody, TableCell, TableContainer} from '@mui/material';
+import {Table, Select,MenuItem,TableRow, TableHead, TableBody, TableCell, InputLabel,FormControl, TableContainer, TablePagination} from '@mui/material';
 
 import Scrollbar from 'src/components/scrollbar';
 
@@ -56,8 +56,59 @@ export default function RisultatiView() {
     const [users, setUsers] = useState([]);
     const [idToEmailMap, setIdToEmailMap] = useState({});
 
-    // const [selectedDate, setSelectedDate] = useState('04/12/2023');
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(500);
+    const [selectedHourRange, setSelectedHourRange] = useState(null);
+
+    const handleChangePage = (event, newPage) => {
+      setPage(newPage);
+    };
   
+    const handleChangeRowsPerPage = (event) => {
+      setRowsPerPage(parseInt(event.target.value, 10));
+      setPage(0);
+    };
+    const handleChangeHourRange = (event) => {
+        setSelectedHourRange(event.target.value);
+        setPage(0); // Reset to the first page when changing the hour range
+      };
+
+    const filterByHourRange = (row) => {
+        if (!selectedHourRange) {
+          return true; // No filter applied
+        }
+    
+        const hour = new Date(row.f_recorded_at).getHours();
+        switch (selectedHourRange) {
+          case '0-3':
+            return hour >= 0 && hour < 3;
+          case '3-6':
+            return hour >= 3 && hour < 6;
+          case '6-9':
+            return hour >= 6 && hour < 9;
+          case '9-12':
+            return hour >= 9 && hour < 12;
+          case '12-15':
+            return hour >= 12 && hour < 15;
+          case '15-18':
+            return hour >= 15 && hour < 18;
+          case '18-21':
+            return hour >= 18 && hour < 21;
+          case '21-23':
+            return hour >= 21 && hour <= 23;
+          // Add more cases for other hour ranges
+          default:
+            return true;
+        }
+      };
+    const paginatedAcrDetails = acrDetails
+      .slice()
+      .reverse() // Reverse the order of the copied array
+      .filter(row => row.acr_result !== "NULL") // Filter out rows with null acr_result
+      .filter(filterByHourRange)
+      .slice(page * rowsPerPage, (page + 1) * rowsPerPage);
+  
+    
   
     const handlePrint = () => {
       window.print();
@@ -366,7 +417,7 @@ export default function RisultatiView() {
             <Typography variant="h4" sx={{mb: 5}}>
                 Dati raccolti senza applicare alcun peso relativo alla popolazione
             </Typography>
-            <Typography variant="p" sx={{mb: 5}}>
+            <Typography variant="p" sx={{mb: 5, display:'none'}}>
             Ascolto minuto	AMM. Indica il numero di persone sintonizzate su una determinata stazione.	Giornaliero	No	<br />
 Ascoltatori Radio	AU	∑AMM x minuto	Giornaliero	No	<br />
 Ascolto medio	AMR	∑AMM di un canale-programma/Minuti periodo selezionato	Giornaliero	Sì	In caso di periodo pari a 1 minuto AMR=AMM<br />
@@ -391,49 +442,7 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
                   <Button onClick={handlePrint}>STAMPA</Button>
                   </DemoContainer>
             </LocalizationProvider>
-            <Card sx={{ mt: 3 }}>
-                <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                        Mappa utenti
-                    </Typography>
-                    <MapContainer
-                        center={[44.4837486, 11.2789241]}
-                        zoom={5}
-                        style={{ height: '400px', width: '100%' }}
-                    >
-                        <TileLayer
-                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                        />
-                               
-
-                        {acrDetails 
-                            .filter(row => row.acr_result !== "NULL") // Filter out rows with null acr_result
-                            .map((row) => {
-                            const latitude = parseFloat(row.latitude);
-                            const longitude = parseFloat(row.longitude);
-
-                            if (!Number.isNaN(latitude) && !Number.isNaN(longitude)) {
-                                return (
-                                    <Marker
-                                        key={row._id}
-                                        position={[latitude, longitude]}
-                                    >
-                                <Popup>
-                                    {`${row.brand} ${row.model}`} <br />
-                                    {`Channel: ${row.acr_result}`} <br />
-                                    {`Recorded At: ${row.recorded_at}`} <br />
-                                    {`Location: ${row.location_address}`}
-                                </Popup>
-                                        {/* ... */}
-                                    </Marker>
-                                );
-                            }
-                            return null; // Skip rendering marker for invalid coordinates
-                        })}
-                    </MapContainer>
-                </CardContent>
-            </Card>
+           
             <AppWebsiteAudience
                 title="AMM"
                 subheader="Numero di persone sintonizzate su un particolare canale ogni minuto"
@@ -479,6 +488,7 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
             </TableContainer>
              
                 <Card >
+                    <CardContent>
                     <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2}}>
                     SHARE 
                     <ExportExcel  exdata={channelNames} fileName="Excel-Export-Share" idelem="export-table-share"/>
@@ -518,6 +528,7 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
                                 </Table>
                             </TableContainer>
                         </Scrollbar>
+                        </CardContent>
                     </Card>
                 <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2}}>
                 Audience
@@ -564,49 +575,109 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
                 <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2, mr:4, pr:3}}>
                 DETTAGLIO RAW CON RICONOSCIMENTI
                 <ExportExcel    exdata={acrDetails} fileName="Excel-Export-Dettaglio" idelem="export-table-dett"/>
+                <FormControl sx={{ margin: 0, minWidth: 140 }}>
+        <InputLabel id="hour-range-select-label">Range</InputLabel>
+        <Select
+          labelId="hour-range-select-label"
+          id="hour-range-select"
+          value={selectedHourRange}
+          label="Range"
+          onChange={handleChangeHourRange}
+        >
+          <MenuItem value={null}>All</MenuItem>
+          <MenuItem value="0-3">00-03</MenuItem>
+          <MenuItem value="3-6">03-06</MenuItem>
+          <MenuItem value="6-9">06-09</MenuItem>
+          <MenuItem value="9-12">09-12</MenuItem>
+          <MenuItem value="12-15">12-15</MenuItem>
+          <MenuItem value="15-18">15-18</MenuItem>
+          <MenuItem value="18-21">18-21</MenuItem>
+          <MenuItem value="21-23">21-23</MenuItem>
+          {/* Add more MenuItem components for other hour ranges */}
+        </Select>
+      </FormControl>
                 </Typography>
                 <Typography variant="p" sx={{ml: 2, mt: 3,mb:2}}>
                 Dati dei singoli record prodotti da ogni utente nel giorno preso in considerazione ovvero {selectedDate}
                 </Typography>
-             <TableContainer id="export-table-dett" sx={{overflow: 'unset'}}>
-                        <Table sx={{minWidth: 800}}>
-                            {/* Your table head component goes here */}
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>UID</TableCell>
-                                    <TableCell>Email</TableCell>
-                                    <TableCell>Model</TableCell>
-                                    <TableCell>Brand</TableCell>
-                                    <TableCell>Canale</TableCell>
-                                    <TableCell>Durata</TableCell>
-                                    <TableCell>LatLon</TableCell>
-                                    <TableCell>Time</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {acrDetails 
-                                    .filter(row => row.acr_result !== "NULL") // Filter out rows with null acr_result
-                                    .map((row) => ( 
-   
-                                    
-                                    <TableRow key={row._id}>
-                                        {/* Customize this based on your data structure */}
-                                        <TableCell>{row.user_id}</TableCell>
-                                        <TableCell>{idToEmailMap[row.user_id]}</TableCell>
-                                        <TableCell>{row.model}</TableCell>
-                                        <TableCell>{row.brand}</TableCell>
-                                        <TableCell>{row.acr_result}</TableCell>
-                                        <TableCell>{row.duration*6}</TableCell>
-                                        <TableCell>{row.latitude},{row.longitude}</TableCell>
-                                        <TableCell>{row.recorded_at}</TableCell>
-                                    </TableRow>
-                                    
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
+                <TableContainer id="export-table-dett" sx={{overflow: 'unset'}}>
+                    <Table sx={{ minWidth: 800 }}>
+                    <TableHead>
+                        <TableRow>
+                        <TableCell>UID</TableCell>
+                        <TableCell>Email</TableCell>
+                        <TableCell>Model</TableCell>
+                        <TableCell>Brand</TableCell>
+                        <TableCell>Canale</TableCell>
+                        <TableCell>Durata</TableCell>
+                        <TableCell>LatLon</TableCell>
+                        <TableCell>Time</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {paginatedAcrDetails.map((row) => (
+                        <TableRow key={row._id}>
+                            <TableCell><a title="Visualizza dettagli del giorno dell&apos;utente" href={`risdettagli?date=${row.recorded_at.split(' ')[0].replace(/\//g, '-')}&userId=${row.user_id}`}>{row.user_id}</a></TableCell>
+                            <TableCell>{idToEmailMap[row.user_id]}</TableCell>
+                            <TableCell>{row.model}</TableCell>
+                            <TableCell>{row.brand}</TableCell>
+                            <TableCell>{row.acr_result}</TableCell>
+                            <TableCell>{row.duration * 6}</TableCell>
+                            <TableCell>{row.latitude},{row.longitude}</TableCell>
+                            <TableCell>{row.recorded_at}</TableCell>
+                        </TableRow>
+                        ))}
+                    </TableBody>
+                    </Table>
+                </TableContainer>
+                    <TablePagination
+                    rowsPerPageOptions={[500, 3000, 10000]}
+                    component="div"
+                    count={acrDetails.length}
+                    rowsPerPage={rowsPerPage}
+                    page={page}
+                    onPageChange={handleChangePage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                />
                 </Scrollbar>
 
+                { /* <MapContainer
+                        center={[44.4837486, 11.2789241]}
+                        zoom={5}
+                        style={{ height: '400px', width: '100%' }}
+                    >
+                        <TileLayer
+                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        />
+                               
+
+                        { acrDetails 
+                            .filter(row => row.acr_result !== "NULL") // Filter out rows with null acr_result
+                            .map((row) => {
+                            const latitude = parseFloat(row.latitude);
+                            const longitude = parseFloat(row.longitude);
+
+                            if (!Number.isNaN(latitude) && !Number.isNaN(longitude)) {
+                                return (
+                                    <Marker
+                                        key={row._id}
+                                        position={[latitude, longitude]}
+                                    >
+                                <Popup>
+                                    {`${row.brand} ${row.model}`} <br />
+                                    {`Channel: ${row.acr_result}`} <br />
+                                    {`Recorded At: ${row.recorded_at}`} <br />
+                                    {`Location: ${row.location_address}`}
+                                </Popup>
+                                        
+                                    </Marker>
+                                );
+
+                            }
+                            return null; // Skip rendering marker for invalid coordinates
+                        })}
+                    </MapContainer> */}
                 {/* Remaining pagination logic */}
             </Card>
             <Tooltip id="my-tooltip" />

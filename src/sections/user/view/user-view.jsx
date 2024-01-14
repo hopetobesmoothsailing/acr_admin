@@ -16,11 +16,13 @@ import Scrollbar from 'src/components/scrollbar';
 
 import TableNoData from '../table-no-data';
 import UserTableRow from '../user-table-row';
+import ExportExcel from "../export-to-excel"; 
 import UserTableHead from '../user-table-head';
 import {SERVER_URL} from "../../../utils/consts";
 import TableEmptyRows from '../table-empty-rows';
 import UserTableToolbar from '../user-table-toolbar';
 import {emptyRows, applyFilter, getComparator} from '../utils';
+
 
 // ----------------------------------------------------------------------
 
@@ -186,7 +188,9 @@ export default function UserPage() {
                 />
 
                 <Scrollbar>
-                    <TableContainer sx={{overflow: 'unset'}}>
+                <ExportExcel    exdata={dataFiltered} fileName="Dettaglio-Risultati-Utente" idelem="export-table-dettaglio"/>
+        
+                    <TableContainer id="export-table-dettaglio" sx={{overflow: 'unset'}}>
                         <Table sx={{minWidth: 800}}>
                             <UserTableHead
                                 order={order}
@@ -199,7 +203,7 @@ export default function UserPage() {
                                     {id: 'name', label: 'Name'},
                                     {id: 'email', label: 'Email'},
                                     {id: 'age', label: 'Ultime 24/48h', align: 'center'},
-                                    {id: 'id', label: 'ID'},
+                                    {id: 'role', label: 'ID'},
                                     {id: 'status', label: 'APP-ATTIVATA'},
                                     {id: ''},
                                 ]}
