@@ -81,7 +81,6 @@ export default function UserPage() {
 
   
 
-    console.log(detailsUser);
       // Create the mapping of _id to email
     useEffect(() => {
         const idToEmail = {};
@@ -138,7 +137,7 @@ export default function UserPage() {
 
     const handleFilterByName = (event) => {
         setPage(0);
-        setFilterName(event.target.value);
+        setFilterName(event.target.value.toLowerCase());
     };
 
     const dataFiltered = applyFilter({
@@ -150,7 +149,7 @@ export default function UserPage() {
     const notFound = !dataFiltered.length && !!filterName;
 
     function getUserStatus(userId, activeUsers) {
-        console.log(activeUsers);
+        // console.log(activeUsers);
         let ret = "no";
         if (activeUsers.some(user => user._id === userId)) {
           ret = "si";
@@ -159,7 +158,7 @@ export default function UserPage() {
          
       }
       function getUserActivated(userId, activeUsers) {
-        console.log(activeUsers);
+        // console.log(activeUsers);
         let ret = "non attivata";
         if (activeUsers.some(user => user._id === userId)) {
           ret = "attivata";
@@ -178,6 +177,7 @@ export default function UserPage() {
             </Stack>
             <Typography variant="p">
                     I dati delle ultime 24/48 ore corrispondono alle 00:00:01 del giorno {formattedYesterday} a quello attuale. <br /> APP-ATTIVATA indica se dal giorno {formattedStartday} ad ora utente ha mai inviato risultati.
+                    <br /><small>Nota: Ripristinata funzionalità ricerca utente e implementata visualizzazione dettaglio sul nome utente.</small>
                     </Typography>
 
             <Card>
@@ -189,7 +189,9 @@ export default function UserPage() {
 
                 <Scrollbar>
                 <ExportExcel    exdata={dataFiltered} fileName="Dettaglio-Risultati-Utente" idelem="export-table-dettaglio"/>
-        
+                    <Typography variant="p">
+                        Utenti attivati ({detailsUser.length}).Utenti attivi nelle ultime 24/48h ({details24User.length}) su un totale di {users.length} utenti. 
+                    </Typography>
                     <TableContainer id="export-table-dettaglio" sx={{overflow: 'unset'}}>
                         <Table sx={{minWidth: 800}}>
                             <UserTableHead
