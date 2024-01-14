@@ -27,6 +27,7 @@ import {emptyRows, applyFilter, getComparator} from '../utils';
 // ----------------------------------------------------------------------
 
 export default function UserPage() {
+    const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(0);
 
     const [order, setOrder] = useState('asc');
@@ -63,12 +64,26 @@ export default function UserPage() {
     
     useEffect(() => {
         const fetchUsers = async () => {
-            const result = (await axios.post(`${SERVER_URL}/getUsers`)).data;
-            setUsers(result.users);
+            try {
+                setLoading(true);
+                const result = (await axios.post(`${SERVER_URL}/getUsers`)).data;
+                setUsers(result.users);
+              } catch (error) {
+                console.error('Error fetching users:', error);
+              } finally {
+                setLoading(false);
+              }
         }
         const fetchDetailUsers = async () => {
-            const response = (await axios.post(`${SERVER_URL}/getAppActivatedUsers`, {date: formattedStartday})).data; // Adjust the endpoint to match your server route
-            setDetailsUser(response.activeUsers);
+            try {
+                setLoading(true);
+                const response = (await axios.post(`${SERVER_URL}/getAppActivatedUsers`, {date: formattedStartday})).data; // Adjust the endpoint to match your server route
+                setDetailsUser(response.activeUsers);
+             } catch (error) {
+                console.error('Error fetching details users:', error);
+              } finally {
+                setLoading(false);
+              }
         }
         const fetchDetailLast24hoursUsers = async () => {
             const response = (await axios.post(`${SERVER_URL}/getAppActivatedUsers`, {date: formattedYesterday})).data; // Adjust the endpoint to match your server route
@@ -166,7 +181,9 @@ export default function UserPage() {
         return ret;
          
       }
-    
+      if (loading) {
+        return <p>Caricamento dati in corso...</p>; // You can replace this with your loading indicator component
+      }
     return (
         <Container>
             <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>

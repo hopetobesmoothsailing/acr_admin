@@ -44,7 +44,7 @@ export default function RisultatiView() {
     // const [acrDetailsTimeslot, setACRDetailsTimeslot] = useState([])
     const today = new Date(); // Get today's date
     const yesterday = new Date(today); // Create a new date object with today's date
-    yesterday.setDate(today.getDate() - 1); // Set it to yesterday
+    yesterday.setDate(today.getDate() ); // Set it to yesterday
   
     // Format the date to DD/MM/YYYY
     const formattedYesterday = `${yesterday.getDate().toString().padStart(2, '0')}/${(
@@ -631,7 +631,7 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
                     </Table>
                 </TableContainer>
                     <TablePagination
-                    rowsPerPageOptions={[500, 3000, 10000]}
+                    rowsPerPageOptions={[500, 40000, 100000,500000]}
                     component="div"
                     count={acrDetails.length}
                     rowsPerPage={rowsPerPage}
