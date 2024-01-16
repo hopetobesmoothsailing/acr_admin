@@ -2,6 +2,7 @@ import axios from "axios";
 import dayjs from "dayjs";
 import 'leaflet/dist/leaflet.css';
 import { Tooltip } from 'react-tooltip'
+import { useLocation } from 'react-router-dom';
 import {useMemo, useState, useEffect} from 'react';
 // import {Popup,  Marker,TileLayer, MapContainer  } from 'react-leaflet';
 
@@ -39,7 +40,8 @@ export default function RisultatiView() {
     let pesoNum = parseFloat(populationNum / panelNum).toFixed(0)
     pesoNum = 1;
     const channels = [];
-
+    const location = useLocation();
+  
     const [acrDetails, setACRDetails] = useState([]);
     // const [acrDetailsTimeslot, setACRDetailsTimeslot] = useState([])
     const today = new Date(); // Get today's date
@@ -120,6 +122,11 @@ export default function RisultatiView() {
     };
     // Function to handle date change from date picker
 
+    let tipoRadioTV = 'RADIO';
+    const searchParams = new URLSearchParams(location.search);
+    const tipo = searchParams.get('type');
+    if (tipo === null) { tipoRadioTV = 'RADIO';}
+    else { tipoRadioTV = 'TV';}
 
     useEffect(() => {
         // Function to fetch ACR details by date
@@ -127,7 +134,7 @@ export default function RisultatiView() {
             try {
                 const formattedDate = selectedDate; // Encode the date for URL
 
-                const response = (await axios.post(`${SERVER_URL}/getACRDetailsByDate`, {date: formattedDate})).data; // Adjust the endpoint to match your server route
+                const response = (await axios.post(`${SERVER_URL}/getACRDetailsByDateRTV`, {date: formattedDate,type:tipoRadioTV})).data; // Adjust the endpoint to match your server route
                 setACRDetails(response.acrDetails);
             } catch (error) {
                 console.error('Error fetching ACR details:', error);
@@ -152,7 +159,7 @@ export default function RisultatiView() {
         fetchACRDetailsByDate(); // Call the function to fetch ACR details by date
         fetchUsers();
 
-    }, [selectedDate]);
+    }, [selectedDate,tipoRadioTV]);
 
     const fetchUsers = async () => {
         const result = (await axios.post(`${SERVER_URL}/getUsers`)).data;
@@ -428,7 +435,7 @@ export default function RisultatiView() {
     return (
         <Container>
             <Typography variant="h4" sx={{mb: 5}}>
-                Dati raccolti senza applicare alcun peso relativo alla popolazione
+                Dati {tipoRadioTV} raccolti senza applicare alcun peso relativo alla popolazione
             </Typography>
             <Typography variant="p" sx={{mb: 5, display:'none'}}>
             Ascolto minuto	AMM. Indica il numero di persone sintonizzate su una determinata stazione.	Giornaliero	No	<br />
