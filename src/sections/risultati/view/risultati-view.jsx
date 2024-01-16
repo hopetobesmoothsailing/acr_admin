@@ -390,6 +390,8 @@ export default function RisultatiView() {
         };
         const calculateShareSlotCanale = (channel, slot) => {
             let audienceSlotCanali = 0;
+            channels.sort();
+
             channels.forEach(canalealtro => {
                 if ((canalealtro !== "NULL")) {
                     audienceSlotCanali += parseFloat(timeSlots[slot][canalealtro] || 0)
@@ -412,6 +414,7 @@ export default function RisultatiView() {
         }
         const displayTitleShare = (channel,slot) =>  {
             let audienceSlotCanali = 0;
+            channels.sort();
             channels.forEach(canalealtro => {
                 if ((canalealtro !== "NULL")) {
                     audienceSlotCanali += parseFloat(timeSlots[slot][canalealtro] || 0)
@@ -535,7 +538,7 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
-                                        {Object.keys(userListeningMap).map((channel, index) => (
+                                        {Object.keys(userListeningMap).sort().map((channel, index) => (
                                             <TableRow key={index}>
                                                 <TableCell>{channel}</TableCell>
                                                 {timeSlotLabels.map((timeSlotKey) => (
@@ -569,13 +572,13 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
                                 <TableHead>
                                     <TableRow>
                                         <TableCell>Channel Name</TableCell>
-                                        {timeSlotLabels.map((timeSlotKey) => (
+                                        {timeSlotLabels.sort().map((timeSlotKey) => (
                                             <TableCell key={timeSlotKey}>{timeSlotKey}</TableCell>
                                         ))}
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {Object.keys(userListeningMap).map((channel, index) => (
+                                    {Object.keys(userListeningMap).sort().map((channel, index) => (
                                         <TableRow key={index}>
                                             <TableCell>{channel}</TableCell>
                                             {timeSlotLabels.map((timeSlotKey) => (

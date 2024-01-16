@@ -84,7 +84,7 @@ export default function FascicoloView() {
             try {
                 const formattedDate = selectedDate; // Encode the date for URL
 
-                const response = (await axios.post(`${SERVER_URL}/getACRDetailsByDate`, {date: formattedDate})).data; // Adjust the endpoint to match your server route
+                const response = (await axios.post(`${SERVER_URL}/getACRDetailsByDateRTV`, {date: formattedDate,type:'RADIO'})).data; // Adjust the endpoint to match your server route
                 setACRDetails(response.acrDetails);
             } catch (error) {
                 console.error('Error fetching ACR details:', error);
@@ -319,7 +319,7 @@ export default function FascicoloView() {
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
-                                        {Object.keys(userListeningMap).map((channel, index) => (
+                                        {Object.keys(userListeningMap).sort().map((channel, index) => (
                                             <TableRow key={index}>
                                                 <TableCell>{channel}</TableCell>
                                                 {timeSlotLabels.map((timeSlotKey) => (
@@ -360,7 +360,7 @@ export default function FascicoloView() {
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {Object.keys(userListeningMap).map((channel, index) => (
+                                    {Object.keys(userListeningMap).sort().map((channel, index) => (
                                         <TableRow key={index}>
                                             <TableCell>{channel}</TableCell>
                                             {timeSlotLabels.map((timeSlotKey) => (
@@ -417,36 +417,7 @@ export default function FascicoloView() {
                 DETTAGLIO
                 <ExportExcel    exdata={acrDetails} fileName="Excel-Export-Dettaglio" idelem="export-table-dett"/>
             </Typography>
-             <TableContainer id="export-table-dett" sx={{overflow: 'unset'}}>
-                        <Table sx={{minWidth: 800}}>
-                            {/* Your table head component goes here */}
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>UID</TableCell>
-                                    <TableCell>Model</TableCell>
-                                    <TableCell>Brand</TableCell>
-                                    <TableCell>Canale</TableCell>
-                                    <TableCell>Durata</TableCell>
-                                    <TableCell>LatLon</TableCell>
-                                    <TableCell>Time</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {acrDetails.map((row) => (
-                                    <TableRow key={row._id}>
-                                        {/* Customize this based on your data structure */}
-                                        <TableCell>{row.user_id}</TableCell>
-                                        <TableCell>{row.model}</TableCell>
-                                        <TableCell>{row.brand}</TableCell>
-                                        <TableCell>{row.acr_result}</TableCell>
-                                        <TableCell>{row.duration*6}</TableCell>
-                                        <TableCell>{row.latitude},{row.longitude}</TableCell>
-                                        <TableCell>{row.recorded_at}</TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
+            
                 </Scrollbar>
 
                 {/* Remaining pagination logic */}
