@@ -313,6 +313,8 @@ export default function RisultatiView() {
     const channelNames = Array.from(
         new Set(Object.values(timeSlots).flatMap((data) => Object.keys(data)))
     );
+    channelNames.sort();
+
     // Initialize userListeningMap
         const userListeningMap = {};
 
