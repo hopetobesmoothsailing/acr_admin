@@ -9,6 +9,8 @@ export const LoginPage = lazy(() => import('src/pages/login'));
 export const SignupPage = lazy(() => import('src/pages/signup'));
 export const AcrPage = lazy(() => import('src/pages/acr'));
 export const RisultatiPage = lazy(() => import('src/pages/risultati'));
+export const RisdettagliPage = lazy(() => import('src/pages/risdettagli'));
+export const RisultatinullPage = lazy(() => import('src/pages/risultatinull'));
 export const SintesiPage = lazy(() => import('src/pages/sintesi'));
 export const Page404 = lazy(() => import('src/pages/page-not-found'));
 export const GiornalieroPage = lazy(() => import('src/pages/giornaliero'));
@@ -30,6 +32,8 @@ export default function Router() {
                 {path: 'user', element: <UserPage/>},
                 {path: 'acr', element: <RisultatiPage/>},
                 {path: 'risultati', element: <RisultatiPage/>},
+                {path: 'risultatinull', element: <RisultatinullPage/>},
+                {path: 'risdettagli', element: <RisdettagliPage/>},
                 {path: 'giornaliero', element: <GiornalieroPage/>},
                 {path: 'fascicolo', element: <FascicoloPage/>},
                 {path: 'sintesi', element: <SintesiPage/>},
@@ -53,6 +57,5 @@ export default function Router() {
             element: <Navigate to="/404" replace/>,
         },
     ]);
-
     return routes;
 }

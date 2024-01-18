@@ -13,13 +13,23 @@ const navConfig = [
     icon: icon('ic_analytics'),
   },
   {
-    title: 'user',
+    title: 'Utenti & status  ',
     path: '/user',
     icon: icon('ic_user'),
   },
   {
-    title: 'acr result',
+    title: 'acr result radio',
     path: '/acr',
+    icon: icon('ic_cart'),
+  },
+  {
+    title: 'acr result tv',
+    path: '/acr?type=TV',
+    icon: icon('ic_cart'),
+  },
+  {
+    title: 'Null Result',
+    path: '/risultatinull',
     icon: icon('ic_cart'),
   },
 ];

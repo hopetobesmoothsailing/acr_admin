@@ -35,6 +35,14 @@ export default function UserTableRow({
   const handleCloseMenu = () => {
     setOpen(null);
   };
+  const today = new Date(); // Get today's date
+  const yesterday = new Date(today); // Create a new date object with today's date
+  yesterday.setDate(today.getDate() - 1); // Set it to yesterday
+
+  // Format the date to DD/MM/YYYY
+  const formattedYesterday = `${yesterday.getDate().toString().padStart(2, '0')}-${(
+    yesterday.getMonth() + 1
+  ).toString().padStart(2, '0')}-${yesterday.getFullYear()}`;
 
   return (
     <>
@@ -47,19 +55,20 @@ export default function UserTableRow({
           <Stack direction="row" alignItems="center" spacing={2}>
             <Avatar alt={name} src={avatarUrl} />
             <Typography variant="subtitle2" noWrap>
-              {name}
+            <a title="visualizza dettaglio risultati utente" href={`risdettagli?date=${formattedYesterday}&userId=${role}`}>{name}</a>
             </Typography>
           </Stack>
         </TableCell>
 
         <TableCell>{gender}</TableCell>
 
-        <TableCell align="center">{age}</TableCell>
-
-        <TableCell>{role}</TableCell>
+        <TableCell>
+          <Label color={(age === 'non attivata' && 'error') || 'primary'}>{age}</Label>
+        </TableCell>
+        <TableCell>{role} </TableCell>
 
         <TableCell>
-          <Label color={(status === 'banned' && 'error') || 'success'}>{status}</Label>
+          <Label color={(status === 'no' && 'error') || 'success'}>{status}</Label>
         </TableCell>
 
         <TableCell align="right">
@@ -79,6 +88,10 @@ export default function UserTableRow({
           sx: { width: 140 },
         }}
       >
+        
+        <MenuItem onClick={handleCloseMenu}>
+          <a href={`risdettagli?date=${formattedYesterday}&userId=${role}`}>        <Iconify icon="eva:list-fill" sx={{ mr: 2 }} />Risultati</a>
+        </MenuItem>
         <MenuItem onClick={handleCloseMenu}>
           <Iconify icon="eva:edit-fill" sx={{ mr: 2 }} />
           Edit

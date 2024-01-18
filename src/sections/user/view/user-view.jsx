@@ -16,15 +16,18 @@ import Scrollbar from 'src/components/scrollbar';
 
 import TableNoData from '../table-no-data';
 import UserTableRow from '../user-table-row';
+import ExportExcel from "../export-to-excel"; 
 import UserTableHead from '../user-table-head';
 import {SERVER_URL} from "../../../utils/consts";
 import TableEmptyRows from '../table-empty-rows';
 import UserTableToolbar from '../user-table-toolbar';
 import {emptyRows, applyFilter, getComparator} from '../utils';
 
+
 // ----------------------------------------------------------------------
 
 export default function UserPage() {
+    const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(0);
 
     const [order, setOrder] = useState('asc');
@@ -35,19 +38,74 @@ export default function UserPage() {
 
     const [filterName, setFilterName] = useState('');
 
-    const [rowsPerPage, setRowsPerPage] = useState(5);
+    const [rowsPerPage, setRowsPerPage] = useState(500);
 
     const [users, setUsers] = useState([]);
+    
+    const [detailsUser, setDetailsUser] = useState([]);
+    const [details24User, setDetails24User] = useState([]);
+    const [idToEmailMap, setIdToEmailMap] = useState({});
 
+    const today = new Date(); // Get today's date
+    console.log ("TODAY:",today);
+    const startday = new Date("2024-01-09T00:00:00.000Z"); // Create a new date object with today's date
+    console.log ("STARTDAY:",startday);
+    startday.setDate(startday.getDate()); // Set it to yesterday
+    const yesterday = new Date(today); // Create a new date object with today's date
+    yesterday.setDate(today.getDate() - 1); // Set it to yesterday
+  
+    // Format the date to DD/MM/YYYY
+    const formattedYesterday = `${yesterday.getDate().toString().padStart(2, '0')}/${(
+      yesterday.getMonth() + 1
+    ).toString().padStart(2, '0')}/${yesterday.getFullYear()}`;
+    const formattedStartday = `${startday.getDate().toString().padStart(2, '0')}/${(
+        startday.getMonth() + 1
+      ).toString().padStart(2, '0')}/${startday.getFullYear()}`;
+    
     useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                setLoading(true);
+                const result = (await axios.post(`${SERVER_URL}/getUsers`)).data;
+                setUsers(result.users);
+              } catch (error) {
+                console.error('Error fetching users:', error);
+              } finally {
+                setLoading(false);
+              }
+        }
+        const fetchDetailUsers = async () => {
+            try {
+                setLoading(true);
+                const response = (await axios.post(`${SERVER_URL}/getAppActivatedUsers`, {date: formattedStartday})).data; // Adjust the endpoint to match your server route
+                setDetailsUser(response.activeUsers);
+             } catch (error) {
+                console.error('Error fetching details users:', error);
+              } finally {
+                setLoading(false);
+              }
+        }
+        const fetchDetailLast24hoursUsers = async () => {
+            const response = (await axios.post(`${SERVER_URL}/getAppActivatedUsers`, {date: formattedYesterday})).data; // Adjust the endpoint to match your server route
+            setDetails24User(response.activeUsers);
+        }
         fetchUsers();
-    }, []);
+        fetchDetailUsers();
+        fetchDetailLast24hoursUsers();
+    }, [formattedYesterday,formattedStartday]);
 
-    const fetchUsers = async () => {
-        const result = (await axios.post(`${SERVER_URL}/getUsers`)).data;
-        setUsers(result.users);
-    }
+  
 
+      // Create the mapping of _id to email
+    useEffect(() => {
+        const idToEmail = {};
+        users.forEach(user => {
+          idToEmail[user._id] = user.email;
+        });
+        setIdToEmailMap(idToEmail);
+      }, [users]);
+
+      
     const handleSort = (event, id) => {
         const isAsc = orderBy === id && order === 'asc';
         if (id !== '') {
@@ -94,7 +152,7 @@ export default function UserPage() {
 
     const handleFilterByName = (event) => {
         setPage(0);
-        setFilterName(event.target.value);
+        setFilterName(event.target.value.toLowerCase());
     };
 
     const dataFiltered = applyFilter({
@@ -105,15 +163,39 @@ export default function UserPage() {
 
     const notFound = !dataFiltered.length && !!filterName;
 
+    function getUserStatus(userId, activeUsers) {
+        // console.log(activeUsers);
+        let ret = "no";
+        if (activeUsers.some(user => user._id === userId)) {
+          ret = "si";
+        } 
+        return ret;
+         
+      }
+      function getUserActivated(userId, activeUsers) {
+        // console.log(activeUsers);
+        let ret = "non attivata";
+        if (activeUsers.some(user => user._id === userId)) {
+          ret = "attivata";
+        } 
+        return ret;
+         
+      }
+      if (loading) {
+        return <p>Caricamento dati in corso...</p>; // You can replace this with your loading indicator component
+      }
     return (
         <Container>
             <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
                 <Typography variant="h4">Users</Typography>
-
                 <Button variant="contained" color="inherit" startIcon={<Iconify icon="eva:plus-fill"/>}>
                     New User
                 </Button>
             </Stack>
+            <Typography variant="p">
+                    I dati delle ultime 24/48 ore corrispondono alle 00:00:01 del giorno {formattedYesterday} a quello attuale. <br /> APP-ATTIVATA indica se dal giorno {formattedStartday} ad ora utente ha mai inviato risultati.
+                    <br /><small>Nota: Ripristinata funzionalità ricerca utente e implementata visualizzazione dettaglio sul nome utente.</small>
+                    </Typography>
 
             <Card>
                 <UserTableToolbar
@@ -123,7 +205,11 @@ export default function UserPage() {
                 />
 
                 <Scrollbar>
-                    <TableContainer sx={{overflow: 'unset'}}>
+                <ExportExcel    exdata={dataFiltered} fileName="Dettaglio-Risultati-Utente" idelem="export-table-dettaglio"/>
+                    <Typography variant="p">
+                        Utenti attivati ({detailsUser.length}).Utenti attivi nelle ultime 24/48h ({details24User.length}) su un totale di {users.length} utenti. 
+                    </Typography>
+                    <TableContainer id="export-table-dettaglio" sx={{overflow: 'unset'}}>
                         <Table sx={{minWidth: 800}}>
                             <UserTableHead
                                 order={order}
@@ -134,10 +220,10 @@ export default function UserPage() {
                                 onSelectAllClick={handleSelectAllClick}
                                 headLabel={[
                                     {id: 'name', label: 'Name'},
-                                    {id: 'gender', label: 'Gender'},
-                                    {id: 'age', label: 'Age', align: 'center'},
-                                    {id: 'role', label: 'Role'},
-                                    {id: 'status', label: 'Status'},
+                                    {id: 'email', label: 'Email'},
+                                    {id: 'age', label: 'Ultime 24/48h', align: 'center'},
+                                    {id: 'role', label: 'ID'},
+                                    {id: 'status', label: 'APP-ATTIVATA'},
                                     {id: ''},
                                 ]}
                             />
@@ -147,12 +233,12 @@ export default function UserPage() {
                                     .map((row) => (
                                         <UserTableRow
                                             key={row._id}
-                                            name={`${row.name} ${row.last_name}`}
-                                            role={row.role}
-                                            status='success'
-                                            gender={row.gender}
+                                            name={`${row.name} `}
+                                            role={row._id}
+                                            status={getUserStatus(row._id, detailsUser)}
+                                            gender={idToEmailMap[row._id]}
                                             avatarUrl={row.avatarUrl}
-                                            age={row.age}
+                                            age={getUserActivated(row._id, details24User)}
                                             selected={selected.indexOf(row.name) !== -1}
                                             handleClick={(event) => handleClick(event, row.name)}
                                         />
@@ -175,10 +261,11 @@ export default function UserPage() {
                     count={users.length}
                     rowsPerPage={rowsPerPage}
                     onPageChange={handleChangePage}
-                    rowsPerPageOptions={[5, 10, 25]}
+                    rowsPerPageOptions={[500, 2000]}
                     onRowsPerPageChange={handleChangeRowsPerPage}
                 />
             </Card>
         </Container>
     );
 }
+ 
