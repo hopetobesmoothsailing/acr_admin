@@ -1,5 +1,7 @@
 import axios from "axios";
+import * as Yup from "yup";
 import {useState} from 'react';
+import {useFormik} from "formik";
 import {useDispatch} from "react-redux";
 
 import Box from '@mui/material/Box';
@@ -32,36 +34,69 @@ export default function LoginView() {
 
     const [showPassword, setShowPassword] = useState(false);
 
-    const [email, setEmail] = useState('');
-
-    const [password, setPassword] = useState('');
-
-    const onChangeEmail = (event) => setEmail(event.target.value);
-
-    const onChangePassword = (event) => setPassword(event.target.value);
-
     const dispatch = useDispatch();
 
-    const onLogin = async () => {
-        const result = (await axios.post(`${SERVER_URL}/login`, {
-            email,
-            password
-        })).data;
-        if (result.status === 'success') {
-            dispatch(signIn(result.user));
-            router.replace('/');
+    const formik = useFormik({
+        initialValues: {
+            email: '',
+            password: '',
+            submit: null
+        },
+        validationSchema: Yup.object({
+            email: Yup
+                .string()
+                .email('Must be a valid email')
+                .max(255)
+                .required('Email is required'),
+            password: Yup
+                .string()
+                .max(255)
+                .required('Password is required')
+        }),
+        onSubmit: async (values, helpers) => {
+            try {
+                const result = (await axios.post(`${SERVER_URL}/login`, {
+                    email: values.email,
+                    password: values.password
+                })).data;
+                if (result.status === 'success') {
+                    dispatch(signIn(result.user));
+                    router.replace('/');
+                }
+            } catch (err) {
+                console.log(err)
+            }
         }
-    };
+    });
 
     const renderForm = (
-        <>
+        <form
+            onSubmit={formik.handleSubmit}
+        >
             <Stack spacing={3}>
-                <TextField name="email" label="Email address" onChange={onChangeEmail}/>
-
                 <TextField
-                    name="password"
+                    error={!!(formik.touched.email && formik.errors.email)}
+                    fullWidth
+                    helperText={formik.touched.email && formik.errors.email}
+                    label="Email Address"
+                    name="email"
+                    onBlur={formik.handleBlur}
+                    onChange={formik.handleChange}
+                    type="email"
+                    value={formik.values.email}
+                />
+                <TextField
+                    error={!!(formik.touched.password
+                        && formik.errors.password)}
+                    fullWidth
+                    helperText={formik.touched.password
+                        && formik.errors.password}
                     label="Password"
-                    type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    onBlur={formik.handleBlur}
+                    onChange={formik.handleChange}
+                    type="password"
+                    value={formik.values.password}
                     InputProps={{
                         endAdornment: (
                             <InputAdornment position="end">
@@ -71,27 +106,32 @@ export default function LoginView() {
                             </InputAdornment>
                         ),
                     }}
-                    onChange={onChangePassword}
                 />
             </Stack>
-
+            {formik.errors.submit && (
+                <Typography
+                    color="error"
+                    sx={{ mt: 3 }}
+                    variant="body2"
+                >
+                    {formik.errors.submit}
+                </Typography>
+            )}
             <Stack direction="row" alignItems="center" justifyContent="flex-end" sx={{my: 3}}>
                 <Link variant="subtitle2" underline="hover">
                     Forgot password?
                 </Link>
             </Stack>
-
             <LoadingButton
                 fullWidth
                 size="large"
                 type="submit"
                 variant="contained"
                 color="inherit"
-                onClick={onLogin}
             >
                 Login
             </LoadingButton>
-        </>
+        </form>
     );
 
     return (
