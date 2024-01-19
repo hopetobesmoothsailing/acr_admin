@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import Box from '@mui/material/Box';
 import Avatar from '@mui/material/Avatar';
@@ -11,6 +11,9 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 
 import {account} from 'src/_mock/account';
+
+import {useRouter} from "../../../routes/hooks";
+import {signOut} from "../../../store/actions/authActions";
 
 // ----------------------------------------------------------------------
 
@@ -34,6 +37,10 @@ const MENU_OPTIONS = [
 export default function AccountPopover() {
     const [open, setOpen] = useState(null);
 
+    const dispatch = useDispatch();
+
+    const router = useRouter();
+
     const user = useSelector(state => state.authReducer.user);
 
     const handleOpen = (event) => {
@@ -43,6 +50,12 @@ export default function AccountPopover() {
     const handleClose = () => {
         setOpen(null);
     };
+
+    const onSignout = () => {
+        dispatch(signOut());
+        setOpen(null);
+        router.replace('/login');
+    }
 
     return (
         <>
@@ -108,7 +121,7 @@ export default function AccountPopover() {
                 <MenuItem
                     disableRipple
                     disableTouchRipple
-                    onClick={handleClose}
+                    onClick={onSignout}
                     sx={{typography: 'body2', color: 'error.main', py: 1.5}}
                 >
                     Logout
