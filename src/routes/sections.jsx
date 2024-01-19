@@ -23,12 +23,13 @@ export default function Router() {
     const routes = useRoutes([
         {
             element: (
-                <DashboardLayout>
-                    <Suspense>
-                        <ProtectedRoute/>
-                        <Outlet/>
-                    </Suspense>
-                </DashboardLayout>
+                <ProtectedRoute>
+                    <DashboardLayout>
+                        <Suspense>
+                            <Outlet/>
+                        </Suspense>
+                    </DashboardLayout>
+                </ProtectedRoute>
             ),
             children: [
                 {element: <IndexPage/>, index: true},
