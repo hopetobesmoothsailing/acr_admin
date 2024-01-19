@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 import { Navigate } from "react-router-dom";
 
-import {useAuth} from "./hooks/use-auth";
+import {useAuth, AuthProvider} from "./hooks/use-auth";
 
 export const ProtectedRoute = ({ children }) => {
     const {state} = useAuth();
@@ -9,7 +9,7 @@ export const ProtectedRoute = ({ children }) => {
         // user is not authenticated
         return <Navigate to="/login" />;
     }
-    return children;
+    return <AuthProvider>{children}</AuthProvider>;
 };
 
 ProtectedRoute.propTypes = {
