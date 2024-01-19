@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch} from 'react-redux';
 
 import Box from '@mui/material/Box';
 import Avatar from '@mui/material/Avatar';
@@ -14,6 +14,7 @@ import {account} from 'src/_mock/account';
 
 import {useRouter} from "../../../routes/hooks";
 import {signOut} from "../../../store/actions/authActions";
+import {useLocalStorage} from "../../../routes/hooks/use-localstorage";
 
 // ----------------------------------------------------------------------
 
@@ -41,7 +42,7 @@ export default function AccountPopover() {
 
     const router = useRouter();
 
-    const user = useSelector(state => state.authReducer.user);
+    const [user, setUser] = useLocalStorage('user', null);
 
     const handleOpen = (event) => {
         setOpen(event.currentTarget);
@@ -53,6 +54,7 @@ export default function AccountPopover() {
 
     const onSignout = () => {
         dispatch(signOut());
+        setUser(null);
         setOpen(null);
         router.replace('/login');
     }

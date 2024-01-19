@@ -1,6 +1,5 @@
 import {useEffect} from 'react';
 import PropTypes from 'prop-types';
-import {useSelector} from 'react-redux';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -22,6 +21,7 @@ import Scrollbar from 'src/components/scrollbar';
 
 import {NAV} from './config-layout';
 import navConfig from './config-navigation';
+import {useLocalStorage} from "../../routes/hooks/use-localstorage";
 
 // ----------------------------------------------------------------------
 
@@ -30,7 +30,7 @@ export default function Nav({openNav, onCloseNav}) {
 
     const upLg = useResponsive('up', 'lg');
 
-    const user = useSelector(state => state.authReducer.user);
+    const [user] = useLocalStorage('user', null);
 
     useEffect(() => {
         if (openNav) {
