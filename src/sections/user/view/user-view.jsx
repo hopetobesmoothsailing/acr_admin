@@ -42,7 +42,7 @@ export default function UserPage() {
 
     const [users, setUsers] = useState([]);
     
-    const [detailsUser, setDetailsUser] = useState([]);
+    // const [detailsUser, setDetailsUser] = useState([]);
     const [details24User, setDetails24User] = useState([]);
     const [idToEmailMap, setIdToEmailMap] = useState({});
 
@@ -74,23 +74,20 @@ export default function UserPage() {
                 setLoading(false);
               }
         }
-        const fetchDetailUsers = async () => {
+        /* const fetchDetailUsers = async () => {
             try {
-                setLoading(true);
                 const response = (await axios.post(`${SERVER_URL}/getAppActivatedUsers`, {date: formattedStartday})).data; // Adjust the endpoint to match your server route
                 setDetailsUser(response.activeUsers);
              } catch (error) {
                 console.error('Error fetching details users:', error);
-              } finally {
-                setLoading(false);
-              }
-        }
+              }  
+        } */ 
         const fetchDetailLast24hoursUsers = async () => {
             const response = (await axios.post(`${SERVER_URL}/getAppActivatedUsers`, {date: formattedYesterday})).data; // Adjust the endpoint to match your server route
             setDetails24User(response.activeUsers);
         }
         fetchUsers();
-        fetchDetailUsers();
+//        fetchDetailUsers();
         fetchDetailLast24hoursUsers();
     }, [formattedYesterday,formattedStartday]);
 
@@ -163,10 +160,10 @@ export default function UserPage() {
 
     const notFound = !dataFiltered.length && !!filterName;
 
-    function getUserStatus(userId, activeUsers) {
+    function getUserStatus(isLogin) {
         // console.log(activeUsers);
         let ret = "no";
-        if (activeUsers.some(user => user._id === userId)) {
+        if (isLogin === 1) {
           ret = "si";
         } 
         return ret;
@@ -207,7 +204,7 @@ export default function UserPage() {
                 <Scrollbar>
                 <ExportExcel    exdata={dataFiltered} fileName="Dettaglio-Risultati-Utente" idelem="export-table-dettaglio"/>
                     <Typography variant="p">
-                        Utenti attivati ({detailsUser.length}).Utenti attivi nelle ultime 24/48h ({details24User.length}) su un totale di {users.length} utenti. 
+                        Utenti attivi nelle ultime 24/48h ({details24User.length}) su un totale di {users.length} utenti. 
                     </Typography>
                     <TableContainer id="export-table-dettaglio" sx={{overflow: 'unset'}}>
                         <Table sx={{minWidth: 800}}>
@@ -235,7 +232,7 @@ export default function UserPage() {
                                             key={row._id}
                                             name={`${row.name} `}
                                             role={row._id}
-                                            status={getUserStatus(row._id, detailsUser)}
+                                            status={getUserStatus(row.isLogin)}
                                             gender={idToEmailMap[row._id]}
                                             avatarUrl={row.avatarUrl}
                                             age={getUserActivated(row._id, details24User)}
