@@ -1,6 +1,5 @@
 import {useEffect} from 'react';
 import PropTypes from 'prop-types';
-import {useSelector} from 'react-redux';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -22,6 +21,7 @@ import Scrollbar from 'src/components/scrollbar';
 
 import {NAV} from './config-layout';
 import navConfig from './config-navigation';
+import {useAuth} from "../../routes/hooks/use-auth";
 
 // ----------------------------------------------------------------------
 
@@ -30,7 +30,7 @@ export default function Nav({openNav, onCloseNav}) {
 
     const upLg = useResponsive('up', 'lg');
 
-    const userInfo = useSelector(state => state.authReducer.userInfo);
+    const auth = useAuth();
 
     useEffect(() => {
         if (openNav) {
@@ -55,7 +55,7 @@ export default function Nav({openNav, onCloseNav}) {
             <Avatar src={account.photoURL} alt="photoURL"/>
 
             <Box sx={{ml: 2}}>
-                <Typography variant="subtitle2">{`${userInfo.name} ${userInfo.last_name}`}</Typography>
+                <Typography variant="subtitle2">{`${auth.state.user.name} ${auth.state.user.last_name}`}</Typography>
 
                 <Typography variant="body2" sx={{color: 'text.secondary'}}>
                     {account.role}

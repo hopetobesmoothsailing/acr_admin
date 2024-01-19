@@ -3,6 +3,8 @@ import {Outlet, Navigate, useRoutes} from 'react-router-dom';
 
 import DashboardLayout from 'src/layouts/dashboard';
 
+import {ProtectedRoute} from "./protected-route";
+
 export const IndexPage = lazy(() => import('src/pages/app'));
 export const UserPage = lazy(() => import('src/pages/user'));
 export const LoginPage = lazy(() => import('src/pages/login'));
@@ -23,6 +25,7 @@ export default function Router() {
             element: (
                 <DashboardLayout>
                     <Suspense>
+                        <ProtectedRoute/>
                         <Outlet/>
                     </Suspense>
                 </DashboardLayout>

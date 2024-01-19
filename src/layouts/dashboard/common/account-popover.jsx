@@ -1,5 +1,4 @@
 import {useState} from 'react';
-import {useSelector} from 'react-redux';
 
 import Box from '@mui/material/Box';
 import Avatar from '@mui/material/Avatar';
@@ -11,6 +10,8 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 
 import {account} from 'src/_mock/account';
+
+import {useAuth} from "../../../routes/hooks/use-auth";
 
 // ----------------------------------------------------------------------
 
@@ -34,7 +35,7 @@ const MENU_OPTIONS = [
 export default function AccountPopover() {
     const [open, setOpen] = useState(null);
 
-    const userInfo = useSelector(state => state.authReducer.userInfo);
+    const auth = useAuth()
 
     const handleOpen = (event) => {
         setOpen(event.currentTarget);
@@ -67,7 +68,7 @@ export default function AccountPopover() {
                         border: (theme) => `solid 2px ${theme.palette.background.default}`,
                     }}
                 >
-                    {`${userInfo.name} ${userInfo.last_name}`}
+                    {`${auth.state.user.name} ${auth.state.user.last_name}`}
                 </Avatar>
             </IconButton>
 
@@ -88,10 +89,10 @@ export default function AccountPopover() {
             >
                 <Box sx={{my: 1.5, px: 2}}>
                     <Typography variant="subtitle2" noWrap>
-                        {`${userInfo.name} ${userInfo.last_name}`}
+                        {`${auth.state.user.name} ${auth.state.user.last_name}`}
                     </Typography>
                     <Typography variant="body2" sx={{color: 'text.secondary'}} noWrap>
-                        {userInfo.email}
+                        {auth.state.user.email}
                     </Typography>
                 </Box>
 

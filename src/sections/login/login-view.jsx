@@ -1,6 +1,5 @@
 import axios from "axios";
 import {useState} from 'react';
-import {useDispatch} from 'react-redux';
 
 import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
@@ -21,6 +20,7 @@ import Logo from 'src/components/logo';
 import Iconify from 'src/components/iconify';
 
 import {SERVER_URL} from "../../utils/consts";
+import {useAuth} from "../../routes/hooks/use-auth";
 
 // ----------------------------------------------------------------------
 
@@ -39,7 +39,7 @@ export default function LoginView() {
 
     const onChangePassword = (event) => setPassword(event.target.value);
 
-    const dispatch = useDispatch();
+    const auth = useAuth();
 
 
     const onLogin = async () => {
@@ -48,11 +48,7 @@ export default function LoginView() {
             password
         })).data;
         if (result.status === 'success') {
-            const userInfo = result.user;
-            dispatch({
-                type: 'SET_USERINFO',
-                payload: {userInfo}
-            })
+            await auth.signIn(result.user);
             router.replace('/');
         }
     };
