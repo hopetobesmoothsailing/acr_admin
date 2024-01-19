@@ -1,10 +1,9 @@
 import PropTypes from "prop-types";
-import {useSelector} from "react-redux";
 import { Navigate } from "react-router-dom";
 
 
 export const ProtectedRoute = ({ children }) => {
-    const isAuthenticated = useSelector(state => state.authReducer.isAuthenticated);
+    const isAuthenticated = window.localStorage.getItem('isAuthenticated') === 'true';
     if (!isAuthenticated) {
         // user is not authenticated
         return <Navigate to="/login" />;

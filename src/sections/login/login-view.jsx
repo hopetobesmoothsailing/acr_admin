@@ -24,6 +24,7 @@ import Iconify from 'src/components/iconify';
 
 import {SERVER_URL} from "../../utils/consts";
 import {signIn} from "../../store/actions/authActions";
+import {useLocalStorage} from "../../routes/hooks/use-localstorage";
 
 // ----------------------------------------------------------------------
 
@@ -35,6 +36,8 @@ export default function LoginView() {
     const [showPassword, setShowPassword] = useState(false);
 
     const dispatch = useDispatch();
+
+    const [setIsAuthenticated] = useLocalStorage('isAuthenticated', 'false');
 
     const formik = useFormik({
         initialValues: {
@@ -61,6 +64,7 @@ export default function LoginView() {
                 })).data;
                 if (result.status === 'success') {
                     dispatch(signIn(result.user));
+                    setIsAuthenticated('true');
                     router.replace('/');
                 }
             } catch (err) {
