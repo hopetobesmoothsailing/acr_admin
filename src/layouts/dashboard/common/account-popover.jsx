@@ -34,7 +34,7 @@ const MENU_OPTIONS = [
 export default function AccountPopover() {
     const [open, setOpen] = useState(null);
 
-    const userInfo = useSelector(state => state.authReducer.userInfo);
+    const user = useSelector(state => state.authReducer.user);
 
     const handleOpen = (event) => {
         setOpen(event.currentTarget);
@@ -67,7 +67,7 @@ export default function AccountPopover() {
                         border: (theme) => `solid 2px ${theme.palette.background.default}`,
                     }}
                 >
-                    {`${userInfo.name} ${userInfo.last_name}`}
+                    {`${user.name} ${user.last_name}`}
                 </Avatar>
             </IconButton>
 
@@ -88,10 +88,10 @@ export default function AccountPopover() {
             >
                 <Box sx={{my: 1.5, px: 2}}>
                     <Typography variant="subtitle2" noWrap>
-                        {`${userInfo.name} ${userInfo.last_name}`}
+                        {`${user.name} ${user.last_name}`}
                     </Typography>
                     <Typography variant="body2" sx={{color: 'text.secondary'}} noWrap>
-                        {userInfo.email}
+                        {user.email}
                     </Typography>
                 </Box>
 

@@ -1,6 +1,12 @@
-export function setUserInfo (info) {
+export function signIn (info) {
     return {
-        type: 'SET_USERINFO',
-        payload: {userInfo: info}
+        type: 'SIGN_IN',
+        payload: {user: info}
     };
+}
+
+export function signOut () {
+    return {
+        type: 'SIGN_OUT'
+    }
 }

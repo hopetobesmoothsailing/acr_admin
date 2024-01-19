@@ -30,7 +30,7 @@ export default function Nav({openNav, onCloseNav}) {
 
     const upLg = useResponsive('up', 'lg');
 
-    const userInfo = useSelector(state => state.authReducer.userInfo);
+    const user = useSelector(state => state.authReducer.user);
 
     useEffect(() => {
         if (openNav) {
@@ -55,7 +55,7 @@ export default function Nav({openNav, onCloseNav}) {
             <Avatar src={account.photoURL} alt="photoURL"/>
 
             <Box sx={{ml: 2}}>
-                <Typography variant="subtitle2">{`${userInfo.name} ${userInfo.last_name}`}</Typography>
+                <Typography variant="subtitle2">{`${user.name} ${user.last_name}`}</Typography>
 
                 <Typography variant="body2" sx={{color: 'text.secondary'}}>
                     {account.role}
