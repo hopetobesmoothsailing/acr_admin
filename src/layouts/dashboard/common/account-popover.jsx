@@ -14,7 +14,7 @@ import {account} from 'src/_mock/account';
 
 import {useRouter} from "../../../routes/hooks";
 import {signOut} from "../../../store/actions/authActions";
-import {useLocalStorage} from "../../../routes/hooks/use-localstorage";
+import {useSessionStorage} from "../../../routes/hooks/use-sessionstorage";
 
 // ----------------------------------------------------------------------
 
@@ -42,7 +42,7 @@ export default function AccountPopover() {
 
     const router = useRouter();
 
-    const [user, setUser] = useLocalStorage('user', null);
+    const [user, setUser] = useSessionStorage('user', null);
 
     const handleOpen = (event) => {
         setOpen(event.currentTarget);

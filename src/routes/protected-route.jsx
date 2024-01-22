@@ -1,11 +1,11 @@
 import PropTypes from "prop-types";
 import { Navigate } from "react-router-dom";
 
-import {useLocalStorage} from "./hooks/use-localstorage";
+import {useSessionStorage} from "./hooks/use-sessionstorage";
 
 
 export const ProtectedRoute = ({ children }) => {
-    const [user] = useLocalStorage('user', null)
+    const [user] = useSessionStorage('user', null)
     if (!user) {
         // user is not authenticated
         return <Navigate to="/login" />;

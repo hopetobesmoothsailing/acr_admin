@@ -24,7 +24,7 @@ import Iconify from 'src/components/iconify';
 
 import {SERVER_URL} from "../../utils/consts";
 import {signIn} from "../../store/actions/authActions";
-import {useLocalStorage} from "../../routes/hooks/use-localstorage";
+import {useSessionStorage} from "../../routes/hooks/use-sessionstorage";
 
 // ----------------------------------------------------------------------
 
@@ -37,7 +37,7 @@ export default function LoginView() {
 
     const dispatch = useDispatch();
 
-    const [user, setUser] = useLocalStorage('user', null);
+    const [user, setUser] = useSessionStorage('user', null);
 
     const formik = useFormik({
         initialValues: {

@@ -21,7 +21,7 @@ import Scrollbar from 'src/components/scrollbar';
 
 import {NAV} from './config-layout';
 import navConfig from './config-navigation';
-import {useLocalStorage} from "../../routes/hooks/use-localstorage";
+import {useSessionStorage} from "../../routes/hooks/use-sessionstorage";
 
 // ----------------------------------------------------------------------
 
@@ -30,7 +30,7 @@ export default function Nav({openNav, onCloseNav}) {
 
     const upLg = useResponsive('up', 'lg');
 
-    const [user] = useLocalStorage('user', null);
+    const [user] = useSessionStorage('user', null);
 
     useEffect(() => {
         if (openNav) {
