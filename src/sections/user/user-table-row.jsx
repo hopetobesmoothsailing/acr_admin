@@ -20,6 +20,7 @@ export default function UserTableRow({
   selected,
   name,
   avatarUrl,
+  appVersion,
   gender,
   role,
   age,
@@ -65,6 +66,8 @@ export default function UserTableRow({
         <TableCell>
           <Label color={(age === 'non attivata' && 'error') || 'primary'}>{age}</Label>
         </TableCell>
+        <TableCell>{appVersion} </TableCell>
+
         <TableCell>{role} </TableCell>
 
         <TableCell>
@@ -112,6 +115,7 @@ UserTableRow.propTypes = {
   handleClick: PropTypes.func,
   age: PropTypes.any,
   name: PropTypes.any,
+  appVersion: PropTypes.any,
   role: PropTypes.any,
   selected: PropTypes.any,
   status: PropTypes.string,

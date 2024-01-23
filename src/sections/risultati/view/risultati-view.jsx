@@ -21,7 +21,7 @@ import Scrollbar from 'src/components/scrollbar';
 
 import ExportExcel from "../export-to-excel"; 
 import {SERVER_URL} from "../../../utils/consts";
-import AppWebsiteAudience from "../app-website-audience";
+// import AppWebsiteAudience from "../app-website-audience";
 
 
 // ----------------------------------------------------------------------
@@ -59,7 +59,7 @@ export default function RisultatiView() {
     const [idToEmailMap, setIdToEmailMap] = useState({});
 
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(500);
+    const [rowsPerPage, setRowsPerPage] = useState(100);
     const [selectedHourRange, setSelectedHourRange] = useState(null);
 
     const handleChangePage = (event, newPage) => {
@@ -352,8 +352,8 @@ export default function RisultatiView() {
             }
             }
         });
-        console.log("USER LISTENING MAP");
-        console.log(userListeningMap);
+        // console.log("USER LISTENING MAP");
+        // console.log(userListeningMap);
 
       // Now you can calculate the unique users listening to each channel
         /* 
@@ -381,7 +381,7 @@ export default function RisultatiView() {
         };
         const calculateAudienceByMinute = (channel, slot) => {
             const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
-            const minutoMedio = parseFloat((timeSlots[slot][channel]/uniqueUsersListening).toFixed(1)) || 0 ;
+            const minutoMedio = timeSlots[slot][channel] || 0 ;
             // console.log("MINUTO MEDIO %s", minutoMedio);
             const audienceByMinute = minutoMedio*(uniqueUsersListening*pesoNum);
             // console.log("AUDIENCE BY MINUTE canale %s slot %s audiencexmin %s", channel,slot, audienceByMinute);
@@ -389,39 +389,31 @@ export default function RisultatiView() {
             return audienceByMinute.toFixed(1);
         };
         const calculateShareSlotCanale = (channel, slot) => {
-            let audienceSlotCanali = 0;
-            channels.sort();
-
-            channels.forEach(canalealtro => {
-                if ((canalealtro !== "NULL")) {
-                    audienceSlotCanali += parseFloat(timeSlots[slot][canalealtro] || 0)
-                }
-            });
-    
-            // console.log("AUDIENCE CANALE %s FASCIA ORARIA %s %s %s", channel, slot, audienceSlotCanali,timeSlots[slot][channel]);
-            const shareSlotCanale = parseFloat((((timeSlots[slot][channel])/audienceSlotCanali)*100).toFixed(1)) || 0 ;
-            return shareSlotCanale;
+            const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
+            const minuto = timeSlots[slot][channel] || 0 ;
+            const audienceByMinute = minuto*(uniqueUsersListening*pesoNum);
+            const minutes_slot = 180;
+            const shareSlotCanale = ((audienceByMinute/minutes_slot) || 0);
+            return shareSlotCanale.toFixed(2);
+       
         };
     
         const displayTitle = (channel,slot) => {
             const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
-            const minutoMedio = parseFloat((timeSlots[slot][channel]/uniqueUsersListening).toFixed(0)) || 0 ;
+            const minutoMedio = timeSlots[slot][channel] || 0 ;
             // console.log("MINUTO MEDIO %s", minutoMedio);
             const audienceByMinute = minutoMedio*(uniqueUsersListening*pesoNum);
             // console.log("AUDIENCE BY MINUTE canale %s slot %s audiencexmin %s", channel,slot, audienceByMinute);
-            return `#Canale: ${channel}, #Utenti reali per canale ${uniqueUsersListening}, n. Individui ${uniqueUsersListening*pesoNum} #Minuti Totali ${timeSlots[slot][channel]/pesoNum} #Minuto medio ${minutoMedio}, #Audience pesata ${audienceByMinute}`;
+            // Calculate the share percentage for the channel in the given time slot
+            return `#Canale: ${channel}, #Utenti reali per canale ${uniqueUsersListening}, n. Individui ${uniqueUsersListening*pesoNum} #Minuti Totali ${minutoMedio} #Minuti complessivi ${audienceByMinute}`;
 
         }
         const displayTitleShare = (channel,slot) =>  {
-            let audienceSlotCanali = 0;
-            channels.sort();
-            channels.forEach(canalealtro => {
-                if ((canalealtro !== "NULL")) {
-                    audienceSlotCanali += parseFloat(timeSlots[slot][canalealtro] || 0)
-                }
-            });
-    
-            return `(#Audience pesata fascia oraria canale ${timeSlots[slot][channel] || 0} minuti / #Audience canali complessiva  ${audienceSlotCanali} minuti) * 100`;
+            const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
+            const minuto = timeSlots[slot][channel] || 0 ;
+            const audienceByMinute = minuto*(uniqueUsersListening*pesoNum);
+            const minutes_slot = 180;
+             return `(SHARE = (#AMR = ${(audienceByMinute).toFixed(2)} minuti / #Minuti intervallo:  ${minutes_slot}) ,  peso individuo ${pesoNum})`;
         }
 
         const counts = {};
@@ -436,7 +428,7 @@ export default function RisultatiView() {
             const [user_id, email] = key.split('-');
             return { user_id: parseInt(user_id, 10), email, count: counts[key] };
           });
-          console.log("Unique Details",uniqueDetails);
+          // console.log("Unique Details",uniqueDetails);
     return (
         <Container>
             <Typography variant="h4" sx={{mb: 5}}>
@@ -468,19 +460,15 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
                   </DemoContainer>
             </LocalizationProvider>
            
-            <AppWebsiteAudience
-                title="AMM"
-                subheader="Numero di persone sintonizzate su un particolare canale ogni minuto"
-                chart={minuteBasedData}
-            />
+            
 
  
            <Typography variant="h5" sx={{ml: 2, mt: 3}}>
-                ASCOLTI (durata in minuti totali di ascolto) 
+                AUDIENCE 
                 <ExportExcel  exdata={channelNames} fileName="Excel-Export-Ascolti" idelem="export-table"/>
            </Typography>
-           <Typography variant="p" sx={{ml: 2, mt: 3,mb:2}}>
-                Ascolti (Audience) data da: (somma minuti tot di ascolto di ogni canale  * numero individui * peso(1 user = {pesoNum} individui) nella fascia oraria considerata
+            <Typography variant="p" sx={{ml: 2, mt: 3,mb:2}}>
+                AUDIENCE AGGIORNATA: (somma minuti tot di ascolto di ogni canale  * numero panelisti * peso(1 user = {pesoNum} individui) nella fascia oraria considerata
             </Typography>           
             <TableContainer id="export-table"  sx={{overflow: 'unset'}}>
                 <Table sx={{minWidth: 800}}>
@@ -519,12 +507,10 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
                     <ExportExcel  exdata={channelNames} fileName="Excel-Export-Share" idelem="export-table-share"/>
                     </Typography>
                     <Typography variant="p" sx={{ml: 2, mt: 3,mb:2}}>
-                    Data da rapporto tra min. di ascolto per canale nell&apos;intervallo considerato e la somma dei minuti di tutti i canali nello stesso intervallo. 
+                    Data da rapporto tra AMR e AUDIENCE. 
                     </Typography>
                     <br/>
-                    <Typography variant="p" sx={{ml: 2, mt: 3,mb:2}}>
-                    I minuti di ascolto per canale sono dati dalla somma dei minuti ascoltati (reali in questo caso) dagli utenti senza il peso di ogni utente = {pesoNum} 
-                    </Typography>
+                     
                     {/* Remaining pagination logic */}
                         <Scrollbar>
                             <TableContainer id="export-table-share" sx={{ overflow: 'unset' }}>
@@ -556,7 +542,7 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
                         </CardContent>
                     </Card>
                 <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2}}>
-                Audience
+                CONTATTI
                 <ExportExcel  exdata={channelNames} fileName="Excel-Export-Contatti" idelem="export-table-contatti"/>
                 </Typography>
                 <Typography variant="p" sx={{ml: 2, mt: 3,mb:2}}>
@@ -659,7 +645,7 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
                     </Table>
                 </TableContainer>
                     <TablePagination
-                    rowsPerPageOptions={[500, 40000, 100000,500000]}
+                    rowsPerPageOptions={[100, 500, 40000, 100000,500000]}
                     component="div"
                     count={acrDetails.length}
                     rowsPerPage={rowsPerPage}

@@ -219,6 +219,7 @@ export default function UserPage() {
                                     {id: 'name', label: 'Name'},
                                     {id: 'email', label: 'Email'},
                                     {id: 'age', label: 'Ultime 24/48h', align: 'center'},
+                                    {id: 'appVersion', label: 'appVersion'},
                                     {id: 'role', label: 'ID'},
                                     {id: 'status', label: 'APP-ATTIVATA'},
                                     {id: ''},
@@ -235,6 +236,7 @@ export default function UserPage() {
                                             status={getUserStatus(row.isLogin)}
                                             gender={idToEmailMap[row._id]}
                                             avatarUrl={row.avatarUrl}
+                                            appVersion = {row.appVersion}
                                             age={getUserActivated(row._id, details24User)}
                                             selected={selected.indexOf(row.name) !== -1}
                                             handleClick={(event) => handleClick(event, row.name)}
