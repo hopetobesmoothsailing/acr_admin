@@ -41,7 +41,8 @@ export default function RisultatiView() {
     pesoNum = 1;
     const channels = [];
     const location = useLocation();
-  
+    const [loading, setLoading] = useState(true);
+
     const [acrDetails, setACRDetails] = useState([]);
     // const [acrDetailsTimeslot, setACRDetailsTimeslot] = useState([])
     const today = new Date(); // Get today's date
@@ -131,7 +132,9 @@ export default function RisultatiView() {
     useEffect(() => {
         // Function to fetch ACR details by date
         const fetchACRDetailsByDate = async () => {
+           
             try {
+                setLoading(true);
                 const formattedDate = selectedDate; // Encode the date for URL
 
                 const response = (await axios.post(`${SERVER_URL}/getACRDetailsByDateRTV`, {date: formattedDate,type:tipoRadioTV})).data; // Adjust the endpoint to match your server route
@@ -139,7 +142,9 @@ export default function RisultatiView() {
             } catch (error) {
                 console.error('Error fetching ACR details:', error);
                 // Handle error
-            }
+            }finally {
+                setLoading(false);
+              }
         };
         /*
          const sendEmailReminder = async () => {
@@ -389,11 +394,21 @@ export default function RisultatiView() {
             return audienceByMinute.toFixed(1);
         };
         const calculateShareSlotCanale = (channel, slot) => {
+            let audienceSlotCanali = 0
+            channels.forEach(canalealtro => {
+                if ((canalealtro !== "NULL")) {
+                    const uniqueUsersListeningch = userListeningMap[channel]?.[slot]?.size || 0;    
+
+                    audienceSlotCanali += uniqueUsersListeningch*parseFloat(timeSlots[slot][canalealtro] || 0)
+                    console.log("Canale:",canalealtro);
+                    console.log("Audience:",audienceSlotCanali);
+                }
+            });
             const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
             const minuto = timeSlots[slot][channel] || 0 ;
             const audienceByMinute = minuto*(uniqueUsersListening*pesoNum);
             const minutes_slot = 180;
-            const shareSlotCanale = ((audienceByMinute/minutes_slot) || 0);
+            const shareSlotCanale = (((audienceByMinute/minutes_slot) || 0)/ (audienceSlotCanali/minutes_slot))*100 || 0 ;
             return shareSlotCanale.toFixed(2);
        
         };
@@ -409,11 +424,17 @@ export default function RisultatiView() {
 
         }
         const displayTitleShare = (channel,slot) =>  {
+            let audienceSlotCanali = 0
+            channels.forEach(canalealtro => {
+                if ((canalealtro !== "NULL")) {
+                    audienceSlotCanali += parseFloat(timeSlots[slot][canalealtro] || 0)
+                }
+            });
             const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
             const minuto = timeSlots[slot][channel] || 0 ;
             const audienceByMinute = minuto*(uniqueUsersListening*pesoNum);
             const minutes_slot = 180;
-             return `(SHARE = (#AMR = ${(audienceByMinute).toFixed(2)} minuti / #Minuti intervallo:  ${minutes_slot}) ,  peso individuo ${pesoNum})`;
+             return `(SHARE = (#AMR = ${(audienceByMinute).toFixed(2)} minuti / #Minuti intervallo:  ${minutes_slot}) / #Audience canali :${audienceSlotCanali} minuti / 180 periodo considerato )`;
         }
 
         const counts = {};
@@ -429,6 +450,9 @@ export default function RisultatiView() {
             return { user_id: parseInt(user_id, 10), email, count: counts[key] };
           });
           // console.log("Unique Details",uniqueDetails);
+          if (loading) {
+            return <p>Caricamento dati raccolti in corso... </p>; // You can replace this with your loading indicator component
+          }
     return (
         <Container>
             <Typography variant="h4" sx={{mb: 5}}>
@@ -461,6 +485,8 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
             </LocalizationProvider>
            
             
+            <Card >
+                    <CardContent>
 
  
            <Typography variant="h5" sx={{ml: 2, mt: 3}}>
@@ -482,7 +508,7 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
                     </TableHead>
 
                     <TableBody>
-                        {channelNames.map((channel, index) => (
+                        {channelNames.sort().reverse().map((channel, index) => (
                             <TableRow key={index}>
 
                                 <TableCell>{channel}</TableCell>
@@ -499,15 +525,17 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
                     </TableBody>
                 </Table>
             </TableContainer>
+            </CardContent>
+            </Card>
              
                 <Card >
                     <CardContent>
                     <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2}}>
                     SHARE 
-                    <ExportExcel  exdata={channelNames} fileName="Excel-Export-Share" idelem="export-table-share"/>
+                     
                     </Typography>
                     <Typography variant="p" sx={{ml: 2, mt: 3,mb:2}}>
-                    Data da rapporto tra AMR e AUDIENCE. 
+                    Data da rapporto tra AMR e AUDIENCE nell&apos;intervallo considerato di 180 minuti. 
                     </Typography>
                     <br/>
                      
@@ -524,7 +552,7 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
-                                        {Object.keys(userListeningMap).sort().map((channel, index) => (
+                                        {Object.keys(userListeningMap).sort().reverse().map((channel, index) => (
                                             <TableRow key={index}>
                                                 <TableCell>{channel}</TableCell>
                                                 {timeSlotLabels.map((timeSlotKey) => (
@@ -558,7 +586,7 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
                                 <TableHead>
                                     <TableRow>
                                         <TableCell>Channel Name</TableCell>
-                                        {timeSlotLabels.sort().map((timeSlotKey) => (
+                                        {timeSlotLabels.sort().reverse().map((timeSlotKey) => (
                                             <TableCell key={timeSlotKey}>{timeSlotKey}</TableCell>
                                         ))}
                                     </TableRow>
