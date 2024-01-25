@@ -243,10 +243,12 @@ export default function FascicoloView() {
 
     
      const calculateAudienceByMinute = (channel, slot) => {
-        const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
-        const minutoMedio = timeSlots[slot][channel] || 0 ;
+        // const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
+        const minutoMedio = parseFloat((timeSlots[slot][channel]/intervalValue || 0)) ;
         // console.log("MINUTO MEDIO %s", minutoMedio);
-        const audienceByMinute = minutoMedio*(uniqueUsersListening*pesoNum);
+        // come indicato da cristiano corrisponde ai minuti totali di ascolto nel periodo e non minuti * utenti
+        // const audienceByMinute = minutoMedio*(uniqueUsersListening*pesoNum);
+        const audienceByMinute = minutoMedio*pesoNum;
         // console.log("AUDIENCE BY MINUTE canale %s slot %s audiencexmin %s", channel,slot, audienceByMinute);
         // Calculate the share percentage for the channel in the given time slot
         return audienceByMinute.toFixed(1);
@@ -256,13 +258,15 @@ export default function FascicoloView() {
         let audienceSlotCanali = 0
         channels.forEach(canalealtro => {
             if ((canalealtro !== "NULL")) {
-                const uniqueUsersListeningch = userListeningMap[channel]?.[slot]?.size || 0;
-                audienceSlotCanali += uniqueUsersListeningch*parseFloat(timeSlots[slot][canalealtro] || 0)
+                // const uniqueUsersListeningch = userListeningMap[channel]?.[slot]?.size || 0;
+                // audienceSlotCanali += uniqueUsersListeningch*parseFloat(timeSlots[slot][canalealtro] || 0)
+                audienceSlotCanali += parseFloat(timeSlots[slot][canalealtro] || 0)
             }
         });
-        const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
         const minuto = timeSlots[slot][channel] || 0 ;
-        const audienceByMinute = minuto*(uniqueUsersListening*pesoNum);
+        // come indicato da cristiano corrisponde ai minuti totali di ascolto nel periodo e non minuti * utenti
+        // const audienceByMinute = minuto*(uniqueUsersListening*pesoNum);
+        const audienceByMinute = minuto*pesoNum;
         const shareSlotCanale = (((audienceByMinute/intervalValue) || 0)/ (audienceSlotCanali/intervalValue))*100 || 0 ;
         return shareSlotCanale.toFixed(2);
 
@@ -288,7 +292,7 @@ export default function FascicoloView() {
         const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
         const minuto = timeSlots[slot][channel] || 0 ;
         const audienceByMinute = minuto*(uniqueUsersListening*pesoNum);
-        return `(SHARE = (#AMR = ${(audienceByMinute).toFixed(2)} minuti / #Minuti intervallo:  ${intervalValue}) / #Audience canali :${audienceSlotCanali} minuti / ${intervalValue} periodo considerato )`;
+        return `(SHARE = (#AMR = ${(audienceByMinute).toFixed(2)} minuti ) / #Audience canali :${audienceSlotCanali} minuti / ${intervalValue} periodo considerato )`;
     }
     
     if (loading) {
