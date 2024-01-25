@@ -3,7 +3,9 @@ import {Outlet, Navigate, useRoutes} from 'react-router-dom';
 
 import DashboardLayout from 'src/layouts/dashboard';
 
+import {ROLES} from "../utils/consts";
 import {ProtectedRoute} from "./protected-route";
+
 
 export const IndexPage = lazy(() => import('src/pages/app'));
 export const UserPage = lazy(() => import('src/pages/user'));
@@ -32,7 +34,7 @@ export default function Router() {
                 </ProtectedRoute>
             ),
             children: [
-                {element: <IndexPage/>, index: true},
+                {element: <ProtectedRoute roles={ROLES}><IndexPage /></ProtectedRoute>, index: true},
                 {path: 'user', element: <UserPage/>},
                 {path: 'acr', element: <RisultatiPage/>},
                 {path: 'risultati', element: <RisultatiPage/>},

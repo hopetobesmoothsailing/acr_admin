@@ -1,18 +1,24 @@
 import PropTypes from "prop-types";
-import { Navigate } from "react-router-dom";
+import {Navigate, useLocation} from "react-router-dom";
 
+import {ROLES} from "../utils/consts";
 import {useSessionStorage} from "./hooks/use-sessionstorage";
 
 
-export const ProtectedRoute = ({ children }) => {
+export const ProtectedRoute = ({ children, roles }) => {
     const [user] = useSessionStorage('user', null)
+    const location = useLocation();
     if (!user) {
         // user is not authenticated
-        return <Navigate to="/login" />;
+        return <Navigate to="/login" state={{from: location}} />;
+    }
+    if (roles instanceof Array && roles.findIndex(ROLES[user.role]) === -1) {
+        return <Navigate to='/'/>
     }
     return children;
 };
 
 ProtectedRoute.propTypes = {
-    children: PropTypes.node
+    children: PropTypes.node,
+    roles: PropTypes.array
 }
