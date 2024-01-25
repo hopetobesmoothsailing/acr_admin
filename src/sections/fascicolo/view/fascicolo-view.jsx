@@ -245,13 +245,12 @@ export default function FascicoloView() {
      const calculateAudienceByMinute = (channel, slot) => {
         // const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
         const minutoMedio = parseFloat((timeSlots[slot][channel]/intervalValue || 0)) ;
-        // console.log("MINUTO MEDIO %s", minutoMedio);
         // come indicato da cristiano corrisponde ai minuti totali di ascolto nel periodo e non minuti * utenti
         // const audienceByMinute = minutoMedio*(uniqueUsersListening*pesoNum);
-        const audienceByMinute = minutoMedio*pesoNum;
+        const audienceByMinute = minutoMedio*pesoNum / intervalValue;
         // console.log("AUDIENCE BY MINUTE canale %s slot %s audiencexmin %s", channel,slot, audienceByMinute);
         // Calculate the share percentage for the channel in the given time slot
-        return audienceByMinute.toFixed(1);
+        return audienceByMinute.toFixed(2);
     };
             
     const calculateShareSlotCanale = (channel, slot) => {
@@ -276,10 +275,10 @@ export default function FascicoloView() {
         const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
         const minutoMedio = timeSlots[slot][channel] || 0 ;
         // console.log("MINUTO MEDIO %s", minutoMedio);
-        const audienceByMinute = minutoMedio*(uniqueUsersListening*pesoNum);
+        const audienceByMinute = minutoMedio/intervalValue;
         // console.log("AUDIENCE BY MINUTE canale %s slot %s audiencexmin %s", channel,slot, audienceByMinute);
         // Calculate the share percentage for the channel in the given time slot
-        return `#Canale: ${channel}, #Utenti reali per canale ${uniqueUsersListening}, n. Individui ${uniqueUsersListening*pesoNum} #Minuti Totali ${minutoMedio} #Minuti complessivi ${audienceByMinute}`;
+        return `#Canale: ${channel}, #Utenti reali per canale ${uniqueUsersListening}, n. Individui ${uniqueUsersListening*pesoNum} #Audience =  ${minutoMedio} Totale Minuti Canale  / ${intervalValue} intervallo =  ${audienceByMinute}`;
 
     } 
     const displayTitleShare = (channel,slot) =>  {
@@ -292,7 +291,7 @@ export default function FascicoloView() {
         const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
         const minuto = timeSlots[slot][channel] || 0 ;
         const audienceByMinute = minuto*(uniqueUsersListening*pesoNum);
-        return `(SHARE = (#AMR = ${(audienceByMinute).toFixed(2)} minuti ) / #Audience canali :${audienceSlotCanali} minuti / ${intervalValue} periodo considerato )`;
+        return `(SHARE = (#AMR = ${(audienceByMinute).toFixed(2)} minuti ) / #Audience canali :${audienceSlotCanali} minuti periodo considerato )`;
     }
     
     if (loading) {
@@ -301,7 +300,8 @@ export default function FascicoloView() {
 
             return (
                 <Container>
-                    
+                    <Scrollbar style={{ width: '100%'}}>
+                
                     <Typography variant="h4" sx={{mb: 5}}>
                         FASCICOLO degli ascolti per la data {selectedDate}
                     </Typography>
@@ -331,59 +331,50 @@ export default function FascicoloView() {
 
                         </DemoContainer>
                     </LocalizationProvider>
-                    <Scrollbar style={{ width: '100%', height: '500px' }}>
-      <Card style={{ display: isVisible ? 'none' : 'block' }}>
-        <CardContent>
-          <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>SHARE</Typography>
-          <Typography variant="p" sx={{ ml: 2, mt: 3, mb: 2 }}>Data da rapporto tra AMR e AUDIENCE nell&apos;intervallo considerato di {intervalValue} minuti.</Typography>
-          <br />
-          <GraphChart userListeningMap={userListeningMap} intervalValue={intervalValue} /> {/* Render the GraphChart component */}
-        </CardContent>
-      </Card>
-    </Scrollbar>
+
                     <Card style={{ display: isVisible ? 'block' : 'none' }}>
                         <CardContent>
 
         
-                <Typography variant="h5" sx={{ml: 2, mt: 3}}>
-                        AUDIENCE 
-                        <ExportExcel  exdata={channelNames} fileName="Excel-Export-Ascolti" idelem="export-table"/>
-                </Typography>
-                    <Typography variant="p" sx={{ml: 2, mt: 3,mb:2}}>
-                        AUDIENCE AGGIORNATA: (somma minuti tot di ascolto di ogni canale  * numero panelisti * peso(1 user = {pesoNum} individui) nella fascia oraria considerata
-                    </Typography>           
-                    <TableContainer id="export-table"  sx={{overflow: 'unset'}}>
-                        <Table sx={{minWidth: 800}}>
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>Channel Name</TableCell>
-                                    {Object.keys(timeSlots).map((timeSlotKey) => (
-                                        <TableCell key={timeSlotKey}>{timeSlotKey} </TableCell>
-                                    ))}
-                                </TableRow>
-                            </TableHead>
+                        <Typography variant="h5" sx={{ml: 2, mt: 3}}>
+                                AUDIENCE 
+                                <ExportExcel  exdata={channelNames} fileName="Excel-Export-Ascolti" idelem="export-table"/>
+                        </Typography>
+                            <Typography variant="p" sx={{ml: 2, mt: 3,mb:2}}>
+                                AUDIENCE AGGIORNATA: (somma minuti tot di ascolto di ogni canale  * numero panelisti * peso(1 user = {pesoNum} individui) nella fascia oraria considerata
+                            </Typography>           
+                            <TableContainer id="export-table"  sx={{overflow: 'unset'}}>
+                                <Table sx={{minWidth: 800}}>
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell>Channel Name</TableCell>
+                                            {Object.keys(timeSlots).map((timeSlotKey) => (
+                                                <TableCell key={timeSlotKey}>{timeSlotKey} </TableCell>
+                                            ))}
+                                        </TableRow>
+                                    </TableHead>
 
-                            <TableBody>
-                                {channelNames.sort().reverse().map((channel, index) => (
-                                    <TableRow key={index}>
+                                    <TableBody>
+                                        {channelNames.sort().reverse().map((channel, index) => (
+                                            <TableRow key={index}>
 
-                                        <TableCell>{channel}</TableCell>
-                                        {Object.keys(timeSlots).map((timeSlotKey) => (
-                                            <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
-                                                <span data-tooltip-id="my-tooltip" data-tooltip-content={displayTitle(channel,timeSlotKey)} >{calculateAudienceByMinute(channel, timeSlotKey)}</span>
+                                                <TableCell>{channel}</TableCell>
+                                                {Object.keys(timeSlots).map((timeSlotKey) => (
+                                                    <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
+                                                        <span data-tooltip-id="my-tooltip" data-tooltip-content={displayTitle(channel,timeSlotKey)} >{calculateAudienceByMinute(channel, timeSlotKey)}</span>
 
-                                            
-                                            </TableCell>
-                                            
+                                                    
+                                                    </TableCell>
+                                                    
+                                                ))}
+                                            </TableRow>
                                         ))}
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                </CardContent>
-            </Card>
-            <Scrollbar style={{ width: '100%', height: '500px' }}>
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        </CardContent>
+                    </Card>
+    
                 <Card style={{ display: isVisible ? 'none' : 'block' }}>
                 <CardContent>
                     <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>SHARE</Typography>
@@ -402,7 +393,7 @@ export default function FascicoloView() {
                         <TableBody>
                             {timeSlotLabels.map((timeSlotKey, index) => (
                             <TableRow key={index}>
-                                <TableCell>{timeSlotKey}</TableCell>
+                                <TableCell><strong>{timeSlotKey}</strong></TableCell>
                                 {Object.keys(userListeningMap).map((channel) => (
                                 <TableCell style={{ textAlign: 'center' }} key={channel}>
                                     {/* Use calculateAudienceShare to retrieve data */}
@@ -416,9 +407,13 @@ export default function FascicoloView() {
                     </TableContainer>
                 </CardContent>
                 </Card>
+           
+                    <Card style={{ display: isVisible ? 'none' : 'block' }}>
+                        <CardContent>
+                        <GraphChart userListeningMap={userListeningMap} intervalValue={intervalValue} /> {/* Render the GraphChart component */}
+                        </CardContent>
+                    </Card>
             </Scrollbar>
-                
- 
 
                                         
             
