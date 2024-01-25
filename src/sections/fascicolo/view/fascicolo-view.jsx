@@ -3,12 +3,14 @@ import dayjs from "dayjs";
 import 'leaflet/dist/leaflet.css';
 import { Tooltip } from 'react-tooltip'
 import {useState, useEffect} from 'react';
+import { useLocation } from 'react-router-dom';
 // import {Popup,  Marker,TileLayer, MapContainer  } from 'react-leaflet';
 
 import Card from '@mui/material/Card';
 import Button  from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
+import CardContent from '@mui/material/CardContent';
 // import CardContent from '@mui/material/CardContent';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -18,25 +20,21 @@ import {Table, TableRow, TableHead, TableBody, TableCell, TableContainer} from '
 
 import Scrollbar from 'src/components/scrollbar';
 
+import GraphChart from "../graph-chart";
 import ExportExcel from "../export-to-excel"; 
 import {SERVER_URL} from "../../../utils/consts";
-// import AppWebsiteAudience from "../app-website-audience";
 
 // ----------------------------------------------------------------------
 
 export default function FascicoloView() {
 
-    // Audience giornaliera: È la somma totale dei minuti guardati da tutti gli spettatori durante l'intera giornata. Utilizzando gli stessi numeri dell'esempio precedente, se i 2000 utenti hanno guardato la TV per 60.000 minuti in un giorno, l'audience giornaliera sarà di 60.000 minuti.
-    let audienceGiornaliera = 0;
-    // Audience media al minuto: Si calcola dividendo il totale dei minuti visti da tutti gli spettatori per il numero totale di minuti nel periodo considerato. Ad esempio, se i 2000 utenti hanno guardato la TV per un totale di 60.000 minuti in un giorno, l'audience media al minuto sarà 60.000 / 2000 = 30 minuti.
-    // const audienceMediaMinuto = 0; 
-    // Share: Lo share indica la percentuale dell'audience totale che ha guardato un particolare programma rispetto all'audience totale al momento della messa in onda. Se si conosce l'audience totale al momento della trasmissione, basta dividere l'audience del programma per l'audience totale e moltiplicare per 100 per ottenere la percentuale.
-    // const [groupedData] = useState([]);
     const populationNum = 52155073;
     const panelNum = 2000;
     const channels = [];
-    const pesoNum = parseFloat(populationNum / panelNum).toFixed(0)
-
+    const pesoNum = 1
+    
+    const location = useLocation();
+    const [loading, setLoading] = useState(true);
     const [isVisible, setIsVisible] = useState(false);
     const [isVisibleDett, setIsVisibleDett] = useState(false);
 
@@ -70,96 +68,139 @@ export default function FascicoloView() {
     const handlePrint = () => {
       window.print();
     };
-  
- 
+
     const handleDateChange = (date) => {
         setSelectedDate(date.format('DD/MM/YYYY'));
     };
     // Function to handle date change from date picker
 
 
+    let tipoRadioTV = 'RADIO';
+    const searchParams = new URLSearchParams(location.search);
+    const tipo = searchParams.get('type');
+    if (tipo === null) { tipoRadioTV = 'RADIO';}
+    else { tipoRadioTV = 'TV';}
+
     useEffect(() => {
         // Function to fetch ACR details by date
         const fetchACRDetailsByDate = async () => {
+           
             try {
+                setLoading(true);
                 const formattedDate = selectedDate; // Encode the date for URL
 
-                const response = (await axios.post(`${SERVER_URL}/getACRDetailsByDateRTV`, {date: formattedDate,type:'RADIO'})).data; // Adjust the endpoint to match your server route
+                const response = (await axios.post(`${SERVER_URL}/getACRDetailsByDateRTV`, {date: formattedDate,type:tipoRadioTV,notnull:'yes'})).data; // Adjust the endpoint to match your server route
                 setACRDetails(response.acrDetails);
             } catch (error) {
                 console.error('Error fetching ACR details:', error);
                 // Handle error
-            }
+            }finally {
+                setLoading(false);
+              }
         };
-
-
+       
         fetchACRDetailsByDate(); // Call the function to fetch ACR details by date
+        
 
+    }, [selectedDate,tipoRadioTV]);
 
-    }, [selectedDate]);
-
-    
+    // Function to generate time slot labels dynamically based on interval duration
+    /* const generateTimeSlotLabels = () => {
+        const labels = [];
+        for (let i = 0; i < 24 * 60; i += intervalDuration) {
+        const startHour = Math.floor(i / 60);
+        const startMinute = i % 60;
+        const endHour = Math.floor((i + intervalDuration) / 60);
+        const endMinute = (i + intervalDuration) % 60;
+        labels.push(`${startHour}:${startMinute.toString().padStart(2, '0')} - ${endHour}:${endMinute.toString().padStart(2, '0')}`);
+        }
+        return labels;
+    }; */
+    const generateTimeSlots = (intervalValue) => {
+        const slots = {};
+        const minutesInDay = 24 * 60;
+        let currentMinute = 0;
       
-
-
-
-    
-    const timeSlots = {
-        '00:00 - 02:59': [],
-        '03:00 - 05:59': [],
-        '06:00 - 08:59': [],
-        '09:00 - 11:59': [],
-        '12:00 - 14:59': [],
-        '15:00 - 17:59': [],
-        '18:00 - 20:59': [],
-        '21:00 - 23:59': [],
+        while (currentMinute < minutesInDay) {
+            const startMinute = currentMinute;
+            const endMinute = Math.min(currentMinute + intervalValue - 1, minutesInDay - 1);
+            const slot = `${formatMinute(startMinute)} - ${formatMinute(endMinute)}`;
+            slots[slot] = [];
+            currentMinute += intervalValue;
+        }
+      
+        return slots;
     };
+      
+      const formatMinute = (minute) => {
+        const hours = Math.floor(minute / 60).toString().padStart(2, '0');
+        const minutes = (minute % 60).toString().padStart(2, '0');
+        return `${hours}:${minutes}`;
+      };
+      
+      // Usage example:
+      const intervalOptions = [
+        { label: '1 minuto', value: 1 },
+        { label: '5 minuti', value: 5 },
+        { label: '15 minuti', value: 15 },
+        { label: '30 minuti', value: 30 },
+        { label: '1 ora', value: 60 },
+        { label: '3 ore', value: 180 },
+        { label: '6 ore', value: 360 },
+        { label: '12 ore', value: 720 },
+        { label: '24 ore', value: 1440 },
+      ];
+      const defaultInterval = 180; // Default interval value
+      const [intervalValue, setIntervalValue] = useState(getIntervalFromURL() || defaultInterval); // Initialize with default interval or from URL
+    
+      // Function to get the interval value from the URL query parameter
+      function getIntervalFromURL() {
+        const params = new URLSearchParams(window.location.search);
+        return parseInt(params.get('interval'), 10);
+      }
+    
+      // Function to handle interval change
+      const handleIntervalChange = (event) => {
+        const selectedValue = parseInt(event.target.value,10);
+        setIntervalValue(selectedValue);
+        // Update the URL with the new interval value as a query parameter
+        window.history.replaceState({}, '', `?interval=${selectedValue}`);
+      };
+      
+      const timeSlots = generateTimeSlots(intervalValue);
+      console.log(timeSlots);
 
-    acrDetails.forEach((item) => {
+      
+    
+      acrDetails.forEach((item) => {
         const recordedDate = item.recorded_at;
-        const [, time] = recordedDate.split(' ');
-        const [hours] = time.split(':');
-        const minuteKey = `${hours.padStart(2, '0')}`;
-        console.log(minuteKey);
+        const [,time] = recordedDate.split(' ');
+        const [hour,minute] = time.split(':');
+        const minuteKey = parseInt(hour,10) * 60 + parseInt(minute,10);
         if (item.acr_result !== 'NULL') {
-            
-        const slot = (() => {
-            const hour = parseInt(minuteKey, 10);
-            if (hour >= 0 && hour <= 2) return '00:00 - 02:59';
-            if (hour >= 3 && hour <= 5) return '03:00 - 05:59';
-            if (hour >= 6 && hour <= 8) return '06:00 - 08:59';
-            if (hour >= 9 && hour <= 11) return '09:00 - 11:59';
-            if (hour >= 12 && hour <= 14) return '12:00 - 14:59';
-            if (hour >= 15 && hour <= 17) return '15:00 - 17:59';
-            if (hour >= 18 && hour <= 20) return '18:00 - 20:59';
-            if (hour >= 21 && hour <= 23) return '21:00 - 23:59';
-            return '';
-        })();
-         audienceGiornaliera += 1 * pesoNum;
-         /* check channels if there is a channel already in the array */
-         if (channels.indexOf(item.acr_result) === -1) {
-            channels.push(item.acr_result);
-         }
-
-         if (slot !== '') {
-            if (!timeSlots[slot][item.acr_result]) {
-                timeSlots[slot][item.acr_result] = parseFloat(pesoNum)*1;
-            } else {
-                timeSlots[slot][item.acr_result] += parseFloat(pesoNum)*1;
-            }
-
+            if (channels.indexOf(item.acr_result) === -1) {
+                channels.push(item.acr_result);
+             }
+            Object.keys(timeSlots).forEach(slotKey => {
+                const [start, end] = slotKey.split(' - ');
+                const [startHour, startMinute] = start.split(':').map(Number);
+                const [endHour, endMinute] = end.split(':').map(Number);
+                const startMinuteKey = startHour * 60 + startMinute;
+                const endMinuteKey = endHour * 60 + endMinute;
+                if (minuteKey >= startMinuteKey && minuteKey <= endMinuteKey) {
+                    if (!timeSlots[slotKey][item.acr_result]) {
+                        timeSlots[slotKey][item.acr_result] = 1;
+                    } else {
+                        timeSlots[slotKey][item.acr_result] += 1;
+                    }
+                }
+            });
         }
-        }
-
     });
-    console.log("CHANNELS")
-    console.log(channels);
-    /* get size acrDetails */
-    console.log("MINUTI TOTALI GIORNO: %s", audienceGiornaliera);
-    // let audienceGiornalieraReale = audienceGiornaliera/pesoNum 
-    // audienceGiornalieraReale = parseFloat(audienceGiornalieraReale).toFixed(0);
-    const timeSlotLabels = Object.keys(timeSlots);
 
+    // console.log("TIMESLOTS",timeSlots)
+    
+    const timeSlotLabels = Object.keys(timeSlots);   
     // const channelNames = Object.keys(timeSlotSeries);
     const channelNames = Array.from(
         new Set(Object.values(timeSlots).flatMap((data) => Object.keys(data)))
@@ -167,261 +208,219 @@ export default function FascicoloView() {
     channelNames.sort();
 
     // Initialize userListeningMap
-    const userListeningMap = {};
-    const userListeningMapAudience = {};
+        const userListeningMap = {};
 
-    acrDetails.forEach((item) => {
-        const recordedDate = item.recorded_at;
-        const [,time] = recordedDate.split(' ');
-        const [hours] = time.split(':');
-        const minuteKey = `${hours.padStart(2, '0')}`;
-        if (item.acr_result !== 'NULL') {
+        acrDetails.forEach((item) => {
+            const recordedDate = item.recorded_at;
+            const [,time] = recordedDate.split(' ');
+            const [hour,minute] = time.split(':');
+            const minuteKey = parseInt(hour,10) * 60 + parseInt(minute,10);
+            if (item.acr_result !== 'NULL') {
+                Object.keys(timeSlots).forEach(slotKey => {
+                    const [start, end] = slotKey.split(' - ');
+                    const [startHour, startMinute] = start.split(':').map(Number);
+                    const [endHour, endMinute] = end.split(':').map(Number);
+                    const startMinuteKey = startHour * 60 + startMinute;
+                    const endMinuteKey = endHour * 60 + endMinute;
+                    if (minuteKey >= startMinuteKey && minuteKey <= endMinuteKey) {
+                        if (slotKey !== '') {
+                            if (!userListeningMap[item.acr_result]) {
+                                userListeningMap[item.acr_result] = {}; // Initialize the channel object if it doesn't exist
+                            }
 
-        const slot = (() => {
-            const hour = parseInt(minuteKey, 10);
-            if (hour >= 0 && hour <= 2) return '00:00 - 02:59';
-            if (hour >= 3 && hour <= 5) return '03:00 - 05:59';
-            if (hour >= 6 && hour <= 8) return '06:00 - 08:59';
-            if (hour >= 9 && hour <= 11) return '09:00 - 11:59';
-            if (hour >= 12 && hour <= 14) return '12:00 - 14:59';
-            if (hour >= 15 && hour <= 17) return '15:00 - 17:59';
-            if (hour >= 18 && hour <= 20) return '18:00 - 20:59';
-            if (hour >= 21 && hour <= 23) return '21:00 - 23:59';
-            return '';
-        })();
-        // console.log(date);
-        if (slot !== '') {
-            if (!userListeningMap[item.acr_result]) {
-                userListeningMap[item.acr_result] = {}; // Initialize the channel object if it doesn't exist
-                userListeningMapAudience[item.acr_result] = 1*pesoNum; // Initialize the channel object if it doesn't exist
+                            if (!userListeningMap[item.acr_result][slotKey]) {
+                                userListeningMap[item.acr_result][slotKey] = new Set(); // Initialize the set for the slot if it doesn't exist
+                            }
+
+                            userListeningMap[item.acr_result][slotKey].add(item.user_id); // Add user to the set for the corresponding time slot and channel
+                        }
+                    }
+                });
             }
-
-            if (!userListeningMap[item.acr_result][slot]) {
-                userListeningMap[item.acr_result][slot] = new Set(); // Initialize the set for the slot if it doesn't exist
-            }
-            userListeningMapAudience[item.acr_result] += 1*pesoNum; // Add 1 to the audience for the channel
-            userListeningMap[item.acr_result][slot].add(item.user_id); // Add user to the set for the corresponding time slot and channel
-        }
-    }
-    });
-    // console.log("USER LISTENING MAP");
+        });
+     console.log("USER LISTENING MAP",userListeningMap);
     // console.log(userListeningMapAudience);
 
-    // Now you can calculate the unique users listening to each channel
-    /* const calculateAudienceShare = (channel, slot) => {
-    const totalUsers = panelNum; // Total number of users (replace this with your actual number)
-    const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
-    // Calculate the share percentage for the channel in the given time slot
-    const sharePercentage = `${((uniqueUsersListening / totalUsers) * 100).toFixed(2)}%`;
-    return sharePercentage;
-    };
-    */
-    const calculateAudience = (channel, slot) => {
+    
+     const calculateAudienceByMinute = (channel, slot) => {
         const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
-        // Calculate the share percentage for the channel in the given time slot
-        return uniqueUsersListening*pesoNum;
-    };
-    const calculateShareSlotCanale = (channel, slot) => {
-        let audienceSlotCanali = 0;
-        channels.forEach(canalealtro => {
-            if ((canalealtro !== "NULL")) {
-                audienceSlotCanali += parseFloat(timeSlots[slot][canalealtro] || 0)
-            }
-        });
-
-        console.log("AUDIENCE CANALE %s FASCIA ORARIA %s %s %s", channel, slot, audienceSlotCanali,timeSlots[slot][channel]);
-        const shareSlotCanale = parseFloat((((timeSlots[slot][channel])/audienceSlotCanali)*100).toFixed(1)) || 0 ;
-        return shareSlotCanale;
-    };
-
-    const displayTitleAscolti = (channel,slot) => {
-        const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
-        const minutoMedio = parseFloat((timeSlots[slot][channel]/(uniqueUsersListening*pesoNum)).toFixed(1)) || 0 ;
-//        console.log("MINUTO MEDIO %s", minutoMedio);
+        const minutoMedio = timeSlots[slot][channel] || 0 ;
+        // console.log("MINUTO MEDIO %s", minutoMedio);
         const audienceByMinute = minutoMedio*(uniqueUsersListening*pesoNum);
-//        console.log("AUDIENCE BY MINUTE canale %s slot %s audiencexmin %s", channel,slot, audienceByMinute);
-        return `#Canale: ${channel}, #Utenti reali per canale ${uniqueUsersListening}, n. Individui ${uniqueUsersListening*pesoNum} #Minuti Totali ${timeSlots[slot][channel]/pesoNum} #Minuto medio ${minutoMedio}, #Audience pesata ${audienceByMinute}`;
-
-    }
-    const displayTitleAudience = (channel,slot) => {
+        // console.log("AUDIENCE BY MINUTE canale %s slot %s audiencexmin %s", channel,slot, audienceByMinute);
+        // Calculate the share percentage for the channel in the given time slot
+        return audienceByMinute.toFixed(1);
+    };
+            
+    const calculateShareSlotCanale = (channel, slot) => {
+        let audienceSlotCanali = 0
+        channels.forEach(canalealtro => {
+            if ((canalealtro !== "NULL")) {
+                const uniqueUsersListeningch = userListeningMap[channel]?.[slot]?.size || 0;
+                audienceSlotCanali += uniqueUsersListeningch*parseFloat(timeSlots[slot][canalealtro] || 0)
+            }
+        });
         const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
-//        const minutoMedio = parseFloat((timeSlots[slot][channel]/(uniqueUsersListening*pesoNum)).toFixed(1)) || 0 ;
-//        console.log("MINUTO MEDIO %s", minutoMedio);
-//        const audienceByMinute = minutoMedio*(uniqueUsersListening*pesoNum);
-//        console.log("AUDIENCE BY MINUTE canale %s slot %s audiencexmin %s", channel,slot, audienceByMinute);
-        return `#Canale: ${channel}, #Utenti reali per canale ${uniqueUsersListening}, n. Individui ${uniqueUsersListening*pesoNum} `;
+        const minuto = timeSlots[slot][channel] || 0 ;
+        const audienceByMinute = minuto*(uniqueUsersListening*pesoNum);
+        const shareSlotCanale = (((audienceByMinute/intervalValue) || 0)/ (audienceSlotCanali/intervalValue))*100 || 0 ;
+        return shareSlotCanale.toFixed(2);
 
-    }
+    };
+
+    const displayTitle = (channel,slot) => {
+        const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
+        const minutoMedio = timeSlots[slot][channel] || 0 ;
+        // console.log("MINUTO MEDIO %s", minutoMedio);
+        const audienceByMinute = minutoMedio*(uniqueUsersListening*pesoNum);
+        // console.log("AUDIENCE BY MINUTE canale %s slot %s audiencexmin %s", channel,slot, audienceByMinute);
+        // Calculate the share percentage for the channel in the given time slot
+        return `#Canale: ${channel}, #Utenti reali per canale ${uniqueUsersListening}, n. Individui ${uniqueUsersListening*pesoNum} #Minuti Totali ${minutoMedio} #Minuti complessivi ${audienceByMinute}`;
+
+    } 
     const displayTitleShare = (channel,slot) =>  {
-        let audienceSlotCanali = 0;
+        let audienceSlotCanali = 0
         channels.forEach(canalealtro => {
             if ((canalealtro !== "NULL")) {
                 audienceSlotCanali += parseFloat(timeSlots[slot][canalealtro] || 0)
             }
         });
-
-        return `(#Audience pesata fascia oraria canale ${timeSlots[slot][channel] || 0} minuti / #Audience canali complessiva  ${audienceSlotCanali} minuti) * 100`;
+        const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
+        const minuto = timeSlots[slot][channel] || 0 ;
+        const audienceByMinute = minuto*(uniqueUsersListening*pesoNum);
+        return `(SHARE = (#AMR = ${(audienceByMinute).toFixed(2)} minuti / #Minuti intervallo:  ${intervalValue}) / #Audience canali :${audienceSlotCanali} minuti / ${intervalValue} periodo considerato )`;
     }
     
-    return (
-        <Container>
-            <Typography variant="h4" sx={{mb: 5}}>
-                FASCICOLO degli ascolti per la data {selectedDate}
-            </Typography>
-            <Typography variant="p" sx={{mb: 5}}>
-                Dati applicati al campione di popolazione pari a {populationNum} individui che distribuito su {panelNum} panelisti corrispondono a {pesoNum} persone per utente.
-            </Typography>
+    if (loading) {
+        return <p>Caricamento dati raccolti in corso... </p>; // You can replace this with your loading indicator component
+        }
 
-            {/* ... (existing code) */}
-            {/* Material-UI DatePicker component */}
-
-            {/* Display graph for a single day with x-axis corresponding to every minute */}
-            <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en-gb">
-                <DemoContainer components={['DatePicker']}>
-                    <DatePicker
-                        onChange={handleDateChange}
-                        value={dayjs(selectedDate, 'DD/MM/YYYY')}
-                    />
-                    <Button onClick={shareVisibility}>SHARE</Button>
-                    <Button onClick={toggleVisibility}>ASCOLTI</Button>
-                    <Button onClick={handlePrint}>STAMPA</Button>
-                    <Button onClick={dettVisibility}>DETTAGLIO</Button>
-                  </DemoContainer>
-            </LocalizationProvider>
-
-
- 
-
-                                        
-            
-                <Card style={{ display: isVisible ? 'none' : 'block' }}>
-                    <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2}}>
-                    SHARE 
-                    <ExportExcel  exdata={channelNames} fileName="Excel-Export-Share" idelem="export-table-share"/>
+            return (
+                <Container>
+                    
+                    <Typography variant="h4" sx={{mb: 5}}>
+                        FASCICOLO degli ascolti per la data {selectedDate}
                     </Typography>
-                    <Typography variant="p" sx={{ml: 2, mt: 3,mb:2}}>
-                    Data da rapporto tra min. di ascolto per canale nell&apos;intervallo considerato e la somma dei minuti di tutti i canali nello stesso intervallo. 
+                    <Typography variant="p" sx={{mb: 5}}>
+                        Dati applicati al campione di popolazione pari a {populationNum} individui che distribuito su {panelNum} panelisti corrispondono a {pesoNum} persone per utente.
                     </Typography>
-                    <br/>
-                    <Typography variant="p" sx={{ml: 2, mt: 3,mb:2}}>
-                    I minuti di ascolto per canale sono dati dalla somma dei minuti ascoltati dagli utenti moltiplicato per il peso id ogni utente {pesoNum} 
-                    </Typography>
-                    {/* Remaining pagination logic */}
-                        <Scrollbar>
-                            <TableContainer id="export-table-share" sx={{ overflow: 'unset' }}>
-                                <Table sx={{ minWidth: 800 }}>
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell>Channel Name</TableCell>
-                                            {timeSlotLabels.map((timeSlotKey) => (
-                                                <TableCell key={timeSlotKey}>{timeSlotKey}</TableCell>
-                                            ))}
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {Object.keys(userListeningMap).sort().map((channel, index) => (
-                                            <TableRow key={index}>
-                                                <TableCell>{channel}</TableCell>
-                                                {timeSlotLabels.map((timeSlotKey) => (
-                                                    <TableCell style={{ textAlign: 'center' }} key={timeSlotKey}>
-                                                        {/* Use calculateAudienceShare to retrieve data */}
-                                                        <span data-tooltip-id="my-tooltip" data-tooltip-content={displayTitleShare(channel,timeSlotKey)} >{calculateShareSlotCanale(channel, timeSlotKey)}%</span>
-                                                    </TableCell>
-                                                ))}
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-                        </Scrollbar>
-                    </Card>
-                      {/* Remaining pagination logic */}
-            
-                <Card style={{ display: isVisible ? 'block' : 'none' }}>
-                <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2}}>
-                    AUDIENCE 
-                    <ExportExcel  exdata={channelNames} fileName="Excel-Export-Share" idelem="export-table-audience"/>
-                </Typography>
-                
-                <br/>
-                <Typography variant="p" sx={{ml: 2, mt: 3,mb:2}}>
 
-                Peso = Pop/Panel = {populationNum}/{panelNum} = {pesoNum} individui
-                </Typography>
-                     <Scrollbar>
-                        <TableContainer id="export-table-audience" sx={{ overflow: 'unset' }}>
-                            <Table sx={{ minWidth: 800 }}>
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>Channel Name</TableCell>
-                                        {timeSlotLabels.map((timeSlotKey) => (
-                                            <TableCell key={timeSlotKey}>{timeSlotKey}</TableCell>
-                                        ))}
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {Object.keys(userListeningMap).sort().map((channel, index) => (
-                                        <TableRow key={index}>
-                                            <TableCell>{channel}</TableCell>
-                                            {timeSlotLabels.map((timeSlotKey) => (
-                                                <TableCell style={{ textAlign: 'center' }} key={timeSlotKey}>
-                                                    {/* Use calculateAudienceShare to retrieve data */}
-                                                    <span data-tooltip-id="my-tooltip" data-tooltip-content={displayTitleAudience(channel,timeSlotKey)} >{calculateAudience(channel, timeSlotKey)}</span>
-                                                </TableCell>
-                                            ))}
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-                    </Scrollbar>
-                </Card>                
-                <Card style={{ display: isVisible ? 'block' : 'none' }}>
-                    <Scrollbar>
-                    <Typography variant="h5" sx={{ml: 2, mt: 3}}>
-                        AUDIENCE (durata in minuti totali di ascolto) 
+                    {/* ... (existing code) */}
+                    {/* Material-UI DatePicker component */}
+
+                    {/* Display graph for a single day with x-axis corresponding to every minute */}
+                    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en-gb">
+                        <DemoContainer components={['DatePicker']}>
+                            <DatePicker
+                                onChange={handleDateChange}
+                                value={dayjs(selectedDate, 'DD/MM/YYYY')}
+                            />
+                            <Button onClick={shareVisibility}>SHARE</Button>
+                            <Button onClick={toggleVisibility}>ASCOLTI</Button>
+                            <Button onClick={handlePrint}>STAMPA</Button>
+                            <Button onClick={dettVisibility}>DETTAGLIO</Button>
+                            <select id="intervalSelect" value={intervalValue} onChange={handleIntervalChange}>
+                                {intervalOptions.map((option) => (
+                                <option key={option.value} value={option.value}>{option.label}</option>
+                                ))}
+                            </select>
+
+                        </DemoContainer>
+                    </LocalizationProvider>
+                    <Scrollbar style={{ width: '100%', height: '500px' }}>
+      <Card style={{ display: isVisible ? 'none' : 'block' }}>
+        <CardContent>
+          <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>SHARE</Typography>
+          <Typography variant="p" sx={{ ml: 2, mt: 3, mb: 2 }}>Data da rapporto tra AMR e AUDIENCE nell&apos;intervallo considerato di {intervalValue} minuti.</Typography>
+          <br />
+          <GraphChart userListeningMap={userListeningMap} intervalValue={intervalValue} /> {/* Render the GraphChart component */}
+        </CardContent>
+      </Card>
+    </Scrollbar>
+                    <Card style={{ display: isVisible ? 'block' : 'none' }}>
+                        <CardContent>
+
+        
+                <Typography variant="h5" sx={{ml: 2, mt: 3}}>
+                        AUDIENCE 
                         <ExportExcel  exdata={channelNames} fileName="Excel-Export-Ascolti" idelem="export-table"/>
                 </Typography>
-                <TableContainer id="export-table"  sx={{overflow: 'unset'}}>
+                    <Typography variant="p" sx={{ml: 2, mt: 3,mb:2}}>
+                        AUDIENCE AGGIORNATA: (somma minuti tot di ascolto di ogni canale  * numero panelisti * peso(1 user = {pesoNum} individui) nella fascia oraria considerata
+                    </Typography>           
+                    <TableContainer id="export-table"  sx={{overflow: 'unset'}}>
                         <Table sx={{minWidth: 800}}>
                             <TableHead>
                                 <TableRow>
                                     <TableCell>Channel Name</TableCell>
                                     {Object.keys(timeSlots).map((timeSlotKey) => (
-                                        <TableCell key={timeSlotKey}>{timeSlotKey}</TableCell>
+                                        <TableCell key={timeSlotKey}>{timeSlotKey} </TableCell>
                                     ))}
                                 </TableRow>
                             </TableHead>
 
                             <TableBody>
-                                {channelNames.map((channel, index) => (
+                                {channelNames.sort().reverse().map((channel, index) => (
                                     <TableRow key={index}>
 
                                         <TableCell>{channel}</TableCell>
                                         {Object.keys(timeSlots).map((timeSlotKey) => (
                                             <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
-                                                <span data-tooltip-id="my-tooltip" data-tooltip-content={displayTitleAscolti(channel,timeSlotKey)} >{timeSlots[timeSlotKey][channel] || '0'}</span>
+                                                <span data-tooltip-id="my-tooltip" data-tooltip-content={displayTitle(channel,timeSlotKey)} >{calculateAudienceByMinute(channel, timeSlotKey)}</span>
+
+                                            
                                             </TableCell>
+                                            
                                         ))}
                                     </TableRow>
                                 ))}
                             </TableBody>
                         </Table>
                     </TableContainer>
-                    </Scrollbar>
-                </Card>
-                <Card style={{ display: isVisibleDett ? 'block' : 'none' }}>
-                {/* Existing table components and logic */}
-                <Scrollbar>
-                <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2, mr:4, pr:3}}>
-                DETTAGLIO
-                <ExportExcel    exdata={acrDetails} fileName="Excel-Export-Dettaglio" idelem="export-table-dett"/>
-            </Typography>
-            
-                </Scrollbar>
-
-                {/* Remaining pagination logic */}
+                </CardContent>
             </Card>
+            <Scrollbar style={{ width: '100%', height: '500px' }}>
+                <Card style={{ display: isVisible ? 'none' : 'block' }}>
+                <CardContent>
+                    <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>SHARE</Typography>
+                    <Typography variant="p" sx={{ ml: 2, mt: 3, mb: 2 }}>Data da rapporto tra AMR e AUDIENCE nell&apos;intervallo considerato di 180 minuti.</Typography>
+                    <br />
+                    <TableContainer id="export-table-share">
+                    <Table sx={{ minWidth: 800 }}>
+                        <TableHead>
+                            <TableRow>
+                            <TableCell>IntervalloTemporale</TableCell>
+                            {Object.keys(userListeningMap).map((channel) => (
+                                <TableCell key={channel}>{channel}</TableCell>
+                            ))}
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {timeSlotLabels.map((timeSlotKey, index) => (
+                            <TableRow key={index}>
+                                <TableCell>{timeSlotKey}</TableCell>
+                                {Object.keys(userListeningMap).map((channel) => (
+                                <TableCell style={{ textAlign: 'center' }} key={channel}>
+                                    {/* Use calculateAudienceShare to retrieve data */}
+                                    <span data-tooltip-id="my-tooltip" data-tooltip-content={displayTitleShare(channel, timeSlotKey)}>{calculateShareSlotCanale(channel, timeSlotKey)}%</span>
+                                </TableCell>
+                                ))}
+                            </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                    </TableContainer>
+                </CardContent>
+                </Card>
+            </Scrollbar>
+                
+ 
+
+                                        
+            
+                     
+               
+                
             <Tooltip id="my-tooltip" />
             </Container>
         
