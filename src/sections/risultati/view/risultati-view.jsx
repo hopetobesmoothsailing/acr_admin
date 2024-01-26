@@ -385,13 +385,13 @@ export default function RisultatiView() {
             return uniqueUsersListening*pesoNum;
         };
         const calculateAudienceByMinute = (channel, slot) => {
-            const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
+            // const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
             const minutoMedio = timeSlots[slot][channel] || 0 ;
             // console.log("MINUTO MEDIO %s", minutoMedio);
-            const audienceByMinute = minutoMedio*(uniqueUsersListening*pesoNum);
+            const audienceByMinute = (minutoMedio*pesoNum)/180;
             // console.log("AUDIENCE BY MINUTE canale %s slot %s audiencexmin %s", channel,slot, audienceByMinute);
             // Calculate the share percentage for the channel in the given time slot
-            return audienceByMinute.toFixed(1);
+            return audienceByMinute.toFixed(2);
         };
         const calculateShareSlotCanale = (channel, slot) => {
             let audienceSlotCanali = 0
@@ -417,12 +417,12 @@ export default function RisultatiView() {
             const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
             const minutoMedio = timeSlots[slot][channel] || 0 ;
             // console.log("MINUTO MEDIO %s", minutoMedio);
-            const audienceByMinute = minutoMedio*(uniqueUsersListening*pesoNum);
+            const audienceByMinute = minutoMedio/180;
             // console.log("AUDIENCE BY MINUTE canale %s slot %s audiencexmin %s", channel,slot, audienceByMinute);
             // Calculate the share percentage for the channel in the given time slot
-            return `#Canale: ${channel}, #Utenti reali per canale ${uniqueUsersListening}, n. Individui ${uniqueUsersListening*pesoNum} #Minuti Totali ${minutoMedio} #Minuti complessivi ${audienceByMinute}`;
-
-        }
+            return `#Canale: ${channel}, #Utenti reali per canale ${uniqueUsersListening}, n. Individui ${uniqueUsersListening*pesoNum} #Audience =  ${minutoMedio} Totale Minuti Canale  / 180 intervallo =  ${audienceByMinute}`;
+    
+        } 
         const displayTitleShare = (channel,slot) =>  {
             let audienceSlotCanali = 0
             channels.forEach(canalealtro => {
@@ -433,8 +433,8 @@ export default function RisultatiView() {
             const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
             const minuto = timeSlots[slot][channel] || 0 ;
             const audienceByMinute = minuto*(uniqueUsersListening*pesoNum);
-            const minutes_slot = 180;
-             return `(SHARE = (#AMR = ${(audienceByMinute).toFixed(2)} minuti / #Minuti intervallo:  ${minutes_slot}) / #Audience canali :${audienceSlotCanali} minuti / 180 periodo considerato )`;
+            
+             return `(SHARE = (#AMR = ${(audienceByMinute).toFixed(2)} minuti ) /  ${audienceSlotCanali} minuti totali intervallo )`;
         }
 
         const counts = {};
@@ -586,7 +586,7 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
                                 <TableHead>
                                     <TableRow>
                                         <TableCell>Channel Name</TableCell>
-                                        {timeSlotLabels.sort().reverse().map((timeSlotKey) => (
+                                        {timeSlotLabels.sort().map((timeSlotKey) => (
                                             <TableCell key={timeSlotKey}>{timeSlotKey}</TableCell>
                                         ))}
                                     </TableRow>
