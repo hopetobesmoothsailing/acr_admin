@@ -12,7 +12,7 @@ export const ProtectedRoute = ({ children, roles }) => {
         // user is not authenticated
         return <Navigate to="/login" state={{from: location}} />;
     }
-    if (roles instanceof Array && roles.findIndex(ROLES[user.role]) === -1) {
+    if (roles instanceof Array && roles.indexOf(ROLES[user.role - 1]) === -1) {
         return <Navigate to='/'/>
     }
     return children;
