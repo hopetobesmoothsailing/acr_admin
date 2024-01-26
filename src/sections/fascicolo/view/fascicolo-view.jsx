@@ -241,17 +241,17 @@ export default function FascicoloView() {
      console.log("USER LISTENING MAP",userListeningMap);
     // console.log(userListeningMapAudience);
 
-    
-     const calculateAudienceByMinute = (channel, slot) => {
+   
+    const calculateAudienceByMinute = (channel, slot) => {
         // const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
-        const minutoMedio = parseFloat((timeSlots[slot][channel]/intervalValue || 0)) ;
-        // come indicato da cristiano corrisponde ai minuti totali di ascolto nel periodo e non minuti * utenti
-        // const audienceByMinute = minutoMedio*(uniqueUsersListening*pesoNum);
-        const audienceByMinute = minutoMedio*pesoNum / intervalValue;
+        const minutoMedio = timeSlots[slot][channel] || 0 ;
+        // console.log("MINUTO MEDIO %s", minutoMedio);
+        const audienceByMinute = minutoMedio*pesoNum/intervalValue;
         // console.log("AUDIENCE BY MINUTE canale %s slot %s audiencexmin %s", channel,slot, audienceByMinute);
         // Calculate the share percentage for the channel in the given time slot
-        return audienceByMinute.toFixed(2);
+        return audienceByMinute.toFixed(1);
     };
+ 
             
     const calculateShareSlotCanale = (channel, slot) => {
         let audienceSlotCanali = 0
@@ -341,7 +341,7 @@ export default function FascicoloView() {
                                 <ExportExcel  exdata={channelNames} fileName="Excel-Export-Ascolti" idelem="export-table"/>
                         </Typography>
                             <Typography variant="p" sx={{ml: 2, mt: 3,mb:2}}>
-                                AUDIENCE AGGIORNATA: (somma minuti tot di ascolto di ogni canale  * numero panelisti * peso(1 user = {pesoNum} individui) nella fascia oraria considerata
+                                AUDIENCE AGGIORNATA: (somma minuti tot di ascolto di ogni canale / {intervalValue} minuti di intervallo considerato
                             </Typography>           
                             <TableContainer id="export-table"  sx={{overflow: 'unset'}}>
                                 <Table sx={{minWidth: 800}}>
@@ -378,7 +378,7 @@ export default function FascicoloView() {
                 <Card style={{ display: isVisible ? 'none' : 'block' }}>
                 <CardContent>
                     <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>SHARE</Typography>
-                    <Typography variant="p" sx={{ ml: 2, mt: 3, mb: 2 }}>Data da rapporto tra AMR e AUDIENCE nell&apos;intervallo considerato di 180 minuti.</Typography>
+                    <Typography variant="p" sx={{ ml: 2, mt: 3, mb: 2 }}>Data da rapporto tra AMR e AUDIENCE nell&apos;intervallo considerato di ${intervalValue} minuti.</Typography>
                     <br />
                     <TableContainer id="export-table-share">
                     <Table sx={{ minWidth: 800 }}>
