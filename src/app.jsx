@@ -8,6 +8,7 @@ import Router from 'src/routes/sections';
 import ThemeProvider from 'src/theme';
 import {Provider} from 'react-redux'
 import {createStore} from "redux";
+import {SnackbarProvider} from "notistack";
 import reducer from './store/reducers/index'
 
 // ----------------------------------------------------------------------
@@ -19,7 +20,12 @@ export default function App() {
     return (
         <ThemeProvider>
             <Provider store={store} >
-                <Router/>
+                <SnackbarProvider
+                    anchorOrigin={{horizontal: 'center', vertical: 'top'}}
+                    autoHideDuration={3500}
+                >
+                    <Router/>
+                </SnackbarProvider>
             </Provider>
         </ThemeProvider>
     );
