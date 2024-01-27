@@ -8,7 +8,7 @@ export default function RisultatinullPage() {
   return (
     <>
       <Helmet>
-        <title> My Result NULL | ACR Admin </title>
+        <title> Download Page | ACR Admin </title>
       </Helmet>
 
       <RisultatinullView />
