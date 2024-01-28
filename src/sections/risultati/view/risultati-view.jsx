@@ -58,6 +58,7 @@ export default function RisultatiView() {
     const [selectedDate, setSelectedDate] = useState(formattedYesterday);
     const [users, setUsers] = useState([]);
     const [idToEmailMap, setIdToEmailMap] = useState({});
+    const [idToWeightMap, setIdToWeightMap] = useState({});
 
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(100);
@@ -176,10 +177,13 @@ export default function RisultatiView() {
       // Create the mapping of _id to email
       useEffect(() => {
         const idToEmail = {};
+        const idToWeight = {};
         users.forEach(user => {
           idToEmail[user._id] = user.email;
+          idToWeight[user._id] = user.weight_s;
         });
         setIdToEmailMap(idToEmail);
+        setIdToWeightMap(idToWeight)
       }, [users]);
 
       const minuteBasedData = useMemo(() => {
@@ -200,12 +204,15 @@ export default function RisultatiView() {
                 minuteData[minuteKeyX] = {};
             }
 //      console.log(minuteKeyX)
+            let weight_s = 1
+            weight_s = idToWeightMap[item.user_id];
+
             if (!minuteData[minuteKeyX][item.acr_result]) {
                 // console.log(minuteData[minuteKeyX][item.acr_result]);
-                minuteData[minuteKeyX][item.acr_result] = 1 ;
+                minuteData[minuteKeyX][item.acr_result] = 1*weight_s;
             } else {
                 // console.log(minuteData[minuteKeyX][item.acr_result]);
-                minuteData[minuteKeyX][item.acr_result] += 1;
+                minuteData[minuteKeyX][item.acr_result] += 1*weight_s;
             }
             }
 
@@ -259,7 +266,7 @@ export default function RisultatiView() {
         };
 
 
-    }, [selectedDate, acrDetails]);
+    }, [selectedDate, acrDetails,idToWeightMap]);
 
 
     const timeSlots = {
@@ -300,10 +307,13 @@ export default function RisultatiView() {
             channels.push(item.acr_result);
          }
         if (slot !== '') {
+            let weight_s = 1
+            weight_s = idToWeightMap[item.user_id];
+        
             if (!timeSlots[slot][item.acr_result]) {
-                timeSlots[slot][item.acr_result] = 1;
+                timeSlots[slot][item.acr_result] = 1*weight_s;
             } else {
-                timeSlots[slot][item.acr_result] += 1;
+                timeSlots[slot][item.acr_result] += 1*weight_s;
             }
         }
         }
@@ -380,9 +390,19 @@ export default function RisultatiView() {
         console.log("Total Sum across all channels:", totalSum);
 
         const calculateAudience = (channel, slot) => {
-            const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
+            // const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
+            const uniqueUsersListening = userListeningMap[channel]?.[slot]||'';
+            let somma = 0;
+            if (uniqueUsersListening){
+            uniqueUsersListening.forEach(utente => {
+                if (utente) {
+                    console.log("Sommo singola audience utenet", idToWeightMap[utente]);     
+                    somma +=  idToWeightMap[utente]
+                }
+            });
+            }
             // Calculate the share percentage for the channel in the given time slot
-            return uniqueUsersListening*pesoNum;
+            return somma;
         };
         const calculateAudienceByMinute = (channel, slot) => {
             // const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
@@ -400,8 +420,6 @@ export default function RisultatiView() {
                     const uniqueUsersListeningch = userListeningMap[channel]?.[slot]?.size || 0;    
 
                     audienceSlotCanali += uniqueUsersListeningch*parseFloat(timeSlots[slot][canalealtro] || 0)
-                    console.log("Canale:",canalealtro);
-                    console.log("Audience:",audienceSlotCanali);
                 }
             });
             const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
@@ -414,13 +432,13 @@ export default function RisultatiView() {
         };
     
         const displayTitle = (channel,slot) => {
-            const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
+            // const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
             const minutoMedio = timeSlots[slot][channel] || 0 ;
             // console.log("MINUTO MEDIO %s", minutoMedio);
             const audienceByMinute = minutoMedio/180;
             // console.log("AUDIENCE BY MINUTE canale %s slot %s audiencexmin %s", channel,slot, audienceByMinute);
             // Calculate the share percentage for the channel in the given time slot
-            return `#Canale: ${channel}, #Utenti reali per canale ${uniqueUsersListening}, n. Individui ${uniqueUsersListening*pesoNum} #Audience =  ${minutoMedio} Totale Minuti Canale  / 180 intervallo =  ${audienceByMinute}`;
+            return `#Canale: ${channel}, #Audience =  ${minutoMedio} Totale Minuti Canale  / 180 intervallo =  ${audienceByMinute}`;
     
         } 
         const displayTitleShare = (channel,slot) =>  {
@@ -430,11 +448,10 @@ export default function RisultatiView() {
                     audienceSlotCanali += parseFloat(timeSlots[slot][canalealtro] || 0)
                 }
             });
-            const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
+            // const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
             const minuto = timeSlots[slot][channel] || 0 ;
-            const audienceByMinute = minuto*(uniqueUsersListening*pesoNum);
-            
-             return `(SHARE = (#AMR = ${(audienceByMinute).toFixed(2)} minuti ) /  ${audienceSlotCanali} minuti totali intervallo )`;
+            const audienceByMinute = minuto;
+            return `(SHARE = (#AMR = ${(audienceByMinute).toFixed(2)} minuti ) / #Audience canali :${audienceSlotCanali} minuti periodo considerato )`;
         }
 
         const counts = {};
@@ -494,7 +511,7 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
                 <ExportExcel  exdata={channelNames} fileName="Excel-Export-Ascolti" idelem="export-table"/>
            </Typography>
             <Typography variant="p" sx={{ml: 2, mt: 3,mb:2}}>
-                AUDIENCE AGGIORNATA: (somma minuti tot di ascolto di ogni canale  * numero panelisti * peso(1 user = {pesoNum} individui) nella fascia oraria considerata
+                AUDIENCE AGGIORNATA: (somma min. tot di ascolto di ogni canale di ogni utente * il suo relativo peso) su intervallo considerato.
             </Typography>           
             <TableContainer id="export-table"  sx={{overflow: 'unset'}}>
                 <Table sx={{minWidth: 800}}>
@@ -592,7 +609,7 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {Object.keys(userListeningMap).sort().map((channel, index) => (
+                                    {Object.keys(userListeningMap).sort().reverse().map((channel, index) => (
                                         <TableRow key={index}>
                                             <TableCell>{channel}</TableCell>
                                             {timeSlotLabels.map((timeSlotKey) => (
@@ -651,7 +668,7 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
                         <TableCell>Model</TableCell>
                         <TableCell>Brand</TableCell>
                         <TableCell>Canale</TableCell>
-                        <TableCell>Durata</TableCell>
+                        <TableCell>PESO</TableCell>
                         <TableCell>LatLon</TableCell>
                         <TableCell>Time</TableCell>
                         </TableRow>
@@ -664,7 +681,7 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
                             <TableCell>{row.model}</TableCell>
                             <TableCell>{row.brand}</TableCell>
                             <TableCell>{row.acr_result}</TableCell>
-                            <TableCell>{row.duration * 6}</TableCell>
+                            <TableCell>{idToWeightMap[row.user_id]}</TableCell>
                             <TableCell>{row.latitude},{row.longitude}</TableCell>
                             <TableCell>{row.recorded_at}</TableCell>
                         </TableRow>

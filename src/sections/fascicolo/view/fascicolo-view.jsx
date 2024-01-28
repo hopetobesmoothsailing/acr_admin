@@ -61,7 +61,8 @@ export default function FascicoloView() {
   
     // Set yesterday's date as selectedDate
     const [selectedDate, setSelectedDate] = useState(formattedYesterday);
-  
+    const [users, setUsers] = useState([]);
+    
     
     // Function to handle button click to change the displayed table
     
@@ -100,22 +101,26 @@ export default function FascicoloView() {
         };
        
         fetchACRDetailsByDate(); // Call the function to fetch ACR details by date
-        
+        fetchUsers();
+    
 
     }, [selectedDate,tipoRadioTV]);
+    const fetchUsers = async () => {
+        const result = (await axios.post(`${SERVER_URL}/getUsers`)).data;
+        setUsers(result.users);
+    }
+        const [idToWeightMap, setIdToWeightMap] = useState({});
 
-    // Function to generate time slot labels dynamically based on interval duration
-    /* const generateTimeSlotLabels = () => {
-        const labels = [];
-        for (let i = 0; i < 24 * 60; i += intervalDuration) {
-        const startHour = Math.floor(i / 60);
-        const startMinute = i % 60;
-        const endHour = Math.floor((i + intervalDuration) / 60);
-        const endMinute = (i + intervalDuration) % 60;
-        labels.push(`${startHour}:${startMinute.toString().padStart(2, '0')} - ${endHour}:${endMinute.toString().padStart(2, '0')}`);
-        }
-        return labels;
-    }; */
+        // Create the mapping of _id to email
+        useEffect(() => {
+        const idToWeight = {};
+        users.forEach(user => {
+            idToWeight[user._id] = user.weight_s;
+        });
+        setIdToWeightMap(idToWeight);
+        }, [users]);
+
+    
     const generateTimeSlots = (intervalValue) => {
         const slots = {};
         const minutesInDay = 24 * 60;
@@ -188,10 +193,13 @@ export default function FascicoloView() {
                 const startMinuteKey = startHour * 60 + startMinute;
                 const endMinuteKey = endHour * 60 + endMinute;
                 if (minuteKey >= startMinuteKey && minuteKey <= endMinuteKey) {
+                    let weight_s = 0
+                    weight_s = idToWeightMap[item.user_id];
+                    console.log("PESO UTENTE item.user_id", weight_s)
                     if (!timeSlots[slotKey][item.acr_result]) {
-                        timeSlots[slotKey][item.acr_result] = 1;
+                        timeSlots[slotKey][item.acr_result] = 1*weight_s;
                     } else {
-                        timeSlots[slotKey][item.acr_result] += 1;
+                        timeSlots[slotKey][item.acr_result] += 1*weight_s;
                     }
                 }
             });
@@ -224,6 +232,7 @@ export default function FascicoloView() {
                     const endMinuteKey = endHour * 60 + endMinute;
                     if (minuteKey >= startMinuteKey && minuteKey <= endMinuteKey) {
                         if (slotKey !== '') {
+                            
                             if (!userListeningMap[item.acr_result]) {
                                 userListeningMap[item.acr_result] = {}; // Initialize the channel object if it doesn't exist
                             }
@@ -245,8 +254,9 @@ export default function FascicoloView() {
     const calculateAudienceByMinute = (channel, slot) => {
         // const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
         const minutoMedio = timeSlots[slot][channel] || 0 ;
-        // console.log("MINUTO MEDIO %s", minutoMedio);
+        console.log("MINUTO MEDIO:", minutoMedio);
         const audienceByMinute = minutoMedio*pesoNum/intervalValue;
+        
         // console.log("AUDIENCE BY MINUTE canale %s slot %s audiencexmin %s", channel,slot, audienceByMinute);
         // Calculate the share percentage for the channel in the given time slot
         return audienceByMinute.toFixed(1);
@@ -288,9 +298,9 @@ export default function FascicoloView() {
                 audienceSlotCanali += parseFloat(timeSlots[slot][canalealtro] || 0)
             }
         });
-        const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
+        // const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
         const minuto = timeSlots[slot][channel] || 0 ;
-        const audienceByMinute = minuto*(uniqueUsersListening*pesoNum);
+        const audienceByMinute = minuto;
         return `(SHARE = (#AMR = ${(audienceByMinute).toFixed(2)} minuti ) / #Audience canali :${audienceSlotCanali} minuti periodo considerato )`;
     }
     
