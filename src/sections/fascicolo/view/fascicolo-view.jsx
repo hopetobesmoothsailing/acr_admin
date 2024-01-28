@@ -28,8 +28,6 @@ import {SERVER_URL} from "../../../utils/consts";
 
 export default function FascicoloView() {
 
-    const populationNum = 52155073;
-    const panelNum = 2000;
     const channels = [];
     const pesoNum = 1
     
@@ -314,9 +312,6 @@ export default function FascicoloView() {
                 
                     <Typography variant="h4" sx={{mb: 5}}>
                         FASCICOLO degli ascolti per la data {selectedDate}
-                    </Typography>
-                    <Typography variant="p" sx={{mb: 5}}>
-                        Dati applicati al campione di popolazione pari a {populationNum} individui che distribuito su {panelNum} panelisti corrispondono a {pesoNum} persone per utente.
                     </Typography>
 
                     {/* ... (existing code) */}

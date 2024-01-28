@@ -1,9 +1,9 @@
 
 import axios from "axios";
 import dayjs from "dayjs";
+import {useState } from 'react';
 import 'leaflet/dist/leaflet.css';
 // import { Tooltip } from 'react-tooltip'
-import {useState, useEffect} from 'react';
 
 import Button  from '@mui/material/Button';
 // import {Popup,  Marker,TileLayer, MapContainer  } from 'react-leaflet';
@@ -28,32 +28,14 @@ import {SERVER_URL} from "../../../utils/consts";
 export default function RisultatinullView() {
 
   const [selectedDate, setSelectedDate] = useState(dayjs().subtract(1, 'day')); // Start with yesterday's date
-  const [acrDetailsMessage, setAcrDetailsMessage] = useState('');
+  const acrDetailsMessage = useState('');
 
   const handleDateChange = (date) => {
     // const formattedDate = date.format('DD/MM/YYYY');
     setSelectedDate(date);
   };
 
-  useEffect(() => {
-      const fetchACRDetailsByDate = async () => {
-          try {
-              const formattedDate = selectedDate.format('DD/MM/YYYY');
-              const response = await axios.post(`${SERVER_URL}/getExportACRDetailsByDateRTV`, { date: formattedDate, type: 'RADIO' });
-              if (response.data.status === 'success') {
-                  console.log(response.data);
-                  setAcrDetailsMessage('');
-              } else {
-                  console.log(response.data.message);
-                  setAcrDetailsMessage(response.data.message);
-              }
-          } catch (error) {
-              console.error('Error fetching ACR details:', error);
-          }
-      };
-
-      fetchACRDetailsByDate();
-  }, [selectedDate]);
+  
 
   const handleDownloadCSV = async () => {
       // Check if there are ACR details available for download
@@ -63,7 +45,7 @@ export default function RisultatinullView() {
       }
 
       try {
-          const formattedDate = selectedDate.format('YYYY-MM-DD');
+          const formattedDate = selectedDate.format('DD/MM/YYYY');
           const response = await axios.post(`${SERVER_URL}/getExportACRDetailsByDateRTV`, { date: formattedDate, type: 'RADIO' }, { responseType: 'blob' });
 
           // Create a blob from the response data

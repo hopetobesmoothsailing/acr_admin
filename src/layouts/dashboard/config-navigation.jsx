@@ -18,19 +18,19 @@ const navConfig = [
     icon: icon('ic_user'),
   },
   {
-    title: 'acr result radio',
+    title: 'Risultati Radio',
     path: '/acr',
-    icon: icon('ic_cart'),
+    icon: icon('ic_analytics'),
   },
   {
-    title: 'acr result tv',
+    title: 'Risultati TV',
     path: '/acr?type=TV',
-    icon: icon('ic_cart'),
+    icon: icon('ic_analytics'),
   },
   {
-    title: 'Null Result',
+    title: 'Download',
     path: '/risultatinull',
-    icon: icon('ic_cart'),
+    icon: icon('ic_blog'),
   },
 ];
 
