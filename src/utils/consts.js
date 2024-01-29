@@ -1,3 +1,3 @@
-export const SERVER_URL = 'http://radiomonitor.chartmusic.it:3000';
+export const SERVER_URL = 'https://radiomonitor.welcomeland.it:3001';
 
 export const ROLES = ['admin', 'operator', 'customer', 'user']
