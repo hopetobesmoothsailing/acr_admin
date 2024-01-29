@@ -1,5 +1,6 @@
 import path from 'path';
 import { defineConfig } from 'vite';
+import { createProxyMiddleware } from 'http-proxy-middleware';
 import react from '@vitejs/plugin-react-swc';
 import checker from 'vite-plugin-checker';
 import fs from 'fs';
@@ -42,6 +43,15 @@ export default defineConfig({
       key: fs.readFileSync('./../privkey.pem'),
       cert: fs.readFileSync('./../fullchain.pem'),
      },
+     middleware: [
+      createProxyMiddleware({
+        // Redirect HTTP to HTTPS
+        target: 'https://radiomonitor.chartmusic.it', // Replace with your domain
+        changeOrigin: true,
+        secure: false, // If you're using self-signed certificates, set this to false
+        xfwd: true,
+      })
+    ],
     host: '0.0.0.0',
     port: 3030,
   },
