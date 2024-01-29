@@ -14,33 +14,39 @@ const GraphChart = ({ userListeningMap }) => {
     // Create a map to store data grouped by intervals
     const intervalDataMap = new Map();
 
-    // Iterate through each radio station
-    Object.keys(userListeningMap).forEach(radioStation => {
-      const timeSlots = userListeningMap[radioStation];
-      // Iterate through each time slot for the current radio station
-      Object.keys(timeSlots).forEach(interval => {
-        const timeSlot = interval.split(' - ')[0]; // Extracting the start time from the interval
-        const intervalLength = timeSlots[interval].size;
+    // Extract and sort the keys (time slots)
+    const timeSlotKeys = Object.keys(userListeningMap).flatMap(radioStation =>
+      Object.keys(userListeningMap[radioStation])
+    );
+    const sortedTimeSlotKeys = Array.from(new Set(timeSlotKeys)).sort();
+
+    // Iterate through each time slot
+    sortedTimeSlotKeys.forEach(interval => {
+      // Iterate through each radio station
+      Object.keys(userListeningMap).forEach(radioStation => {
+        const timeSlots = userListeningMap[radioStation];
+        // console.log("gchart: timeSlots",timeSlots);
+        const intervalLength = timeSlots[interval]?.size || 0;
 
         // Check if the interval exists in the intervalDataMap
-        if (!intervalDataMap.has(timeSlot)) {
+        if (!intervalDataMap.has(interval)) {
           // If not, create a new entry
-          intervalDataMap.set(timeSlot, {});
+          intervalDataMap.set(interval, {});
         }
 
         // Add or update data for the current radio station within the interval
-        intervalDataMap.get(timeSlot)[radioStation] = intervalLength;
+        intervalDataMap.get(interval)[radioStation] = intervalLength/interval || 0;
       });
     });
-
+     
     // Convert the intervalDataMap into an array for chart rendering
     intervalDataMap.forEach((intervalData, interval) => {
       const rowData = { name: interval, ...intervalData };
       data.push(rowData);
     });
 
-    console.log("data", data);
-
+    // console.log("data", data);
+    
     return data;
   }, [userListeningMap]);
 
@@ -48,7 +54,7 @@ const GraphChart = ({ userListeningMap }) => {
   const lines = Object.keys(userListeningMap).map((radioStation, index) => (
     <Line key={radioStation} type="monotone" dataKey={radioStation} stroke={`#${Math.floor(Math.random()*16777215).toString(16)}`} />
   ));
-
+  
   return (
     <ResponsiveContainer width="100%" height={800}>
       <LineChart data={chartData}>

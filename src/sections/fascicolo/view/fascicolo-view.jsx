@@ -20,8 +20,8 @@ import {Table, TableRow, TableHead, TableBody, TableCell, TableContainer} from '
 
 import Scrollbar from 'src/components/scrollbar';
 
-import GraphChart from "../graph-chart";
 import ExportExcel from "../export-to-excel"; 
+import GraphChartArr from "../graph-chart-arr";
 import {SERVER_URL} from "../../../utils/consts";
 
 // ----------------------------------------------------------------------
@@ -45,6 +45,8 @@ export default function FascicoloView() {
     const dettVisibility = () => {
         setIsVisibleDett(!isVisibleDett); // Toggle the visibility state
     };
+    const importantChannels = ['RadioDeejay', 'RaiRadio1','RaiRadio2','RaiRadio3','RaiIsoradio','RDS','RTL','Radio24','RadioM2O','RADIOSUBASIO','RADIOBELLAEMONELLA','RADIOROCK','RADIOITALIAANNI60','RADIOKISSKISS','RADIOKISSKISSNAPOLI','RADIOKISSKISSITALIA','RadioFRECCIA','RadioIBIZA','RadioCapital','R101','VIRGINRadio','RADIOMONTECARLO','Radio105','RadioZETA','RadioBRUNO','RadioItaliaSMI', /* Add more important channels as needed */];
+
 
     const [acrDetails, setACRDetails] = useState([]);
     // const [acrDetailsTimeslot, setACRDetailsTimeslot] = useState([])
@@ -173,9 +175,17 @@ export default function FascicoloView() {
       const timeSlots = generateTimeSlots(intervalValue);
       console.log(timeSlots);
 
+      // Filter out less important channels and group them under "ALTRERADIO"
+        const groupedACRDetails = acrDetails.map(item => {
+            const channel = item.acr_result;
+            if (!importantChannels.includes(channel) && (item.acr_result !== 'NULL')) {
+                item.acr_result = 'ALTRERADIO';
+            }
+            return item;
+        });
       
     
-      acrDetails.forEach((item) => {
+        groupedACRDetails.forEach((item) => {
         const recordedDate = item.recorded_at;
         const [,time] = recordedDate.split(' ');
         const [hour,minute] = time.split(':');
@@ -191,9 +201,9 @@ export default function FascicoloView() {
                 const startMinuteKey = startHour * 60 + startMinute;
                 const endMinuteKey = endHour * 60 + endMinute;
                 if (minuteKey >= startMinuteKey && minuteKey <= endMinuteKey) {
-                    let weight_s = 0
+                    let weight_s = 1
                     weight_s = idToWeightMap[item.user_id];
-                    console.log("PESO UTENTE item.user_id", weight_s)
+                    // console.log("PESO UTENTE item.user_id", weight_s)
                     if (!timeSlots[slotKey][item.acr_result]) {
                         timeSlots[slotKey][item.acr_result] = 1*weight_s;
                     } else {
@@ -204,7 +214,7 @@ export default function FascicoloView() {
         }
     });
 
-    // console.log("TIMESLOTS",timeSlots)
+    console.log("TIMESLOTS",timeSlots)
     
     const timeSlotLabels = Object.keys(timeSlots);   
     // const channelNames = Object.keys(timeSlotSeries);
@@ -216,7 +226,7 @@ export default function FascicoloView() {
     // Initialize userListeningMap
         const userListeningMap = {};
 
-        acrDetails.forEach((item) => {
+        groupedACRDetails.forEach((item) => {
             const recordedDate = item.recorded_at;
             const [,time] = recordedDate.split(' ');
             const [hour,minute] = time.split(':');
@@ -230,7 +240,9 @@ export default function FascicoloView() {
                     const endMinuteKey = endHour * 60 + endMinute;
                     if (minuteKey >= startMinuteKey && minuteKey <= endMinuteKey) {
                         if (slotKey !== '') {
-                            
+                            let weight_s = 1
+                            weight_s = idToWeightMap[item.user_id];
+                        
                             if (!userListeningMap[item.acr_result]) {
                                 userListeningMap[item.acr_result] = {}; // Initialize the channel object if it doesn't exist
                             }
@@ -239,20 +251,20 @@ export default function FascicoloView() {
                                 userListeningMap[item.acr_result][slotKey] = new Set(); // Initialize the set for the slot if it doesn't exist
                             }
 
-                            userListeningMap[item.acr_result][slotKey].add(item.user_id); // Add user to the set for the corresponding time slot and channel
+                            userListeningMap[item.acr_result][slotKey].add(weight_s); // Add user to the set for the corresponding time slot and channel
                         }
                     }
                 });
             }
         });
-     console.log("USER LISTENING MAP",userListeningMap);
+    // console.log("USER LISTENING MAP",userListeningMap);
     // console.log(userListeningMapAudience);
 
    
     const calculateAudienceByMinute = (channel, slot) => {
         // const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
         const minutoMedio = timeSlots[slot][channel] || 0 ;
-        console.log("MINUTO MEDIO:", minutoMedio);
+        // console.log("MINUTO MEDIO:", minutoMedio);
         const audienceByMinute = minutoMedio*pesoNum/intervalValue;
         
         // console.log("AUDIENCE BY MINUTE canale %s slot %s audiencexmin %s", channel,slot, audienceByMinute);
@@ -301,6 +313,7 @@ export default function FascicoloView() {
         const audienceByMinute = minuto;
         return `(SHARE = (#AMR = ${(audienceByMinute).toFixed(2)} minuti ) / #Audience canali :${audienceSlotCanali} minuti periodo considerato )`;
     }
+
     
     if (loading) {
         return <p>Caricamento dati raccolti in corso... </p>; // You can replace this with your loading indicator component
@@ -414,8 +427,8 @@ export default function FascicoloView() {
                 </Card>
            
                     <Card style={{ display: isVisible ? 'none' : 'block' }}>
-                        <CardContent>
-                        <GraphChart userListeningMap={userListeningMap} intervalValue={intervalValue} /> {/* Render the GraphChart component */}
+                        <CardContent  sx={{ pl: 0 }}>
+                        <GraphChartArr data={timeSlots}  intervalValue={intervalValue} /> {/* Render the GraphChart component */}
                         </CardContent>
                     </Card>
             </Scrollbar>
