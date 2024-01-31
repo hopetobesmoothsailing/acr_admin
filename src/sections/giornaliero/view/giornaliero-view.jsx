@@ -1,8 +1,9 @@
 import axios from "axios"; 
 import dayjs from "dayjs";
 import 'leaflet/dist/leaflet.css';
-import {useMemo, useState, useEffect} from 'react';
-import {Popup,  Marker,TileLayer, MapContainer  } from 'react-leaflet';
+import {useState, useEffect} from 'react';
+import { useLocation } from 'react-router-dom';
+// import {Popup,  Marker,TileLayer, MapContainer  } from 'react-leaflet';
 
 import Card from '@mui/material/Card';
 // import Button  from '@mui/material/Button';
@@ -18,10 +19,10 @@ import {Table, TableRow, TableHead, TableBody, TableCell, TableContainer } from 
 
 import Scrollbar from 'src/components/scrollbar';
 
-// import GraphChart from "../graph-chart";
 import ExportExcel from "../export-to-excel"; 
+import GraphChartArr from "../graph-chart-arr";
 import {SERVER_URL} from "../../../utils/consts";
-import AppWebsiteAudience from "../app-website-audience";
+// import AppWebsiteAudience from "../app-website-audience";
 
 // ----------------------------------------------------------------------
 
@@ -32,7 +33,9 @@ export default function GiornalieroView() {
     const panelNum = 2000;
     const channels = [];
     // const location = useLocation();
-    
+    const location = useLocation();
+    const [loading, setLoading] = useState(true);
+
     const [acrDetails, setACRDetails] = useState([]);
     const [palDetails, setPALDetails] = useState([]);
     // const [acrDetailsTimeslot, setACRDetailsTimeslot] = useState([])
@@ -52,6 +55,24 @@ export default function GiornalieroView() {
       
     const [idToWeightMap, setIdToWeightMap] = useState({});
     const [users, setUsers] = useState([]);
+    const handleDateChange = (date) => {
+        setSelectedDate(date.format('DD/MM/YYYY'));
+    };
+    // Get the URL search parameters from the current URL
+    const urlParams = new URLSearchParams(window.location.search);
+    let tipoRadioTV = 'RADIO';
+    const searchParams = new URLSearchParams(location.search);
+    const tipo = searchParams.get('type');
+    if (tipo === null) { tipoRadioTV = 'RADIO';}
+    else { tipoRadioTV = 'TV';}
+
+    // Get the value of a specific parameter (e.g., 'channel_name')
+    const channel_name = urlParams.get('channel_name');
+    let canale_pal = channel_name
+    if (channel_name === 'RAIRadio1') canale_pal = 'Rai Radio 1'
+    if (channel_name === 'RAIRadio2') canale_pal = 'Rai Radio 2'
+    if (channel_name === 'RAIIsoradio') canale_pal = 'Rai Isoradio'
+   
     const fetchUsers = async () => {
         const result = (await axios.post(`${SERVER_URL}/getUsers`)).data;
         setUsers(result.users);
@@ -64,9 +85,61 @@ export default function GiornalieroView() {
         setIdToWeightMap(idToWeight);
     }, [users]);
 
- 
-    const parsedEvents = [];
+    // calcolo total audience
 
+    const calculateContacts = (channel, slot) => {
+        const usersInTimeSlot = [];
+        let totaleContattiSlot = 0;
+        acrDetails.forEach(item => {
+          const recordedDate = item.recorded_at;
+          const [, time] = recordedDate.split(' ');
+          const [hour, minute] = time.split(':');
+          const minuteKey = parseInt(hour, 10) * 60 + parseInt(minute, 10);
+      
+          const [start, end] = slot.split(' - ');
+          const [startHour, startMinute] = start.split(':').map(Number);
+          const [endHour, endMinute] = end.split(':').map(Number);
+          const startMinuteKey = startHour * 60 + startMinute;
+          const endMinuteKey = endHour * 60 + endMinute;
+      
+          if (minuteKey >= startMinuteKey && minuteKey <= endMinuteKey && item.acr_result === channel) {
+            if (usersInTimeSlot.indexOf(item.user_id) === -1) {
+                usersInTimeSlot.push(item.user_id);
+                const weight_s = idToWeightMap[item.user_id] || 1;
+                totaleContattiSlot += weight_s;
+                
+            }
+          }
+        });
+        
+        return totaleContattiSlot;
+      };
+
+
+    const parsedEvents = [];
+    let totalAudienceAllChannels = 0;
+    acrDetails.forEach((item) => {
+      const recordedDate = item.recorded_at;
+      const [, time] = recordedDate.split(' ');
+      const [hour, minute] = time.split(':');
+      const minuteKey = parseInt(hour, 10) * 60 + parseInt(minute, 10);
+    
+      palDetails.forEach((detail) => {
+        detail.events.forEach((event) => {
+          const [start, end] = event.time_interval.split(' - ');
+          const [startHour, startMinute] = start.split(':').map(Number);
+          const [endHour, endMinute] = end.split(':').map(Number);
+          const startMinuteKey = startHour * 60 + startMinute;
+          const endMinuteKey = endHour * 60 + endMinute;
+    
+          if (minuteKey >= startMinuteKey && minuteKey <= endMinuteKey) {
+            const weight_s = idToWeightMap[item.user_id] || 1;
+            totalAudienceAllChannels += 1 * weight_s;
+          }
+        });
+      });
+    });
+    
     // Iterate over each palDetails object
     palDetails.forEach((detail) => {
         // Iterate over the events array within each palDetails object
@@ -80,7 +153,7 @@ export default function GiornalieroView() {
                 const [,time] = recordedDate.split(' ');
                 const [hour,minute] = time.split(':');
                 const minuteKey = parseInt(hour,10) * 60 + parseInt(minute,10);
-                if (item.acr_result !== 'NULL') {
+                if ((item.acr_result !== 'NULL')&&(item.acr_result === channel_name)) {
                     if (channels.indexOf(item.acr_result) === -1) {
                         channels.push(item.acr_result);
                      }
@@ -104,14 +177,20 @@ export default function GiornalieroView() {
                    
                 }
             });
+            const shareprog = ((audienceprog / totalAudienceAllChannels) * 100).toFixed(3);
+            const durationstr =event.duration_in_minutes.split(" ");
+            const durata = durationstr[0];
+            const contatti = calculateContacts(channel_name,event.time_interval);
             parsedEvents.push({
                 title: event.title,
                 date: detail.day,
                 hour: event.hour,
+                duration:durata,
                 timeInterval: event.time_interval,
                 audience:audienceprog,
+                share:shareprog,
+                contacts:contatti,
                 individui:numeroindividui,
-                duration: event.duration,
                 durationInMinutes: event.duration_in_minutes,
                 durationSmallFormat: event.duration_small_format,
             });
@@ -119,30 +198,21 @@ export default function GiornalieroView() {
     });
 
     console.log("Parsed Events", parsedEvents);
-    const handleDateChange = (date) => {
-        setSelectedDate(date.format('DD/MM/YYYY'));
-    };
-    // Get the URL search parameters from the current URL
-    const urlParams = new URLSearchParams(window.location.search);
-
-    // Get the value of a specific parameter (e.g., 'channel_name')
-    const channel_name = urlParams.get('channel_name');
-    let canale_pal = channel_name
-    if (channel_name === 'RAIRadio1') canale_pal = 'Rai Radio 1'
-    if (channel_name === 'RAIRadio2') canale_pal = 'Rai Radio 2'
-    if (channel_name === 'RAIIsoradio') canale_pal = 'Rai Isoradio'
-    useEffect(() => {
+     useEffect(() => {
         // Function to fetch ACR details by date
         const fetchResultsByDateAndChannel = async () => {
             try {
+                setLoading(true);
                 const formattedDate = selectedDate; // Encode the date for URL
-                
-                const response = (await axios.post(`${SERVER_URL}/getResultsByDateAndChannel`, {date: formattedDate,acr_result:channel_name})).data; // Adjust the endpoint to match your server route
+      
+                const response = (await axios.post(`${SERVER_URL}/getACRDetailsByDateRTV`, {date: formattedDate,type:tipoRadioTV,notnull:'yes'})).data; // Adjust the endpoint to match your server route
                 setACRDetails(response.acrDetails);
             } catch (error) {
                 console.error('Error fetching ACR details:', error);
                 // Handle error
-            }
+            }finally {
+                setLoading(false);
+              }
             try {
                 const formattedDate = selectedDate.replace(/\//g, '-');
         
@@ -156,10 +226,10 @@ export default function GiornalieroView() {
 
 
         fetchResultsByDateAndChannel(); // Call the function to fetch ACR details by date
-        fetchUsers();
+        fetchUsers(); 
         
 
-    }, [selectedDate,channel_name,canale_pal]);
+    }, [selectedDate,channel_name,canale_pal,tipoRadioTV]);
 
     console.log("palDetails",palDetails)
       
@@ -217,89 +287,6 @@ export default function GiornalieroView() {
       const timeSlots = generateTimeSlots(intervalValue);
       console.log(timeSlots);
 
-    const minuteBasedData = useMemo(() => {
-        const minuteData = {}; // Use an object to store data for each minute
-
-        acrDetails.forEach((item) => {
-            const recordedDate = item.recorded_at;
-            // Extracting minuteKey from the recorded_at string
-            const [date, time] = recordedDate.split(' ');
-            const [day, month, year] = date.split('/');
-            const [hours, minutes] = time.split(':');
-            const minuteKey = `${month.padStart(2, '0')}/${day.padStart(2, '0')}/${year} ${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
-            const minuteKeyX = minuteKey;
-            let weight_s = 1
-            weight_s = idToWeightMap[item.user_id];
-            // console.log("PESO UTENTE item.user_id", weight_s)
-
-            if (!minuteData[minuteKeyX]) {
-                minuteData[minuteKeyX] = {};
-            }
-//      console.log(minuteKeyX)
-            if (!minuteData[minuteKeyX][item.acr_result]) {
-                // console.log(minuteData[minuteKeyX][item.acr_result]);
-                minuteData[minuteKeyX][item.acr_result] = 1*weight_s;
-            } else {
-                // console.log(minuteData[minuteKeyX][item.acr_result]);
-                minuteData[minuteKeyX][item.acr_result] += 1*weight_s;
-            }
-            // console.log(item.acr_result);
-            // console.log(minuteData[minuteKeyX][item.acr_result]);
-        });
-
-        // Convert minuteData into series data for the chart
-        const labels = Array.from({length: 24 * 60}, (_, index) => {
-            const minutes = index % 60;
-            const hours = Math.floor(index / 60);
-            const parts = selectedDate.split('/'); // Split by '/' delimiter
-            const day = parts[0];
-            const month = parts[1];
-            const year = parts[2];
-            // Create a valid date string in 'MM/dd/yyyy' format that JavaScript can parse
-            const formattedDateCorretta = `${month}/${day}/${year}`;
-
-
-            const date = new Date(formattedDateCorretta);
-            date.setHours(hours);
-            date.setMinutes(minutes);
-            const formattedDate = `${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}/${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-            // console.log("LABELELSL");
-            // console.log(formattedDate);
-            return formattedDate; // Change to your desired date format
-        });
-
-
-        const uniqueChannels = [...new Set(acrDetails.map((item) => item.acr_result))];
-
-        const series = uniqueChannels.map((channel) => ({
-            name: channel,
-            type: 'line',
-            fill: 'solid',
-            yAxis:2,
-            data: labels.map((label) => (minuteData[label]?.[channel] || 0)),
-        }));
-        /* const series2 = uniqueChannels.map((channel) => ({
-            name: channel,
-            type: 'line',
-            fill: 'solid',
-            yAxis:0,
-            data: labels.map((label) => (minuteData[label]?.[channel] || 0)),
-        })); */
-
-        // const series = series1.concat(series2);
-        
-        // console.log(series);
-        return {
-            labels,
-            series,
-        };
-
-
-    }, [selectedDate, acrDetails,idToWeightMap]);
-
-    // const timeSlotLabels = Object.keys(timeSlots);   
-    
-
     
     
 
@@ -308,10 +295,18 @@ export default function GiornalieroView() {
         const [,time] = recordedDate.split(' ');
         const [hour,minute] = time.split(':');
         const minuteKey = parseInt(hour,10) * 60 + parseInt(minute,10);
-        if (item.acr_result !== 'NULL') {
+        if ((item.acr_result !== 'NULL')) {
+            if (item.acr_result === channel_name) {
             if (channels.indexOf(item.acr_result) === -1) {
                 channels.push(item.acr_result);
              }
+            }
+            else {
+                item.acr_result = "ALTRERADIO";
+                if (channels.indexOf(item.acr_result) === -1) {
+                    channels.push(item.acr_result);
+                 }
+            }
             Object.keys(timeSlots).forEach(slotKey => {
                 const [start, end] = slotKey.split(' - ');
                 const [startHour, startMinute] = start.split(':').map(Number);
@@ -323,9 +318,9 @@ export default function GiornalieroView() {
                     weight_s = idToWeightMap[item.user_id];
                     // console.log("PESO UTENTE item.user_id", weight_s)
                     if (!timeSlots[slotKey][item.acr_result]) {
-                        timeSlots[slotKey][item.acr_result] = 1*weight_s;
+                        timeSlots[slotKey][item.acr_result] = 1*weight_s || 1;
                     } else {
-                        timeSlots[slotKey][item.acr_result] += 1*weight_s;
+                        timeSlots[slotKey][item.acr_result] += 1*weight_s || 1;
                     }
                 }
             });
@@ -397,64 +392,19 @@ export default function GiornalieroView() {
             // Calculate the share percentage for the channel in the given time slot
             return somma;
         };
-        /* const calculateAudienceByMinute = (channel, slot) => {
-            // const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
-            const minutoMedio = timeSlots[slot][channel] || 0 ;
-            console.log("MINUTO MEDIO:", minutoMedio);
-            const audienceByMinute = minutoMedio*pesoNum/intervalValue;
-            
-            // console.log("AUDIENCE BY MINUTE canale %s slot %s audiencexmin %s", channel,slot, audienceByMinute);
-            // Calculate the share percentage for the channel in the given time slot
-            return audienceByMinute.toFixed(1);
-        }; */
-     
-       /*         
-        const calculateShareSlotCanale = (channel, slot) => {
-            let audienceSlotCanali = 0
-            channels.forEach(canalealtro => {
-                if ((canalealtro !== "NULL")) {
-                    // const uniqueUsersListeningch = userListeningMap[channel]?.[slot]?.size || 0;
-                    // audienceSlotCanali += uniqueUsersListeningch*parseFloat(timeSlots[slot][canalealtro] || 0)
-                    audienceSlotCanali += parseFloat(timeSlots[slot][canalealtro] || 0)
-                }
-            });
-            const minuto = timeSlots[slot][channel] || 0 ;
-            // come indicato da cristiano corrisponde ai minuti totali di ascolto nel periodo e non minuti * utenti
-            // const audienceByMinute = minuto*(uniqueUsersListening*pesoNum);
-            const audienceByMinute = minuto;
-            const shareSlotCanale = (((audienceByMinute/intervalValue) || 0)/ (audienceSlotCanali/intervalValue))*100 || 0 ;
-            return shareSlotCanale.toFixed(2);
-    
-        };
-       const displayTitle = (channel,slot) => {
-            const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
-            const minutoMedio = timeSlots[slot][channel] || 0 ;
-            // console.log("MINUTO MEDIO %s", minutoMedio);
-            const audienceByMinute = minutoMedio/intervalValue;
-            // console.log("AUDIENCE BY MINUTE canale %s slot %s audiencexmin %s", channel,slot, audienceByMinute);
-            // Calculate the share percentage for the channel in the given time slot
-            return `#Canale: ${channel}, #Utenti reali per canale ${uniqueUsersListening}, n. Individui ${uniqueUsersListening*pesoNum} #Audience =  ${minutoMedio} Totale Minuti Canale  / ${intervalValue} intervallo =  ${audienceByMinute}`;
-    
-        } 
-      
-        const displayTitleShare = (channel,slot) =>  {
-            let audienceSlotCanali = 0
-            channels.forEach(canalealtro => {
-                if ((canalealtro !== "NULL")) {
-                    audienceSlotCanali += parseFloat(timeSlots[slot][canalealtro] || 0)
-                }
-            });
-            // const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
-            const minuto = timeSlots[slot][channel] || 0 ;
-            const audienceByMinute = minuto;
-            return `(SHARE = (#AMR = ${(audienceByMinute).toFixed(2)} minuti ) / #Audience canali :${audienceSlotCanali} minuti periodo considerato )`;
-        } */
-//    console.log(fiveMinuteBasedData);
+
+
+
+        //    console.log(fiveMinuteBasedData);
+if (loading) {
+    return <p>Caricamento dati raccolti in corso... </p>; // You can replace this with your loading indicator component
+  }
     return (
         <Container>
             <Typography variant="h4" sx={{mb: 5}}>
                 Giornaliero canale {channel_name} per la data {selectedDate}
             </Typography>
+            
             {/* ... (existing code) */}
             {/* Material-UI DatePicker component */}
 
@@ -473,13 +423,8 @@ export default function GiornalieroView() {
                     </DemoContainer>
                     
             </LocalizationProvider>
-            
-
-            <AppWebsiteAudience
-                title="Ascolti"
-                subheader="Audience (n.ascoltatori) per canale calcolata sulla base del minuto di ascolto"
-                chart={minuteBasedData}
-            />
+            <GraphChartArr data={timeSlots}  intervalValue={intervalValue} channels={channels} channel_name={channel_name} userListeningMap={userListeningMap} idToWeightMap={idToWeightMap} /> {/* Render the GraphChart component */}
+           
             
            
              
@@ -497,11 +442,12 @@ export default function GiornalieroView() {
                     <CardContent>
                     <Scrollbar>
                     <Typography variant="p" gutterBottom>
+                    <p>Ora: Titolo Programma (Ascolto, Share,Contatti) </p>
                     {parsedEvents.map((event, index) => (
                     <div key={index}>
                         {event.audience > 0 && ( // Check if audience > 0
                                     <p>
-                                        {event.timeInterval}: {event.title} ({event.individui}, {event.audience}min.)
+                                        {event.timeInterval}: {event.title} ({(event.audience)},  {event.share},  {event.contacts})
                                     </p>
                                 )}                    
                     </div>
@@ -511,46 +457,7 @@ export default function GiornalieroView() {
                     </Scrollbar>
                     </CardContent>
                 </Card>
-                <Card sx={{ mt: 3 }}>
-                <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                        Mappa Utenti Panel
-                    </Typography>
-                    <MapContainer
-                        center={[44.4837486, 11.2789241]}
-                        zoom={5}
-                        style={{ height: '280px', width: '100%' }}
-                    >
-                        <TileLayer
-                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                        />
 
-                        {acrDetails.map((row) => {
-                            const latitude = parseFloat(row.latitude);
-                            const longitude = parseFloat(row.longitude);
-
-                            if (!Number.isNaN(latitude) && !Number.isNaN(longitude)) {
-                                return (
-                                    <Marker
-                                        key={row._id}
-                                        position={[latitude, longitude]}
-                                    >
-                                <Popup>
-                                    {`${row.brand} ${row.model}`} <br />
-                                    {`Channel: ${row.acr_result}`} <br />
-                                    {`Recorded At: ${row.recorded_at}`} <br />
-                                    {`Location: ${row.location_address}`}
-                                </Popup>
-                                        {/* ... */}
-                                    </Marker>
-                                );
-                            }
-                            return null; // Skip rendering marker for invalid coordinates
-                        })}
-                    </MapContainer>
-                </CardContent>
-            </Card>
                 </Grid>
                 <Grid xs={12} sm={6} md={6}>
                 <Card>
