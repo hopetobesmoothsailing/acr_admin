@@ -45,7 +45,7 @@ export default function FascicoloView() {
     const dettVisibility = () => {
         setIsVisibleDett(!isVisibleDett); // Toggle the visibility state
     };
-    const importantChannels = ['RadioDeejay', 'RaiRadio1','RaiRadio2','RaiRadio3','RaiIsoradio','RDS','RTL','Radio24','RadioM2O','RADIOSUBASIO','RADIOBELLAEMONELLA','RADIOROCK','RADIOITALIAANNI60','RADIOKISSKISS','RADIOKISSKISSNAPOLI','RADIOKISSKISSITALIA','RadioFRECCIA','RadioIBIZA','RadioCapital','R101','VIRGINRadio','RADIOMONTECARLO','Radio105','RadioZETA','RadioBRUNO','RadioItaliaSMI', /* Add more important channels as needed */];
+    const importantChannels = ['RadioDeejay', 'RAIRadio1','RAIRadio2','RAIRadio3','RAIIsoradio','RDS','RTL','Radio24','RadioM2O','RADIOSUBASIO','RADIOBELLAEMONELLA','RADIOITALIAANNI60','RADIOKISSKISS','RADIOKISSKISSNAPOLI','RADIOKISSKISSITALIA','RadioFRECCIA','RadioIBIZA','RadioCapital','R101','VIRGINRadio','RADIOMONTECARLO','Radio105','RadioZETA','RadioBRUNO','RadioItaliaSMI'];
 
 
     const [acrDetails, setACRDetails] = useState([]);
