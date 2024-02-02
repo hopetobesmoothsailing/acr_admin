@@ -68,10 +68,10 @@ export default function GiornalieroView() {
 
     // Get the value of a specific parameter (e.g., 'channel_name')
     const channel_name = urlParams.get('channel_name');
-    let canale_pal = channel_name
-    if (channel_name === 'RAIRadio1') canale_pal = 'Rai Radio 1'
-    if (channel_name === 'RAIRadio2') canale_pal = 'Rai Radio 2'
-    if (channel_name === 'RAIIsoradio') canale_pal = 'Rai Isoradio'
+    const canale_pal = channel_name
+    // if (channel_name === 'RAIRadio1') canale_pal = 'Rai Radio 1'
+    // if (channel_name === 'RAIRadio2') canale_pal = 'Rai Radio 2'
+    // if (channel_name === 'RAIRadio3') canale_pal = 'Rai Isoradio'
    
     const fetchUsers = async () => {
         const result = (await axios.post(`${SERVER_URL}/getUsers`)).data;
@@ -216,7 +216,7 @@ export default function GiornalieroView() {
             try {
                 const formattedDate = selectedDate.replace(/\//g, '-');
         
-                const response = (await axios.post(`${SERVER_URL}/getPalinsestoByDateAndChannel`, {'date': formattedDate,'channel_name':canale_pal})).data; // Adjust the endpoint to match your server route
+                const response = (await axios.post(`${SERVER_URL}/getPalinsestomByDateAndChannel`, {'date': formattedDate,'channel_name':canale_pal})).data; // Adjust the endpoint to match your server route
                 setPALDetails(response.palDetails);
             } catch (error) {
                 console.error('Error fetching ACR details:', error);
