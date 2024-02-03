@@ -1,5 +1,7 @@
+import 'dayjs/locale/it'; // Import the Italian locale
 import axios from "axios";
 import dayjs from "dayjs";
+import customParseFormat from 'dayjs/plugin/customParseFormat'; // For parsing custom formats
 import 'leaflet/dist/leaflet.css';
 import { Tooltip } from 'react-tooltip'
 import {useState, useEffect} from 'react';
@@ -16,13 +18,16 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import {Table, TableRow, TableHead, TableBody, TableCell, TableContainer} from '@mui/material';
+import {Table, TableRow, TextField, TableHead, TableBody, TableCell, TableContainer} from '@mui/material';
 
 import Scrollbar from 'src/components/scrollbar';
 
 import ExportExcel from "../export-to-excel"; 
 import GraphChartArr from "../graph-chart-arr";
 import {SERVER_URL} from "../../../utils/consts";
+
+dayjs.extend(customParseFormat); // Extend dayjs with the customParseFormat plugin
+dayjs.locale('it'); // Set the locale to Italian
 
 // ----------------------------------------------------------------------
 
@@ -60,7 +65,8 @@ export default function FascicoloView() {
     ).toString().padStart(2, '0')}/${yesterday.getFullYear()}`;
   
     // Set yesterday's date as selectedDate
-    const [selectedDate, setSelectedDate] = useState(formattedYesterday);
+    const [selectedDate, setSelectedDate] = useState(dayjs(formattedYesterday).format('DD/MM/YYYY'));
+
     const [users, setUsers] = useState([]);
     
     
@@ -269,7 +275,7 @@ export default function FascicoloView() {
         
         // console.log("AUDIENCE BY MINUTE canale %s slot %s audiencexmin %s", channel,slot, audienceByMinute);
         // Calculate the share percentage for the channel in the given time slot
-        return audienceByMinute.toFixed(1);
+        return audienceByMinute.toFixed(2).toString().replace(".", ",");
     };
  
             
@@ -287,7 +293,7 @@ export default function FascicoloView() {
         // const audienceByMinute = minuto*(uniqueUsersListening*pesoNum);
         const audienceByMinute = minuto*pesoNum;
         const shareSlotCanale = (((audienceByMinute/intervalValue) || 0)/ (audienceSlotCanali/intervalValue))*100 || 0 ;
-        return shareSlotCanale.toFixed(2);
+        return shareSlotCanale.toFixed(2).toString().replace(".", ",");
 
     };
 
@@ -311,14 +317,17 @@ export default function FascicoloView() {
         // const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
         const minuto = timeSlots[slot][channel] || 0 ;
         const audienceByMinute = minuto;
-        return `(SHARE = (#AMR = ${(audienceByMinute).toFixed(2)} minuti ) / #Audience canali :${audienceSlotCanali} minuti periodo considerato )`;
+        return `(SHARE = (#AMR = ${(audienceByMinute).toFixed(2).toString().replace(".", ",")} minuti ) / #Audience canali :${audienceSlotCanali} minuti periodo considerato )`;
     }
+    const selDateok = selectedDate.split("/");
+    const selDate = dayjs(`${selDateok[0]}-${selDateok[1]}-${selDateok[2]}`, 'DD-MM-YYYY'); // Correctly parse the date assuming selDateok = [day, month, year]
+        console.log("SELDATEOK",selDate)
 
     
     if (loading) {
         return <p>Caricamento dati raccolti in corso... </p>; // You can replace this with your loading indicator component
         }
-
+    
             return (
                 <Container>
                     <Scrollbar style={{ width: '100%'}}>
@@ -331,11 +340,14 @@ export default function FascicoloView() {
                     {/* Material-UI DatePicker component */}
 
                     {/* Display graph for a single day with x-axis corresponding to every minute */}
-                    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en-gb">
-                        <DemoContainer components={['DatePicker']}>
+                    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="it">
+                          <DemoContainer components={['DatePicker']}>
                             <DatePicker
+                                label="Seleziona Data"
+                                value={selectedDate ? dayjs(selectedDate, 'DD/MM/YYYY') : null}
                                 onChange={handleDateChange}
-                                value={dayjs(selectedDate, 'DD/MM/YYYY')}
+                                inputFormat="DD/MM/YYYY" // Explicitly specify the input format here
+                                renderInput={(params) => <TextField {...params} />}
                             />
                             <Button onClick={shareVisibility}>SHARE</Button>
                             <Button onClick={toggleVisibility}>ASCOLTI</Button>
@@ -361,49 +373,12 @@ export default function FascicoloView() {
                             <Typography variant="p" sx={{ml: 2, mt: 3,mb:2}}>
                                 AUDIENCE AGGIORNATA: (somma minuti tot di ascolto di ogni canale / {intervalValue} minuti di intervallo considerato
                             </Typography>           
-                            <TableContainer id="export-table"  sx={{overflow: 'unset'}}>
-                                <Table sx={{minWidth: 800}}>
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell>Channel Name</TableCell>
-                                            {Object.keys(timeSlots).map((timeSlotKey) => (
-                                                <TableCell key={timeSlotKey}>{timeSlotKey} </TableCell>
-                                            ))}
-                                        </TableRow>
-                                    </TableHead>
-
-                                    <TableBody>
-                                        {channelNames.sort().reverse().map((channel, index) => (
-                                            <TableRow key={index}>
-
-                                                <TableCell>{channel}</TableCell>
-                                                {Object.keys(timeSlots).map((timeSlotKey) => (
-                                                    <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
-                                                        <span data-tooltip-id="my-tooltip" data-tooltip-content={displayTitle(channel,timeSlotKey)} >{calculateAudienceByMinute(channel, timeSlotKey)}</span>
-
-                                                    
-                                                    </TableCell>
-                                                    
-                                                ))}
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-                        </CardContent>
-                    </Card>
-    
-                <Card style={{ display: isVisible ? 'none' : 'block' }}>
-                <CardContent>
-                    <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>SHARE</Typography>
-                    <Typography variant="p" sx={{ ml: 2, mt: 3, mb: 2 }}>Data da rapporto tra AMR e AUDIENCE nell&apos;intervallo considerato di ${intervalValue} minuti.</Typography>
-                    <br />
-                    <TableContainer id="export-table-share">
+                            <TableContainer id="export-table-share">
                     <Table sx={{ minWidth: 800 }}>
                         <TableHead>
                             <TableRow>
                             <TableCell>IntervalloTemporale</TableCell>
-                            {Object.keys(userListeningMap).map((channel) => (
+                            {Object.keys(userListeningMap).sort().reverse().map((channel) => (
                                 <TableCell key={channel}>{channel}</TableCell>
                             ))}
                             </TableRow>
@@ -415,7 +390,43 @@ export default function FascicoloView() {
                                 {Object.keys(userListeningMap).map((channel) => (
                                 <TableCell style={{ textAlign: 'center' }} key={channel}>
                                     {/* Use calculateAudienceShare to retrieve data */}
-                                    <span data-tooltip-id="my-tooltip" data-tooltip-content={displayTitleShare(channel, timeSlotKey)}>{calculateShareSlotCanale(channel, timeSlotKey)}%</span>
+                                    <span data-tooltip-id="my-tooltip" data-tooltip-content={displayTitle(channel,timeSlotKey)} >{calculateAudienceByMinute(channel, timeSlotKey)}</span>
+                                </TableCell>
+                                ))}
+                            </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                    </TableContainer>
+                            
+                        </CardContent>
+                    </Card>
+    
+                <Card style={{ display: isVisible ? 'none' : 'block' }}>
+                <CardContent>
+                    <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>SHARE</Typography>
+                    <Typography variant="p" sx={{ ml: 2, mt: 3, mb: 2 }}>Data da rapporto tra AMR e AUDIENCE nell&apos;intervallo considerato di {intervalValue} minuti.</Typography>
+                    <ExportExcel  exdata={channelNames} fileName="Excel-Export-Share" idelem="export-table-share"/>
+                    <br />
+
+                    <TableContainer id="export-table-share">
+                    <Table sx={{ minWidth: 800 }}>
+                        <TableHead>
+                            <TableRow>
+                            <TableCell>IntervalloTemporale</TableCell>
+                            {Object.keys(userListeningMap).sort().reverse().map((channel) => (
+                                <TableCell key={channel}>{channel}</TableCell>
+                            ))}
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {timeSlotLabels.map((timeSlotKey, index) => (
+                            <TableRow key={index}>
+                                <TableCell><strong>{timeSlotKey} %</strong></TableCell>
+                                {Object.keys(userListeningMap).map((channel) => (
+                                <TableCell style={{ textAlign: 'center' }} key={channel}>
+                                    {/* Use calculateAudienceShare to retrieve data */}
+                                    <span data-tooltip-id="my-tooltip" data-tooltip-content={displayTitleShare(channel, timeSlotKey)}>{calculateShareSlotCanale(channel, timeSlotKey)}</span>
                                 </TableCell>
                                 ))}
                             </TableRow>
@@ -425,6 +436,7 @@ export default function FascicoloView() {
                     </TableContainer>
                 </CardContent>
                 </Card>
+                
            
                     <Card style={{ display: isVisible ? 'none' : 'block' }}>
                         <CardContent  sx={{ pl: 0 }}>
@@ -432,6 +444,7 @@ export default function FascicoloView() {
                         </CardContent>
                     </Card>
             </Scrollbar>
+
 
                                         
             

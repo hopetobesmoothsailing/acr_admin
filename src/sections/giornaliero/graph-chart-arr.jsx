@@ -27,10 +27,8 @@ const GraphChartArr = ({ data,intervalValue,channels,channel_name,userListeningM
         const timeSlots = userListeningMap[channel];
       // Iterate through each time slot for the current radio station
         Object.keys(timeSlots).forEach(interval => {
-          console.log("ULMAP",userListeningMap[channel][interval]);
+          // console.log("ULMAP",userListeningMap[channel][interval]);
           userListeningMap[channel][interval].forEach(userId => {
-            console.log("INTERVAL",interval);
-            console.log("SLOT",slot);
             if (interval.toString() === slot.toString()) {
             // Iterate over each user ID in the time slot
               const weight = idToWeightMap[userId] || 1; // Get the weight for the user, default to 1 if not found
@@ -53,12 +51,12 @@ const GraphChartArr = ({ data,intervalValue,channels,channel_name,userListeningM
 
     const calculateShareSlotCanale = (channel, slot) => {
       let audienceSlotCanali = 0
-      console.log("channels",channels)
-      console.log("data",data)
-      console.log("slot",slot)
+      // console.log("channels",channels)
+      // console.log("data",data)
+      // console.log("slot",slot)
       channels.forEach(canalealtro => {
           if ((canalealtro !== "NULL")) {
-            console.log("canalealtro",data[slot][canalealtro]);
+            // console.log("canalealtro",data[slot][canalealtro]);
               audienceSlotCanali += parseFloat(data[slot][canalealtro] || 0)
           }
       });

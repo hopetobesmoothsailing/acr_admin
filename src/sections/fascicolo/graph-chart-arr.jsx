@@ -33,19 +33,47 @@ const GraphChartArr = ({ data }) => {
   }, [data]);
 
   
-
+  const radioStationColors = {
+    'RadioDeejay': '#E53935',
+    'RAIRadio1': '#D81B60',
+    'RAIRadio2': '#8E24AA',
+    'RAIRadio3': '#5E35B1',
+    'RAIIsoradio': '#3949AB',
+    'RDS': '#1E88E5',
+    'RTL': '#039BE5',
+    'Radio24': '#00ACC1',
+    'RadioM2O': '#00897B',
+    'RADIOSUBASIO': '#43A047',
+    'RADIOBELLAEMONELLA': '#C0CA33',
+    'RADIOITALIAANNI60': '#FDD835',
+    'RADIOKISSKISS': '#FFB300',
+    'RADIOKISSKISSNAPOLI': '#FB8C00',
+    'RADIOKISSKISSITALIA': '#F4511E',
+    'RadioFRECCIA': '#6D4C41',
+    'RadioIBIZA': '#757575',
+    'RadioCapital': '#546E7A',
+    'R101': '#26A69A',
+    'VIRGINRadio': '#EC407A',
+    'RADIOMONTECARLO': '#AB47BC',
+    'Radio105': '#7E57C2',
+    'RadioZETA': '#5C6BC0',
+    'RadioBRUNO': '#42A5F5',
+    'RadioItaliaSMI': '#29B6F6',
+    'ALTRERADIO': '#AAAAAA'
+  };
+  
   
   // Generate lines for each radio station
   const lines = Object.keys(data[Object.keys(data)[0]]).map((radioStation, index) => (
-    <Line key={radioStation} type="monotone" dataKey={radioStation} stroke={`#${Math.floor(Math.random()*16777215).toString(16)}`} />
+    <Line key={radioStation} type="monotone" dataKey={radioStation} stroke={`${radioStationColors[radioStation]}`} />
   ));
 
   return (
-    <ResponsiveContainer  width="90%" height={800}>
+    <ResponsiveContainer  width="90%" height={400}>
       <LineChart  data={chartData}>
         <CartesianGrid  strokeDasharray="3 3" />
         <XAxis dataKey="name" />
-        <YAxis domain={[0, 33000000]} />
+        <YAxis   domain={[0, 'dataMax + 10']} orientation="right" />
         <Tooltip />
         <Legend />
         {lines}

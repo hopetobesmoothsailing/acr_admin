@@ -1,5 +1,7 @@
+import 'dayjs/locale/it'; // Import the Italian locale
 import axios from "axios"; 
 import dayjs from "dayjs";
+import customParseFormat from 'dayjs/plugin/customParseFormat'; // For parsing custom formats
 import 'leaflet/dist/leaflet.css';
 import {useState, useEffect} from 'react';
 import { useLocation } from 'react-router-dom';
@@ -23,6 +25,10 @@ import ExportExcel from "../export-to-excel";
 import GraphChartArr from "../graph-chart-arr";
 import {SERVER_URL} from "../../../utils/consts";
 // import AppWebsiteAudience from "../app-website-audience";
+
+dayjs.extend(customParseFormat); // Extend dayjs with the customParseFormat plugin
+dayjs.locale('it'); // Set the locale to Italian
+
 
 // ----------------------------------------------------------------------
 
@@ -197,7 +203,12 @@ export default function GiornalieroView() {
         });
     });
 
-    console.log("Parsed Events", parsedEvents);
+    // console.log("Parsed Events", parsedEvents);
+    parsedEvents.sort((a, b) => b.contacts - a.contacts);
+    const top10ParsedEvents = parsedEvents.slice(0, 15);
+    // console.log("TOP 10 EVENTS", top10ParsedEvents);
+   
+
      useEffect(() => {
         // Function to fetch ACR details by date
         const fetchResultsByDateAndChannel = async () => {
@@ -231,7 +242,7 @@ export default function GiornalieroView() {
 
     }, [selectedDate,channel_name,canale_pal,tipoRadioTV]);
 
-    console.log("palDetails",palDetails)
+    // console.log("palDetails",palDetails)
       
     const generateTimeSlots = (intervalValue) => {
         const slots = {};
@@ -257,15 +268,16 @@ export default function GiornalieroView() {
       
       // Usage example:
       const intervalOptions = [
-        { label: '1 minuto', value: 1 },
+        /* { label: '1 minuto', value: 1 },
         { label: '5 minuti', value: 5 },
         { label: '15 minuti', value: 15 },
         { label: '30 minuti', value: 30 },
-        { label: '1 ora', value: 60 },
+        { label: '1 ora', value: 60 }, */
         { label: '3 ore', value: 180 },
-        { label: '6 ore', value: 360 },
+/*        { label: '6 ore', value: 360 },
         { label: '12 ore', value: 720 },
         { label: '24 ore', value: 1440 },
+        */
       ];
       const defaultInterval = 180; // Default interval value
       const [intervalValue, setIntervalValue] = useState(getIntervalFromURL() || defaultInterval); // Initialize with default interval or from URL
@@ -285,7 +297,7 @@ export default function GiornalieroView() {
       };
       
       const timeSlots = generateTimeSlots(intervalValue);
-      console.log(timeSlots);
+      // console.log(timeSlots);
 
     
     
@@ -381,6 +393,7 @@ export default function GiornalieroView() {
             // const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
             const uniqueUsersListening = userListeningMap[channel]?.[slot]||'';
             let somma = 0;
+            // console.log("UNIQUE:",uniqueUsersListening);
             if (uniqueUsersListening){
             uniqueUsersListening.forEach(utente => {
                 if (utente) {
@@ -432,22 +445,23 @@ if (loading) {
 
 
                 <Grid xs={12} sm={6} md={6}>
-                <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2}}>
-                Trasmissioni con maggior ascolto
-                 
-            </Typography>
+               
                 {/* Remaining pagination logic */}
             
                 <Card>
+                <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2}}>
+                Le 15 Trasmissioni con maggior ascolto
+                    
+                </Typography>
                     <CardContent>
                     <Scrollbar>
                     <Typography variant="p" gutterBottom>
-                    <p>Ora: Titolo Programma (Ascolto, Share,Contatti) </p>
-                    {parsedEvents.map((event, index) => (
+                    <p>Ora: Titolo Programma (min. Ascolto, Share, Contatti) </p>
+                    {top10ParsedEvents.map((event, index) => (
                     <div key={index}>
                         {event.audience > 0 && ( // Check if audience > 0
                                     <p>
-                                        {event.timeInterval}: {event.title} ({(event.audience)},  {event.share},  {event.contacts})
+                                        {event.timeInterval}: {event.title} (<strong>{(event.audience)} min.,  {event.share}%,  {event.contacts}</strong>)
                                     </p>
                                 )}                    
                     </div>
