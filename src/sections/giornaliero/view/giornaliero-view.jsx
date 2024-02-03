@@ -17,7 +17,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import {Table, TableRow, TableHead, TableBody, TableCell, TableContainer } from '@mui/material';
+import {Table, TableRow, TextField,TableHead, TableBody, TableCell, TableContainer } from '@mui/material';
 
 import Scrollbar from 'src/components/scrollbar';
 
@@ -36,7 +36,7 @@ export default function GiornalieroView() {
 
 
     // const [groupedData] = useState([]);
-    const panelNum = 2000;
+    // const panelNum = 2000;
     const channels = [];
     // const location = useLocation();
     const location = useLocation();
@@ -55,7 +55,7 @@ export default function GiornalieroView() {
     ).toString().padStart(2, '0')}/${yesterday.getFullYear()}`;
   
     // Set yesterday's date as selectedDate
-    const [selectedDate, setSelectedDate] = useState(formattedYesterday);
+    const [selectedDate, setSelectedDate] = useState(dayjs(formattedYesterday).format('DD/MM/YYYY'));
   
     // const [selectedDate, setSelectedDate] = useState('04/12/2023');
       
@@ -381,14 +381,24 @@ export default function GiornalieroView() {
         // console.log(userListeningMap);
 
       // Now you can calculate the unique users listening to each channel
-        const calculateAudienceShare = (channel, slot) => {
-        const totalUsers = panelNum; // Total number of users (replace this with your actual number)
-        const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
-        // Calculate the share percentage for the channel in the given time slot
-        const sharePercentage = `${((uniqueUsersListening / totalUsers) * 100).toFixed(2)}%`;
-        return sharePercentage;
-        };
         
+        const calculateShareSlotCanale = (channel, slot) => {
+            let audienceSlotCanali = 0
+            channels.forEach(canalealtro => {
+                if ((canalealtro !== "NULL")) {
+                    // const uniqueUsersListeningch = userListeningMap[channel]?.[slot]?.size || 0;
+                    // audienceSlotCanali += uniqueUsersListeningch*parseFloat(timeSlots[slot][canalealtro] || 0)
+                    audienceSlotCanali += parseFloat(timeSlots[slot][canalealtro] || 0)
+                }
+            });
+            const minuto = timeSlots[slot][channel] || 0 ;
+            // come indicato da cristiano corrisponde ai minuti totali di ascolto nel periodo e non minuti * utenti
+            // const audienceByMinute = minuto*(uniqueUsersListening*pesoNum);
+            const audienceByMinute = minuto;
+            const shareSlotCanale = (((audienceByMinute/intervalValue) || 0)/ (audienceSlotCanali/intervalValue))*100 || 0 ;
+            return shareSlotCanale.toFixed(2).toString().replace(".", ",");
+    
+        };
         const calculateAudience = (channel, slot) => {
             // const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
             const uniqueUsersListening = userListeningMap[channel]?.[slot]||'';
@@ -423,11 +433,14 @@ if (loading) {
 
             {/* Display graph for a single day with x-axis corresponding to every minute */}
             <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="it">
-                <DemoContainer components={['DatePicker']}>
-                    <DatePicker
-                        onChange={handleDateChange}
-                        value={dayjs(selectedDate, 'DD/MM/YYYY')}
-                    />
+                    <DemoContainer components={['DatePicker']}>
+                            <DatePicker
+                                label="Seleziona Data"
+                                value={selectedDate ? dayjs(selectedDate, 'DD/MM/YYYY') : null}
+                                onChange={handleDateChange}
+                                inputFormat="DD/MM/YYYY" // Explicitly specify the input format here
+                                renderInput={(params) => <TextField {...params} />}
+                            />
                     <select id="intervalSelect" value={intervalValue} onChange={handleIntervalChange}>
                                 {intervalOptions.map((option) => (
                                 <option key={option.value} value={option.value}>{option.label}</option>
@@ -487,6 +500,7 @@ if (loading) {
                                 <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>Risultati Fasce Auditel</TableCell>
                                 <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>Ascolto Individui</TableCell>
                                 <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>Share Individui</TableCell>
+                                <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>Durata Media</TableCell>
                                 <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>Durata</TableCell>
                                 
                                 
@@ -498,7 +512,8 @@ if (loading) {
                                     <TableRow key={timeSlotKey}>
                                         <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>{timeSlotKey}</TableCell>
                                         <TableCell style={{textAlign:"center"}}>{calculateAudience(channel_name, timeSlotKey)}</TableCell>
-                                        <TableCell style={{textAlign:"center"}}>{calculateAudienceShare(channel_name, timeSlotKey)}</TableCell>
+                                        <TableCell style={{textAlign:"center"}}>{calculateShareSlotCanale(channel_name, timeSlotKey)}%</TableCell>
+                                        <TableCell style={{textAlign:"center"}}>{(timeSlots[timeSlotKey][channel_name]/intervalValue).toFixed(2) || 0}</TableCell>
                                         <TableCell style={{textAlign:"center"}}>{timeSlots[timeSlotKey][channel_name] || '0'}</TableCell>
 
                                     </TableRow>
