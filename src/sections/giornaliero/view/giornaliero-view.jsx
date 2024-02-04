@@ -50,12 +50,10 @@ export default function GiornalieroView() {
     yesterday.setDate(today.getDate() - 1); // Set it to yesterday
   
     // Format the date to DD/MM/YYYY
-    const formattedYesterday = `${yesterday.getDate().toString().padStart(2, '0')}/${(
-      yesterday.getMonth() + 1
-    ).toString().padStart(2, '0')}/${yesterday.getFullYear()}`;
+    // const formattedYesterday = `${yesterday.getDate().toString().padStart(2, '0')}/${(yesterday.getMonth() + 1).toString().padStart(2, '0')}/${yesterday.getFullYear()}`;
   
     // Set yesterday's date as selectedDate
-    const [selectedDate, setSelectedDate] = useState(dayjs(formattedYesterday).format('DD/MM/YYYY'));
+    const [selectedDate, setSelectedDate] = useState(dayjs(yesterday).format('DD/MM/YYYY'));
   
     // const [selectedDate, setSelectedDate] = useState('04/12/2023');
       

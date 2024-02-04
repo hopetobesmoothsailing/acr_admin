@@ -60,12 +60,12 @@ export default function FascicoloView() {
     yesterday.setDate(today.getDate() - 1); // Set it to yesterday
   
     // Format the date to DD/MM/YYYY
-    const formattedYesterday = `${yesterday.getDate().toString().padStart(2, '0')}/${(
+    /* const formattedYesterday = `${yesterday.getDate().toString().padStart(2, '0')}/${(
       yesterday.getMonth() + 1
     ).toString().padStart(2, '0')}/${yesterday.getFullYear()}`;
-  
+    */
     // Set yesterday's date as selectedDate
-    const [selectedDate, setSelectedDate] = useState(dayjs(formattedYesterday).format('DD/MM/YYYY'));
+    const [selectedDate, setSelectedDate] = useState(dayjs(yesterday).format('DD/MM/YYYY'));
 
     const [users, setUsers] = useState([]);
     
@@ -373,7 +373,7 @@ export default function FascicoloView() {
                             <Typography variant="p" sx={{ml: 2, mt: 3,mb:2}}>
                                 AUDIENCE AGGIORNATA: (somma minuti tot di ascolto di ogni canale / {intervalValue} minuti di intervallo considerato
                             </Typography>           
-                            <TableContainer id="export-table-share">
+                            <TableContainer id="export-table-audience-fascicolo">
                     <Table sx={{ minWidth: 800 }}>
                         <TableHead>
                             <TableRow>
@@ -426,7 +426,7 @@ export default function FascicoloView() {
                                 {Object.keys(userListeningMap).map((channel) => (
                                 <TableCell style={{ textAlign: 'center' }} key={channel}>
                                     {/* Use calculateAudienceShare to retrieve data */}
-                                    <span data-tooltip-id="my-tooltip" data-tooltip-content={displayTitleShare(channel, timeSlotKey)}>{calculateShareSlotCanale(channel, timeSlotKey)}</span>
+                                    <span data-tooltip-id="my-tooltip" data-tooltip-content={displayTitleShare(channel, timeSlotKey)}>{calculateShareSlotCanale(channel, timeSlotKey)}%</span>
                                 </TableCell>
                                 ))}
                             </TableRow>
