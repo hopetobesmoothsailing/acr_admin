@@ -467,7 +467,7 @@ export default function RisultatiView() {
     return (
         <Container>
             <Typography variant="h4" sx={{mb: 5}}>
-                Dati {tipoRadioTV} raccolti senza applicare alcun peso relativo alla popolazione
+                Dati {tipoRadioTV} 
             </Typography>
             <Typography variant="p" sx={{mb: 5, display:'none'}}>
             Ascolto minuto	AMM. Indica il numero di persone sintonizzate su una determinata stazione.	Giornaliero	No	<br />
@@ -624,7 +624,7 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
 
                 <Scrollbar>
                 <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2, mr:4, pr:3}}>
-                DETTAGLIO RAW CON RICONOSCIMENTI
+                DETTAGLIO RAW CON RICONOSCIMENTI AGGREGATI PER UTENTE
                 <ExportExcel    exdata={acrDetails} fileName="Excel-Export-Dettaglio" idelem="export-table-dett"/>
                 </Typography>
                 <Typography variant="p" sx={{ml: 2, mt: 3,mb:2}}>
