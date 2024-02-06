@@ -80,9 +80,9 @@ const GraphChartArr = ({ data,intervalValue,importantChannels }) => {
   
   const radioStationColors = {
     'RadioDeejay': '#E53935',
-    'RAIRadio1': '#D81B60',
-    'RAIRadio2': '#8E24AA',
-    'RAIRadio3': '#50b235',
+    'RAIRadio1': '#1b1fd8',
+    'RAIRadio2': '#d81b1d',
+    'RAIRadio3': '#35b143',
     'RAIIsoradio': '#3949AB',
     'RDS': '#1E88E5',
     'RTL': '#039BE5',
