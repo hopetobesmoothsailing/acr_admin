@@ -42,12 +42,12 @@ const GraphChartArr = ({ data,intervalValue,importantChannels }) => {
       // come indicato da cristiano corrisponde ai minuti totali di ascolto nel periodo e non minuti * utenti
       // const audienceByMinute = minuto*(uniqueUsersListening*pesoNum);
       const audienceByMinute = minuto;
-      if (channel === "RDS") {
+      /* if (channel === "RDS") {
       console.log("GRAPH_CH:",channel);
       console.log("GRAPH_SLOT:",slot);
       console.log("GRAPH_ABM:",audienceByMinute);
       console.log("GRAPH_ASC:",audienceSlotCanali);
-      }
+      } */
       const shareSlotCanale = (((audienceByMinute/intervalValue) || 0)/ (audienceSlotCanali/intervalValue))*100 || 0 ;
       return shareSlotCanale.toFixed(2);
 
@@ -82,7 +82,7 @@ const GraphChartArr = ({ data,intervalValue,importantChannels }) => {
     'RadioDeejay': '#E53935',
     'RAIRadio1': '#D81B60',
     'RAIRadio2': '#8E24AA',
-    'RAIRadio3': '#5E35B1',
+    'RAIRadio3': '#50b235',
     'RAIIsoradio': '#3949AB',
     'RDS': '#1E88E5',
     'RTL': '#039BE5',

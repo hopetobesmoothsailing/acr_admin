@@ -22,6 +22,7 @@ import {Table, TableRow, TextField, TableHead, TableBody, TableCell, TableContai
 
 import Scrollbar from 'src/components/scrollbar';
 
+import GraphChart from "../graph-chart";
 import ExportExcel from "../export-to-excel"; 
 import GraphChartArr from "../graph-chart-arr";
 import {SERVER_URL} from "../../../utils/consts";
@@ -92,7 +93,6 @@ export default function FascicoloprodView() {
         importantChannels = ['RAI1', 'RAI2','RAI3','RETE4','CANALE5','ITALIA1','LA7'];
     }
 
-    console.log(importantChannels)
     useEffect(() => {
         // Function to fetch ACR details by date
         const fetchACRDetailsByDate = async () => {
@@ -182,6 +182,7 @@ export default function FascicoloprodView() {
       
       const timeSlots = generateTimeSlots(intervalValue);
       // console.log(timeSlots);
+      const uniquetimeSlots = generateTimeSlots(intervalValue);
 
       const filteredACRDetails = acrDetails.filter(item => {
         const recordedAt = item.recorded_at;
@@ -205,8 +206,7 @@ export default function FascicoloprodView() {
             return item;
         });
       
-    
-        groupedACRDetails.forEach((item) => {
+    groupedACRDetails.forEach((item) => {
         const recordedDate = item.recorded_at;
         const [,time] = recordedDate.split(' ');
         const [hour,minute] = time.split(':');
@@ -223,13 +223,16 @@ export default function FascicoloprodView() {
                 const endMinuteKey = endHour * 60 + endMinute;
                 if (minuteKey >= startMinuteKey && minuteKey <= endMinuteKey) {
                     let weight_s = 1
-                    weight_s = idToWeightMap[item.user_id];
+                    weight_s = parseInt(idToWeightMap[item.user_id],10);
                     // console.log("PESO UTENTE item.user_id", weight_s)
                     if (weight_s > 0 ){  
                     if (!timeSlots[slotKey][item.acr_result]) {
-                        timeSlots[slotKey][item.acr_result] = 1*weight_s.toFixed(0);
+                        timeSlots[slotKey][item.acr_result] = 1*weight_s;
                     } else {
-                        timeSlots[slotKey][item.acr_result] += 1*weight_s.toFixed(0);
+                        timeSlots[slotKey][item.acr_result] += 1*weight_s;
+                    }
+                    if (!uniquetimeSlots[slotKey][item.user_id]) {
+                        uniquetimeSlots[slotKey][item.user_id]=weight_s;
                     }
                     }
                 }
@@ -237,8 +240,6 @@ export default function FascicoloprodView() {
         }
     });
 
-    console.log("TIMESLOTS",timeSlots)
-    
     // const timeSlotLabels = Object.keys(timeSlots);   
     // const channelNames = Object.keys(timeSlotSeries);
     const channelNames = Array.from(
@@ -248,6 +249,7 @@ export default function FascicoloprodView() {
 
     // Initialize userListeningMap
         const userListeningMap = {};
+        const userListeningMapWeight = {};
 
         groupedACRDetails.forEach((item) => {
             const recordedDate = item.recorded_at;
@@ -265,33 +267,36 @@ export default function FascicoloprodView() {
                         if (slotKey !== '') {
                             let weight_s = 1
                             weight_s = idToWeightMap[item.user_id];
-                        
                             if (!userListeningMap[item.acr_result]) {
                                 userListeningMap[item.acr_result] = {}; // Initialize the channel object if it doesn't exist
+                                userListeningMapWeight[item.acr_result] = {}; // Initialize the channel object if it doesn't exist
                             }
 
                             if (!userListeningMap[item.acr_result][slotKey]) {
                                 userListeningMap[item.acr_result][slotKey] = new Set(); // Initialize the set for the slot if it doesn't exist
+                                userListeningMapWeight[item.acr_result][slotKey] = new Set(); // Initialize the set for the slot if it doesn't exist
                             }
 
                             userListeningMap[item.acr_result][slotKey].add(weight_s); // Add user to the set for the corresponding time slot and channel
+                            userListeningMapWeight[item.acr_result][slotKey].add(item.user_id); // Add user to the set for the corresponding time slot and channel
                         }
                     }
                 });
             }
         });
-    // console.log("USER LISTENING MAP",userListeningMap);
+    // console.log("USER LISTENING MAP WEIGHT",userListeningMapWeight);
     // console.log(userListeningMapAudience);
 
    
     const calculateAudienceByMinute = (channel, slot) => {
-        // const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
         const minutoMedio = timeSlots[slot][channel] || 0 ;
-        // console.log("MINUTO MEDIO:", minutoMedio);
-        const audienceByMinute = minutoMedio*pesoNum/intervalValue;
-        
-        // console.log("AUDIENCE BY MINUTE canale %s slot %s audiencexmin %s", channel,slot, audienceByMinute);
-        // Calculate the share percentage for the channel in the given time slot
+        let audienceByMinute = 0;
+        if (slot !== '06:00 - 23:59') {
+        const day_interval = 1440 - intervalValue;
+        audienceByMinute = minutoMedio*pesoNum/(day_interval);
+        }
+        else
+        audienceByMinute = minutoMedio*pesoNum/intervalValue;
         return audienceByMinute.toFixed(0).toString().replace(".", ",");
     };
  
@@ -309,16 +314,48 @@ export default function FascicoloprodView() {
         // come indicato da cristiano corrisponde ai minuti totali di ascolto nel periodo e non minuti * utenti
         // const audienceByMinute = minuto*(uniqueUsersListening*pesoNum);
         const audienceByMinute = minuto;
-        if (channel === "RDS") {
+        /* if (channel === "RDS") {
             console.log("F_CH:",channel);
             console.log("F_SLOT:",slot);
             console.log("F_ABM:",audienceByMinute);
             console.log("F_ASC:",audienceSlotCanali);
-        }
+        } */
         const shareSlotCanale = (((audienceByMinute/intervalValue) || 0)/ (audienceSlotCanali/intervalValue))*100 || 0 ;
         return shareSlotCanale.toFixed(1).toString();
 
     };
+    
+    const calculateAscoltoRadio = (slot) => {
+        // console.log("uniquetimeSlots",uniquetimeSlots[slot]);
+        const dati = uniquetimeSlots[slot];
+        let ar = 0;
+        dati.forEach((item) => {
+            // console.log("ar:item",item)
+            ar += item
+
+        });
+        const perc_ar = ((ar/52231073)*100).toFixed(1);
+        return perc_ar;
+    }
+    
+    /* const calculateContattidup = (slot) => {
+        let contattiCanaliFasciaOraria= 0
+        channels.forEach(canalealtro => {
+            if ((canalealtro !== "NULL")) {
+                const uniqueUsersListeningch = userListeningMap[canalealtro]?.[slot]?.size || 0;
+                contattiCanaliFasciaOraria += uniqueUsersListeningch; 
+               // audienceSlotCanali += parseFloat(timeSlots[slot][canalealtro] || 0)
+            }
+        });
+
+        // come indicato da cristiano corrisponde ai minuti totali di ascolto nel periodo e non minuti * utenti
+        // const audienceByMinute = minuto*(uniqueUsersListening*pesoNum);
+        
+        const contattidup_perc = contattiCanaliFasciaOraria ;
+        return contattidup_perc;
+
+    };
+    */
 
     const audienceSizes = Object.keys(timeSlots['06:00 - 23:59'] || {}).reduce((acc, channel) => {
         acc[channel] = timeSlots['06:00 - 23:59'][channel];
@@ -327,11 +364,6 @@ export default function FascicoloprodView() {
     
     // Sort channelNames based on audience size
     const sortedChannelNames = channelNames.sort((a, b) => (audienceSizes[b] || 0) - (audienceSizes[a] || 0));
-    
-    const selDateok = selectedDate.split("/");
-    const selDate = dayjs(`${selDateok[0]}-${selDateok[1]}-${selDateok[2]}`, 'DD-MM-YYYY'); // Correctly parse the date assuming selDateok = [day, month, year]
-        console.log("SELDATEOK",selDate)
-
     
     if (loading) {
         return <p>Caricamento dati raccolti in corso... </p>; // You can replace this with your loading indicator component
@@ -374,7 +406,13 @@ export default function FascicoloprodView() {
                         <GraphChartArr data={timeSlots}  intervalValue={intervalValue} importantChannels={channels} /> {/* Render the GraphChart component */}
                         </CardContent>
                     </Card>
-                    <Card style={{ display: isVisible ? 'block' : 'none' }}>
+                        <Card style={{ display: isVisible ? 'block' : 'none' }}>
+                            <CardContent  sx={{ pl: 0 }}>
+                            <GraphChart userListeningMap={userListeningMap}   /> {/* Render the GraphChart component */}
+                            </CardContent>
+                        </Card>
+                        <Card style={{ display: isVisible ? 'block' : 'none' }}>
+
                         <CardContent>
 
         
@@ -383,15 +421,21 @@ export default function FascicoloprodView() {
                                 <ExportExcel  exdata={channelNames} fileName="Excel-Export-Ascolti" idelem="export-table"/>
                         </Typography>
                                  
-                            <TableContainer id="export-table"  sx={{overflow: 'unset'}}>
+                            <TableContainer id="export-table"  sx={{maxHeight: '500px',overflow: 'auto'}}>
                                 <Table sx={{minWidth: 800}}>
+                                    
                                     <TableHead>
-                                        <TableRow>
-                                            <TableCell>EMITTENTE</TableCell>
-                                            {Object.keys(timeSlots).map((timeSlotKey) => (
-                                                <TableCell key={timeSlotKey}>{timeSlotKey} </TableCell>
-                                            ))}
-                                        </TableRow>
+                                    <TableRow>
+                                        <TableCell style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 1000 }}>
+                                        EMITTENTE
+                                        </TableCell>
+                                        {Object.keys(timeSlots).map((timeSlotKey) => (
+                                        <TableCell key={timeSlotKey} style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 1000 }}>
+                                           <strong> {timeSlotKey} </strong> 
+                                        </TableCell>
+                                        ))}
+                                    </TableRow>
+
                                     </TableHead>
 
                                     <TableBody>
@@ -422,13 +466,13 @@ export default function FascicoloprodView() {
                     <Typography variant="p" sx={{ ml: 2, mt: 3, mb: 2 }}>Data da rapporto tra AMR e AUDIENCE nell&apos;intervallo considerato di {intervalValue} minuti.</Typography>
                     <ExportExcel  exdata={channelNames} fileName="Excel-Export-Share" idelem="export-table-share"/>
                     <br />
-                    <TableContainer id="export-table-share"  sx={{overflow: 'unset'}}>
+                    <TableContainer id="export-table-share"  sx={{maxHeight: '500px',overflow: 'auto'}}>
                                 <Table sx={{minWidth: 800}}>
                                     <TableHead>
                                         <TableRow>
-                                            <TableCell>EMITTENTE</TableCell>
+                                            <TableCell style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 1000 }}>EMITTENTE</TableCell>
                                             {Object.keys(timeSlots).map((timeSlotKey) => (
-                                                <TableCell key={timeSlotKey}>{timeSlotKey} </TableCell>
+                                                <TableCell key={timeSlotKey} style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 1000 }}>{timeSlotKey} </TableCell>
                                             ))}
                                         </TableRow>
                                     </TableHead>
@@ -447,6 +491,42 @@ export default function FascicoloprodView() {
                                                 ))}
                                             </TableRow>
                                         ))}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+
+                </CardContent>
+                </Card>
+                
+                <Card style={{ display: isVisible ? 'none' : 'block' }}>
+                <CardContent>
+                    <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>ASCOLTATORI RADIO</Typography>
+                    <br />
+                    <TableContainer id="export-table-share"  sx={{overflow: 'unset'}}>
+                                <Table sx={{minWidth: 800}}>
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell> </TableCell>
+                                            {Object.keys(timeSlots).map((timeSlotKey) => (
+                                                <TableCell key={timeSlotKey}>{timeSlotKey} </TableCell>
+                                            ))}
+                                        </TableRow>
+                                    </TableHead>
+
+                                    <TableBody>
+
+                                            <TableRow >
+
+                                                <TableCell>ASCOLTATORI RADIO</TableCell>
+                                                {Object.keys(timeSlots).map((timeSlotKey) => (
+                                                    <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
+                                                        <span data-tooltip-id="my-tooltip" data-tooltip-content={calculateAscoltoRadio(timeSlotKey)} >{calculateAscoltoRadio(timeSlotKey)}</span>
+                            
+                                                    </TableCell>
+
+                                                ))}
+                                            </TableRow>
+                                        
                                     </TableBody>
                                 </Table>
                             </TableContainer>
