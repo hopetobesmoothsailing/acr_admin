@@ -337,6 +337,19 @@ export default function FascicoloprodView() {
         const perc_ar = ((ar/52231073)*100).toFixed(1);
         return perc_ar;
     }
+    const displayAscoltoRadio = (slot) => {
+        // console.log("uniquetimeSlots",uniquetimeSlots[slot]);
+        const dati = uniquetimeSlots[slot];
+        let ar = 0;
+        dati.forEach((item) => {
+            // console.log("ar:item",item)
+            ar += item
+
+        });
+        const perc_ar = ((ar/52231073)*100).toFixed(1);
+           return `( ${perc_ar}% = ${ar} (campione) / 52231073 (popolazione italiana) )`;
+
+    }
     
     /* const calculateContattidup = (slot) => {
         let contattiCanaliFasciaOraria= 0
@@ -403,7 +416,7 @@ export default function FascicoloprodView() {
                     </LocalizationProvider>
                     <Card style={{ display: isVisible ? 'none' : 'block' }}>
                         <CardContent  sx={{ pl: 0 }}>
-                        <GraphChartArr data={timeSlots}  intervalValue={intervalValue} importantChannels={channels} /> {/* Render the GraphChart component */}
+                        <GraphChartArr data={timeSlots}  intervalValue={intervalValue} importantChannels={channels} tipoRadioTV={tipo} /> {/* Render the GraphChart component */}
                         </CardContent>
                     </Card>
                         <Card style={{ display: isVisible ? 'block' : 'none' }}>
@@ -520,7 +533,7 @@ export default function FascicoloprodView() {
                                                 <TableCell>ASCOLTATORI RADIO</TableCell>
                                                 {Object.keys(timeSlots).map((timeSlotKey) => (
                                                     <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
-                                                        <span data-tooltip-id="my-tooltip" data-tooltip-content={calculateAscoltoRadio(timeSlotKey)} >{calculateAscoltoRadio(timeSlotKey)}</span>
+                                                        <span data-tooltip-id="my-tooltip" data-tooltip-content={displayAscoltoRadio(timeSlotKey)} >{calculateAscoltoRadio(timeSlotKey)}</span>
                             
                                                     </TableCell>
 
