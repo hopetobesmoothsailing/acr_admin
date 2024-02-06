@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
 import React, { useMemo } from 'react';
-import { Line, XAxis, YAxis, Legend, Tooltip, LineChart, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { Bar, XAxis, YAxis, Legend, Tooltip, BarChart, CartesianGrid, ResponsiveContainer } from 'recharts';
 
-const GraphChartArr = ({ data }) => {
+const GraphChartArrBars = ({ data }) => {
   const chartData = useMemo(() => {
     if (!data || typeof data !== 'object') {
       console.log('Invalid data for CustomGraphChart');
@@ -32,7 +32,7 @@ const GraphChartArr = ({ data }) => {
     return formattedData;
   }, [data]);
 
-  
+  /* 
   const radioStationColors = {
     'RadioDeejay': '#E53935',
     'RAIRadio1': '#D81B60',
@@ -62,27 +62,52 @@ const GraphChartArr = ({ data }) => {
     'ALTRERADIO': '#AAAAAA'
   };
   
-  
-  // Generate lines for each radio station
-  const lines = Object.keys(data[Object.keys(data)[0]]).map((radioStation, index) => (
-    <Line key={radioStation} type="monotone" dataKey={radioStation} stroke={`${radioStationColors[radioStation]}`} />
-  ));
+  */  
+  const groups = {
+    RAI: ["RAIRadio1", "RAIRadio2", "RAIRadio3", "RAIIsoradio"],
+    MEDIASET: [ "Radio105", "R101", "RADIOSUBASIO", "VIRGINRadio"],
+    GEDI: ["RadioDeejay","M2O","RadioCapital"]
+    // Add more groups if needed
+  };
+  const radioGroupColors = {
+    'RAI': '#0066CC',
+    'MEDIASET': '#FF0000',
+    'GEDI': '#ab47bc',
+    'ALTRO': '#AAAAAA',
+  }
+  // Aggregate data by group
+  const aggregatedChartData = chartData.map(dataPoint => {
+    const aggregatedData = { name: dataPoint };
+    
+    Object.keys(groups).forEach(group => {
+      // Sum the values for radio stations within each group
+      aggregatedData[group] = groups[group].reduce((sum, radioStation) => sum + (dataPoint[radioStation] || 0), 0);
+    });
+    
+    return aggregatedData;
+  });
+  // Generate bars for each radio station
+  const bars = Object.keys(aggregatedChartData[0])
+    .filter(key => key !== 'name') // Assuming 'name' is your XAxis key, remove it from bar generation
+    .map((radioStation, index) => (
+      <Bar key={radioStation} dataKey={radioStation} fill={radioGroupColors[radioStation]} />
+    ));
 
   return (
-    <ResponsiveContainer  width="90%" height={400}>
-      <LineChart  data={chartData}>
-        <CartesianGrid  strokeDasharray="3 3" />
-        <XAxis dataKey="name" />
-        <YAxis   domain={[0, 'dataMax + 10']} orientation="right" />
-        <Tooltip />
-        <Legend />
-        {lines}
-      </LineChart>
-    </ResponsiveContainer>
+    <ResponsiveContainer width="90%" height={400}>
+    <BarChart data={aggregatedChartData}>
+      <CartesianGrid strokeDasharray="3 3" />
+      <XAxis dataKey="name" />
+      <YAxis   domain={[0, 'dataMax + 100']} orientation="right" />
+      <Tooltip />
+      <Legend />
+      {bars}
+    </BarChart>
+  </ResponsiveContainer>
   );
 };
   // PropTypes validation
-GraphChartArr.propTypes = {
+GraphChartArrBars.propTypes = {
     data: PropTypes.object.isRequired, // Validate userListeningMap as an object and is required
   };
-  export default GraphChartArr;
+  export default GraphChartArrBars;

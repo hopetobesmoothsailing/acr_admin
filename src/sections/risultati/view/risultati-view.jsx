@@ -15,7 +15,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import {Table, Select,MenuItem,TableRow, TableHead, TableBody, TableCell, InputLabel,FormControl, TableContainer, TablePagination} from '@mui/material';
+import {Table, TableRow, TableHead, TableBody, TableCell,  TableContainer, TablePagination} from '@mui/material';
 
 import Scrollbar from 'src/components/scrollbar';
 
@@ -62,8 +62,7 @@ export default function RisultatiView() {
 
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(100);
-    const [selectedHourRange, setSelectedHourRange] = useState(null);
-
+    
     const handleChangePage = (event, newPage) => {
       setPage(newPage);
     };
@@ -72,47 +71,42 @@ export default function RisultatiView() {
       setRowsPerPage(parseInt(event.target.value, 10));
       setPage(0);
     };
-    const handleChangeHourRange = (event) => {
-        setSelectedHourRange(event.target.value);
-        setPage(0); // Reset to the first page when changing the hour range
-      };
-
-    const filterByHourRange = (row) => {
-        if (!selectedHourRange) {
-          return true; // No filter applied
-        }
     
-        const hour = new Date(row.f_recorded_at).getHours();
-        switch (selectedHourRange) {
-          case '0-3':
-            return hour >= 0 && hour < 3;
-          case '3-6':
-            return hour >= 3 && hour < 6;
-          case '6-9':
-            return hour >= 6 && hour < 9;
-          case '9-12':
-            return hour >= 9 && hour < 12;
-          case '12-15':
-            return hour >= 12 && hour < 15;
-          case '15-18':
-            return hour >= 15 && hour < 18;
-          case '18-21':
-            return hour >= 18 && hour < 21;
-          case '21-23':
-            return hour >= 21 && hour <= 23;
-          // Add more cases for other hour ranges
-          default:
-            return true;
-        }
-      };
-    const paginatedAcrDetails = acrDetails
+    // Filter out rows with NULL acr_result and apply hour range filter
+    
+    // Aggregate filteredDetails by user_id only
+    const aggregatedByUser = acrDetails.reduce((acc, row) => {
+    const userId = row.user_id;
+
+    if (!acc[userId]) {
+        acc[userId] = 1; // Initialize with 1 record for the user
+    } else {
+        acc[userId] += 1; // Increment the record count for the user
+    }
+
+    return acc;
+    }, {});
+
+    // Convert the aggregated object into an array suitable for pagination
+    
+    const aggregatedArray = Object.entries(aggregatedByUser).map(([userId, count]) => ({
+        user_id: userId,
+        record_count: count
+    }));
+
+    console.log("AGGREGATED ARRAY",aggregatedArray);
+    const paginatedAcrDetails = aggregatedArray
+    .filter(row => row.acr_result !== "NULL") // Filter out rows with null acr_result
+    .slice(page * rowsPerPage, (page + 1) * rowsPerPage);
+
+    /* const paginatedAcrDetails = acrDetails
       .slice()
       .reverse() // Reverse the order of the copied array
       .filter(row => row.acr_result !== "NULL") // Filter out rows with null acr_result
       .filter(filterByHourRange)
       .slice(page * rowsPerPage, (page + 1) * rowsPerPage);
   
-    
+    */
   
     const handlePrint = () => {
       window.print();
@@ -402,7 +396,7 @@ export default function RisultatiView() {
             });
             }
             // Calculate the share percentage for the channel in the given time slot
-            return somma;
+            return parseInt(somma.toFixed(0),10);
         };
         const calculateAudienceByMinute = (channel, slot) => {
             // const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
@@ -627,6 +621,53 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
                 </Card>                
             <Card>
                 {/* Existing table components and logic */}
+
+                <Scrollbar>
+                <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2, mr:4, pr:3}}>
+                DETTAGLIO RAW CON RICONOSCIMENTI
+                <ExportExcel    exdata={acrDetails} fileName="Excel-Export-Dettaglio" idelem="export-table-dett"/>
+                </Typography>
+                <Typography variant="p" sx={{ml: 2, mt: 3,mb:2}}>
+                Dettaglio aggregato riconoscimenti per utente {selectedDate}
+               <br /> </Typography>
+                    <Typography variant="p" sx={{ml: 2, mt: 3,mb:2}}>
+                    Utenti attivi {uniqueDetails.length}, utenti non attivi {(users.length - uniqueDetails.length)} su un totale di {users.length} utenti. 
+                     </Typography>
+                <TableContainer id="export-table-dett" sx={{overflow: 'unset'}}>
+                    <Table sx={{ minWidth: 800 }}>
+                    <TableHead>
+                        <TableRow>
+                        <TableCell>UID</TableCell>
+                        <TableCell>Email</TableCell>
+                        <TableCell>Canale</TableCell>
+                        <TableCell>PESO</TableCell>
+                        <TableCell>MINUTI</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {paginatedAcrDetails.map((row) => (
+                        <TableRow key={row.user_id}>
+                            <TableCell>{row.user_id} </TableCell>
+                            <TableCell>{idToEmailMap[row.user_id]}</TableCell>
+                            <TableCell>{row.acr_result}</TableCell>
+                            <TableCell>{idToWeightMap[row.user_id]}</TableCell>
+                            <TableCell>{row.record_count}</TableCell>
+                        </TableRow>
+                        ))}
+                    </TableBody>
+                    </Table>
+                </TableContainer>
+                    <TablePagination
+                    rowsPerPageOptions={[100, 500, 1000, 100000,500000]}
+                    component="div"
+                    count={paginatedAcrDetails.length}
+                    rowsPerPage={rowsPerPage}
+                    page={page}
+                    onPageChange={handleChangePage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                />
+                </Scrollbar>
+                {/* 
                 <Scrollbar>
                 <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2, mr:4, pr:3}}>
                 DETTAGLIO RAW CON RICONOSCIMENTI
@@ -649,7 +690,6 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
           <MenuItem value="15-18">15-18</MenuItem>
           <MenuItem value="18-21">18-21</MenuItem>
           <MenuItem value="21-23">21-23</MenuItem>
-          {/* Add more MenuItem components for other hour ranges */}
         </Select>
       </FormControl>
                 </Typography>
@@ -699,7 +739,10 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
                     onRowsPerPageChange={handleChangeRowsPerPage}
                 />
                 </Scrollbar>
+                        */ }
 
+
+                
                 { /* <MapContainer
                         center={[44.4837486, 11.2789241]}
                         zoom={5}

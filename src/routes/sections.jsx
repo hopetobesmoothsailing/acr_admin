@@ -20,6 +20,7 @@ export const SintesiPage = lazy(() => import('src/pages/sintesi'));
 export const Page404 = lazy(() => import('src/pages/page-not-found'));
 export const GiornalieroPage = lazy(() => import('src/pages/giornaliero'));
 export const FascicoloPage = lazy(() => import('src/pages/fascicolo'));
+export const FascicoloprodPage = lazy(() => import('src/pages/fascicoloprod'));
 // ----------------------------------------------------------------------
 
 export default function Router() {
@@ -42,8 +43,9 @@ export default function Router() {
                 {path: 'risultatinull', element: <ProtectedRoute roles={['admin', 'operator']} children={<RisultatinullPage/>}/>},
                 {path: 'palinsestom', element: <ProtectedRoute roles={['admin', 'operator']} children={<PalinsestomPage/>}/>},
                 {path: 'risdettagli', element: <ProtectedRoute roles={['admin', 'operator', 'customer']} children={<RisdettagliPage/>}/>},
-                {path: 'giornaliero', element: <ProtectedRoute roles={['admin', 'operator', 'customer']} children={<GiornalieroPage/>}/>},
+                {path: 'giornaliero', element: <ProtectedRoute roles={['admin', 'operator']} children={<GiornalieroPage/>}/>},
                 {path: 'fascicolo', element: <ProtectedRoute roles={['admin', 'operator', 'customer']} children={<FascicoloPage/>}/>},
+                {path: 'fascicoloprod', element: <ProtectedRoute roles={['admin', 'operator', 'customer']} children={<FascicoloprodPage/>}/>},
                 {path: 'sintesi', element: <ProtectedRoute roles={['admin', 'operator', 'customer']} children={<SintesiPage/>}/>},
             ],
         },

@@ -467,12 +467,12 @@ if (loading) {
                     <CardContent>
                     <Scrollbar>
                     <Typography variant="p" gutterBottom>
-                    <p>Ora: Titolo Programma (min. Ascolto, Share, Contatti) </p>
+                    <p>Ora: Titolo Programma (min. Ascolto - Share - Contatti) </p>
                     {top10ParsedEvents.map((event, index) => (
                     <div key={index}>
                         {event.audience > 0 && ( // Check if audience > 0
                                     <p>
-                                        {event.timeInterval}: {event.title} (<strong>{(event.audience)} min.,  {event.share}%,  {event.contacts}</strong>)
+                                        {event.timeInterval}: {event.title} (<strong>{(event.audience)} -  {event.share}% -  {event.contacts}</strong>)
                                     </p>
                                 )}                    
                     </div>

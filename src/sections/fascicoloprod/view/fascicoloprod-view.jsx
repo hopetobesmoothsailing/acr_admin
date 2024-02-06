@@ -48,7 +48,7 @@ export default function FascicoloprodView() {
     };
 
     let importantChannels = [];
-
+    
 
     const [acrDetails, setACRDetails] = useState([]);
     // const [acrDetailsTimeslot, setACRDetailsTimeslot] = useState([])
@@ -92,6 +92,7 @@ export default function FascicoloprodView() {
         importantChannels = ['RAI1', 'RAI2','RAI3','RETE4','CANALE5','ITALIA1','LA7'];
     }
 
+    console.log(importantChannels)
     useEffect(() => {
         // Function to fetch ACR details by date
         const fetchACRDetailsByDate = async () => {
@@ -100,7 +101,7 @@ export default function FascicoloprodView() {
                 setLoading(true);
                 const formattedDate = selectedDate; // Encode the date for URL
 
-                const response = (await axios.post(`${SERVER_URL}/getACRDetailsByDateRTV`, {date: formattedDate,type:tipoRadioTV,notnull:'yes'})).data; // Adjust the endpoint to match your server route
+                const response = (await axios.post(`${SERVER_URL}/getACRDetailsByDateRTV`, {'date': formattedDate,'type':tipoRadioTV,'notnull':'yes'})).data; // Adjust the endpoint to match your server route
                 setACRDetails(response.acrDetails);
             } catch (error) {
                 console.error('Error fetching ACR details:', error);
@@ -158,11 +159,8 @@ export default function FascicoloprodView() {
       
       // Usage example:
       const intervalOptions = [
-        { label: '15 minuti', value: 15 },
-        { label: '30 minuti', value: 30 },
         { label: '1 ora', value: 60 },
         { label: '3 ore', value: 180 },
-        { label: '6 ore', value: 360 },
         { label: '24 ore', value: 1440 },
       ];
       const defaultInterval = 180; // Default interval value
@@ -227,13 +225,12 @@ export default function FascicoloprodView() {
                     let weight_s = 1
                     weight_s = idToWeightMap[item.user_id];
                     // console.log("PESO UTENTE item.user_id", weight_s)
-                    if (weight_s > 0) {
+                    if (weight_s > 0 ){  
                     if (!timeSlots[slotKey][item.acr_result]) {
                         timeSlots[slotKey][item.acr_result] = 1*weight_s.toFixed(0);
                     } else {
                         timeSlots[slotKey][item.acr_result] += 1*weight_s.toFixed(0);
                     }
-                    
                     }
                 }
             });
@@ -322,28 +319,7 @@ export default function FascicoloprodView() {
         return shareSlotCanale.toFixed(1).toString();
 
     };
-    const displayTitle = (channel,slot) => {
-        const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
-        const minutoMedio = timeSlots[slot][channel] || 0 ;
-        // console.log("MINUTO MEDIO %s", minutoMedio);
-        const audienceByMinute = minutoMedio/intervalValue;
-        // console.log("AUDIENCE BY MINUTE canale %s slot %s audiencexmin %s", channel,slot, audienceByMinute);
-        // Calculate the share percentage for the channel in the given time slot
-        return `#Canale: ${channel}, #Utenti reali per canale ${uniqueUsersListening}, n. Individui ${uniqueUsersListening*pesoNum} #Audience =  ${minutoMedio} Totale Minuti Canale  / ${intervalValue} intervallo =  ${audienceByMinute}`;
 
-    } 
-    const displayTitleShare = (channel,slot) =>  {
-        let audienceSlotCanali = 0
-        channels.forEach(canalealtro => {
-            if ((canalealtro !== "NULL")) {
-                audienceSlotCanali += parseFloat(timeSlots[slot][canalealtro] || 0)
-            }
-        });
-        // const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
-        const minuto = timeSlots[slot][channel] || 0 ;
-        const audienceByMinute = minuto;
-        return `(SHARE = (#AMR = ${(audienceByMinute).toFixed(2).toString().replace(".", ",")} minuti ) / #Audience canali :${audienceSlotCanali} minuti periodo considerato )`;
-    }
     const audienceSizes = Object.keys(timeSlots['06:00 - 23:59'] || {}).reduce((acc, channel) => {
         acc[channel] = timeSlots['06:00 - 23:59'][channel];
         return acc;
@@ -366,7 +342,7 @@ export default function FascicoloprodView() {
                     <Scrollbar style={{ width: '100%'}}>
                 
                     <Typography variant="h4" sx={{mb: 5}}>
-                        FASCICOLO (interno) degli ascolti  {tipoRadioTV} per la data {selectedDate}
+                        FASCICOLO degli ascolti  {tipoRadioTV} per la data {selectedDate}
                     </Typography>
 
                     {/* ... (existing code) */}
@@ -393,7 +369,11 @@ export default function FascicoloprodView() {
 
                         </DemoContainer>
                     </LocalizationProvider>
-
+                    <Card style={{ display: isVisible ? 'none' : 'block' }}>
+                        <CardContent  sx={{ pl: 0 }}>
+                        <GraphChartArr data={timeSlots}  intervalValue={intervalValue} importantChannels={channels} /> {/* Render the GraphChart component */}
+                        </CardContent>
+                    </Card>
                     <Card style={{ display: isVisible ? 'block' : 'none' }}>
                         <CardContent>
 
@@ -421,7 +401,7 @@ export default function FascicoloprodView() {
                                                 <TableCell>{channel}</TableCell>
                                                 {Object.keys(timeSlots).map((timeSlotKey) => (
                                                     <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
-                                                        <span data-tooltip-id="my-tooltip" data-tooltip-content={displayTitle(channel, timeSlotKey)} >{calculateAudienceByMinute(channel, timeSlotKey)}</span>
+                                                        <span data-tooltip-id="my-tooltip" data-tooltip-content={calculateAudienceByMinute(channel, timeSlotKey)} >{calculateAudienceByMinute(channel, timeSlotKey)}</span>
 
 
                                                     </TableCell>
@@ -460,7 +440,7 @@ export default function FascicoloprodView() {
                                                 <TableCell>{channel} %</TableCell>
                                                 {Object.keys(timeSlots).map((timeSlotKey) => (
                                                     <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
-                                                        <span data-tooltip-id="my-tooltip" data-tooltip-content={displayTitleShare(channel, timeSlotKey)} >{calculateShareSlotCanale(channel, timeSlotKey)}</span>
+                                                        <span data-tooltip-id="my-tooltip" data-tooltip-content={calculateShareSlotCanale(channel, timeSlotKey)} >{calculateShareSlotCanale(channel, timeSlotKey)}</span>
                             
                                                     </TableCell>
 
@@ -475,11 +455,7 @@ export default function FascicoloprodView() {
                 </Card>
                 
            
-                    <Card style={{ display: isVisible ? 'none' : 'block' }}>
-                        <CardContent  sx={{ pl: 0 }}>
-                        <GraphChartArr data={timeSlots}  intervalValue={intervalValue} importantChannels={channels} /> {/* Render the GraphChart component */}
-                        </CardContent>
-                    </Card>
+
             </Scrollbar>
 
 

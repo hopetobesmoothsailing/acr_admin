@@ -9,6 +9,7 @@ import { useLocation } from 'react-router-dom';
 import Card from '@mui/material/Card';
 import Button  from '@mui/material/Button';
 import Container from '@mui/material/Container';
+import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 // import CardContent from '@mui/material/CardContent';
@@ -21,8 +22,9 @@ import {Table, TableRow, TableHead, TableBody, TableCell, TableContainer} from '
 import Scrollbar from 'src/components/scrollbar';
 
 import ExportExcel from "../export-to-excel"; 
-// import GraphChartArr from "../graph-chart-arr";
+import GraphChartArr from "../graph-chart-arr";
 import {SERVER_URL} from "../../../utils/consts";
+import GraphChartArrBars from "../graph-chart-arr-bars";
 
 // ----------------------------------------------------------------------
 
@@ -47,21 +49,48 @@ export default function SintesiView() {
     };
     // const importantChannels = ['RadioDeejay', 'RAIRadio1','RAIRadio2','RAIRadio3','RAIIsoradio','RDS','RTL','Radio24','RadioM2O','RADIOSUBASIO','RADIOBELLAEMONELLA','RADIOITALIAANNI60','RADIOKISSKISS','RADIOKISSKISSNAPOLI','RADIOKISSKISSITALIA','RadioFRECCIA','RadioIBIZA','RadioCapital','R101','VIRGINRadio','RADIOMONTECARLO','Radio105','RadioZETA','RadioBRUNO','RadioItaliaSMI'];
 
+    const importantChannels = ['RadioDeejay', 'RAIRadio1','RAIRadio2','RAIRadio3','RAIIsoradio','RDS','RTL','Radio24','RadioM2O','RADIOSUBASIO','RADIOBELLAEMONELLA','RADIOITALIAANNI60','RADIOKISSKISS','RADIOKISSKISSNAPOLI','RADIOKISSKISSITALIA','RadioFRECCIA','RadioIBIZA','RadioCapital','R101','VIRGINRadio','RADIOMONTECARLO','Radio105','RadioZETA','RadioBRUNO','RadioItaliaSMI'];
 
     const [acrDetails, setACRDetails] = useState([]);
     // const [acrDetailsTimeslot, setACRDetailsTimeslot] = useState([])
     const today = new Date(); // Get today's date
     const yesterday = new Date(today); // Create a new date object with today's date
-    yesterday.setDate(today.getDate() - 1); // Set it to yesterday
-  
+    yesterday.setDate(today.getDate() - 4); // Set it to yesterday  
     // Format the date to DD/MM/YYYY
-    const formattedYesterday = `${yesterday.getDate().toString().padStart(2, '0')}/${(
-      yesterday.getMonth() + 1
-    ).toString().padStart(2, '0')}/${yesterday.getFullYear()}`;
-  
+    const formattedYesterday = `${yesterday.getDate().toString().padStart(2, '0')}/${(yesterday.getMonth() + 1).toString().padStart(2, '0')}/${yesterday.getFullYear()}`;  
     // Set yesterday's date as selectedDate
-    const [selectedDate, setSelectedDate] = useState(formattedYesterday);
+    const [selectedDate, setSelectedDate] = useState(dayjs(yesterday).format('DD/MM/YYYY'));
+    const [startDate, setStartDate] = useState(dayjs().subtract(7, 'day').format('DD/MM/YYYY'));
+    const [stopDate, setStopDate] = useState(dayjs().add(0, 'day').format('DD/MM/YYYY'));
     const [users, setUsers] = useState([]);
+    console.log("SEL_DATE",selectedDate);
+    console.log("START_DATE",startDate);
+    console.log("STOP_DATE",stopDate);
+    // Convert date from DD/MM/YYYY to YYYY-MM-DD for backend
+    const formatDateForBackend = (date) => dayjs(date, 'DD/MM/YYYY').format('YYYY-MM-DD');
+
+
+    // Function to submit dates to backend
+    const handleSubmitDates = async () => {
+        setSelectedDate(startDate);
+        const formattedStartDate = formatDateForBackend(startDate);
+        const formattedStopDate = formatDateForBackend(stopDate);
+        
+        try {
+            setLoading(true);
+            const response = await axios.post(`${SERVER_URL}/getACRDetailsByRangeRTV`, {
+                startDate: formattedStartDate,
+                stopDate: formattedStopDate,
+                type: tipoRadioTV,
+                notnull: 'yes'
+            });
+            setACRDetails(response.data.acrDetails);
+        } catch (error) {
+            console.error('Error fetching ACR details:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
     
     
     // Function to handle button click to change the displayed table
@@ -69,12 +98,6 @@ export default function SintesiView() {
     const handlePrint = () => {
       window.print();
     };
-
-    const handleDateChange = (date) => {
-        setSelectedDate(date.format('DD/MM/YYYY'));
-    };
-    // Function to handle date change from date picker
-
 
     let tipoRadioTV = 'RADIO';
     const searchParams = new URLSearchParams(location.search);
@@ -84,13 +107,13 @@ export default function SintesiView() {
 
     useEffect(() => {
         // Function to fetch ACR details by date
-        const fetchACRDetailsByDate = async () => {
+        const fetchACRDetailsByRange = async () => {
            
             try {
                 setLoading(true);
-                const formattedDate = selectedDate; // Encode the date for URL
+                // const formattedDate = selectedDate; // Encode the date for URL
 
-                const response = (await axios.post(`${SERVER_URL}/getCsvByDateRTV`, {date: formattedDate,type:tipoRadioTV,notnull:'yes'})).data; // Adjust the endpoint to match your server route
+                const response = (await axios.post(`${SERVER_URL}/getACRDetailsByRangeRTV`, {'startDate': startDate,'stopDate':stopDate,'type':tipoRadioTV,'notnull':'yes'})).data; // Adjust the endpoint to match your server route
                 setACRDetails(response.acrDetails);
             } catch (error) {
                 console.error('Error fetching ACR details:', error);
@@ -100,11 +123,11 @@ export default function SintesiView() {
               }
         };
         
-        fetchACRDetailsByDate(); // Call the function to fetch ACR details by date
+        fetchACRDetailsByRange(); // Call the function to fetch ACR details by date
         fetchUsers();
     
 
-    }, [selectedDate,tipoRadioTV,formattedYesterday]);
+    }, [selectedDate,tipoRadioTV,formattedYesterday,stopDate,startDate]);
 
     console.log(acrDetails);
     const fetchUsers = async () => {
@@ -179,8 +202,17 @@ export default function SintesiView() {
 
       // Filter out less important channels and group them under "ALTRERADIO"
        
+      // Filter out less important channels and group them under "ALTRERADIO"
+      const groupedACRDetails = acrDetails.map(item => {
+        const channel = item.acr_result;
+        if (!importantChannels.includes(channel) && (item.acr_result !== 'NULL')) {
+            item.acr_result = 'ALTRERADIO';
+        }
+        return item;
+    });
+  
     
-        acrDetails.forEach((item) => {
+    groupedACRDetails.forEach((item) => {
         const recordedDate = item.recorded_at;
         const [,time] = recordedDate.split(' ');
         const [hour,minute] = time.split(':');
@@ -286,53 +318,33 @@ export default function SintesiView() {
 
     };
 
-    const displayTitle = (channel,slot) => {
-        const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
-        const minutoMedio = timeSlots[slot][channel] || 0 ;
-        // console.log("MINUTO MEDIO %s", minutoMedio);
-        const audienceByMinute = minutoMedio/intervalValue;
-        // console.log("AUDIENCE BY MINUTE canale %s slot %s audiencexmin %s", channel,slot, audienceByMinute);
-        // Calculate the share percentage for the channel in the given time slot
-        return `#Canale: ${channel}, #Utenti reali per canale ${uniqueUsersListening}, n. Individui ${uniqueUsersListening*pesoNum} #Audience =  ${minutoMedio} Totale Minuti Canale  / ${intervalValue} intervallo =  ${audienceByMinute}`;
-
-    } 
-    const displayTitleShare = (channel,slot) =>  {
-        let audienceSlotCanali = 0
-        channels.forEach(canalealtro => {
-            if ((canalealtro !== "NULL")) {
-                audienceSlotCanali += parseFloat(timeSlots[slot][canalealtro] || 0)
-            }
-        });
-        // const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
-        const minuto = timeSlots[slot][channel] || 0 ;
-        const audienceByMinute = minuto;
-        return `(SHARE = (#AMR = ${(audienceByMinute).toFixed(2)} minuti ) / #Audience canali :${audienceSlotCanali} minuti periodo considerato )`;
-    }
-
-   
-      
     if (loading) {
         return <p>Caricamento dati raccolti in corso... </p>; // You can replace this with your loading indicator component
         }
 
             return (
                 <Container>
-                    <Scrollbar style={{ width: '100%'}}>
-                
+                    <Scrollbar style={{ width: '100%'}}>              
                     <Typography variant="h4" sx={{mb: 5}}>
-                       Sintesi degli ascolti per la data {selectedDate}
+                       Sintesi degli ascolti per le date selezionate
                     </Typography>
-
-                    {/* ... (existing code) */}
-                    {/* Material-UI DatePicker component */}
-
-                    {/* Display graph for a single day with x-axis corresponding to every minute */}
+                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                        <DatePicker
+                        label="Start Date"
+                        value={dayjs(startDate, 'DD/MM/YYYY')}
+                        onChange={(newValue) => setStartDate(newValue)}
+                        renderInput={(params) => <TextField {...params} />}
+                        />
+                        <DatePicker
+                        label="Stop Date (optional)"
+                        value={dayjs(stopDate, 'DD/MM/YYYY')}
+                        onChange={(newValue) => setStopDate(newValue)}
+                        renderInput={(params) => <TextField {...params} />}
+                        />
+                         <Button onClick={handleSubmitDates}>Submit</Button>
+                    </LocalizationProvider>
                     <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en-gb">
-                        <DemoContainer components={['DatePicker']}>
-                            <DatePicker
-                                onChange={handleDateChange}
-                                value={dayjs(selectedDate, 'DD/MM/YYYY')}
-                            />
+                        <DemoContainer components={['DatePicker']}>                             
                             <Button onClick={shareVisibility}>SHARE</Button>
                             <Button onClick={toggleVisibility}>ASCOLTI</Button>
                             <Button onClick={handlePrint}>STAMPA</Button>
@@ -342,14 +354,20 @@ export default function SintesiView() {
                                 <option key={option.value} value={option.value}>{option.label}</option>
                                 ))}
                             </select>
-
                         </DemoContainer>
                     </LocalizationProvider>
-
+                    <Card style={{ display: isVisible ? 'none' : 'block' }}>
+                        <CardContent  sx={{ pl: 0 }}>
+                        <GraphChartArr data={timeSlots}  intervalValue={intervalValue} /> {/* Render the GraphChart component */}
+                        </CardContent>
+                    </Card>
+                    <Card style={{ display: isVisible ? 'none' : 'block' }}>
+                        <CardContent  sx={{ pl: 0 }}>
+                        <GraphChartArrBars data={timeSlots} channels={channels} timeSlots={timeSlots} intervalValue={intervalValue} /> {/* Render the GraphChart component */}
+                        </CardContent>
+                    </Card>
                     <Card style={{ display: isVisible ? 'block' : 'none' }}>
                         <CardContent>
-
-        
                         <Typography variant="h5" sx={{ml: 2, mt: 3}}>
                                 AUDIENCE 
                                 <ExportExcel  exdata={channelNames} fileName="Excel-Export-Ascolti" idelem="export-table"/>
@@ -375,7 +393,7 @@ export default function SintesiView() {
                                                 <TableCell>{channel}</TableCell>
                                                 {Object.keys(timeSlots).map((timeSlotKey) => (
                                                     <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
-                                                        <span data-tooltip-id="my-tooltip" data-tooltip-content={displayTitle(channel,timeSlotKey)} >{calculateAudienceByMinute(channel, timeSlotKey)}</span>
+                                                        <span data-tooltip-id="my-tooltip" data-tooltip-content="Audience" >{calculateAudienceByMinute(channel, timeSlotKey)}</span>
 
                                                     
                                                     </TableCell>
@@ -411,7 +429,7 @@ export default function SintesiView() {
                                 {Object.keys(userListeningMap).map((channel) => (
                                 <TableCell style={{ textAlign: 'center' }} key={channel}>
                                     {/* Use calculateAudienceShare to retrieve data */}
-                                    <span data-tooltip-id="my-tooltip" data-tooltip-content={displayTitleShare(channel, timeSlotKey)}>{calculateShareSlotCanale(channel, timeSlotKey)}%</span>
+                                    <span data-tooltip-id="my-tooltip" data-tooltip-content="Share Canale">{calculateShareSlotCanale(channel, timeSlotKey)}%</span>
                                 </TableCell>
                                 ))}
                             </TableRow>
@@ -423,14 +441,8 @@ export default function SintesiView() {
                 </Card>
            
             </Scrollbar>
-
-                                        
-            
-                     
-               
-                
             <Tooltip id="my-tooltip" />
-            </Container>
+        </Container>
         
     );
 

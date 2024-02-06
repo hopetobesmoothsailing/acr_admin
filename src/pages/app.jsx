@@ -8,7 +8,7 @@ export default function AppPage() {
   return (
     <>
       <Helmet>
-        <title> Dashboard | ACR Admin </title>
+        <title> Dashboard | AudioMonitor Admin </title>
       </Helmet>
 
       <AppView />

@@ -13,6 +13,7 @@ const navConfig = [
     icon: icon('ic_analytics'),
     role:3
   },
+  
   {
     title: 'Utenti & status  ',
     path: '/user',
