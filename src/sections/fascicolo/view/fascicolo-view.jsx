@@ -305,8 +305,8 @@ export default function FascicoloprodView() {
     const calculateAudienceByMinute = (channel, slot) => {
         const minutoMedio = timeSlots[slot][channel] || 0 ;
         let audienceByMinute = 0;
-        if (slot !== '06:00 - 23:59') {
-        const day_interval = 1440 - intervalValue;
+        if (slot === '06:00 - 23:59') {
+        const day_interval = 1440 - 360;
         audienceByMinute = minutoMedio*pesoNum/(day_interval);
         }
         else
@@ -328,12 +328,12 @@ export default function FascicoloprodView() {
         // come indicato da cristiano corrisponde ai minuti totali di ascolto nel periodo e non minuti * utenti
         // const audienceByMinute = minuto*(uniqueUsersListening*pesoNum);
         const audienceByMinute = minuto;
-        if (channel === "RDS") {
+        /* if (channel === "RDS") {
             console.log("F_CH:",channel);
             console.log("F_SLOT:",slot);
             console.log("F_ABM:",audienceByMinute);
             console.log("F_ASC:",audienceSlotCanali);
-        }
+        } */
         const shareSlotCanale = (((audienceByMinute/intervalValue) || 0)/ (audienceSlotCanali/intervalValue))*100 || 0 ;
         return shareSlotCanale.toFixed(1).toString();
 
@@ -342,10 +342,20 @@ export default function FascicoloprodView() {
         const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
         const minutoMedio = timeSlots[slot][channel] || 0 ;
         // console.log("MINUTO MEDIO %s", minutoMedio);
-        const audienceByMinute = minutoMedio/intervalValue;
-        // console.log("AUDIENCE BY MINUTE canale %s slot %s audiencexmin %s", channel,slot, audienceByMinute);
+        let audienceByMinute = 0;
+        let ret = "";
+        if (slot === '06:00 - 23:59') {
+            const day_interval = 1440 - 360;
+            audienceByMinute = minutoMedio*pesoNum/(day_interval);
+            ret =  `#Canale: ${channel}, #Utenti reali per canale ${uniqueUsersListening}, n. Individui ${uniqueUsersListening*pesoNum} #Audience =  ${minutoMedio} Totale Minuti Canale  / ${day_interval} intervallo =  ${audienceByMinute}`;
+        }
+        else{
+            audienceByMinute = minutoMedio*pesoNum/intervalValue;
+            ret = `#Canale: ${channel}, #Utenti reali per canale ${uniqueUsersListening}, n. Individui ${uniqueUsersListening*pesoNum} #Audience =  ${minutoMedio} Totale Minuti Canale  / ${intervalValue} intervallo =  ${audienceByMinute}`;
+        }
+        return ret;
+             // console.log("AUDIENCE BY MINUTE canale %s slot %s audiencexmin %s", channel,slot, audienceByMinute);
         // Calculate the share percentage for the channel in the given time slot
-        return `#Canale: ${channel}, #Utenti reali per canale ${uniqueUsersListening}, n. Individui ${uniqueUsersListening*pesoNum} #Audience =  ${minutoMedio} Totale Minuti Canale  / ${intervalValue} intervallo =  ${audienceByMinute}`;
 
     } 
     const displayTitleShare = (channel,slot) =>  {

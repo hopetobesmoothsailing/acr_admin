@@ -291,8 +291,8 @@ export default function FascicoloprodView() {
     const calculateAudienceByMinute = (channel, slot) => {
         const minutoMedio = timeSlots[slot][channel] || 0 ;
         let audienceByMinute = 0;
-        if (slot !== '06:00 - 23:59') {
-        const day_interval = 1440 - intervalValue;
+        if (slot === '06:00 - 23:59') {
+        const day_interval = 1440 - 360;
         audienceByMinute = minutoMedio*pesoNum/(day_interval);
         }
         else
