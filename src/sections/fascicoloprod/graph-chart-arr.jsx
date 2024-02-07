@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React, { useMemo,useState } from 'react';
 import { Line, XAxis, YAxis, Legend, Tooltip, LineChart, CartesianGrid, ResponsiveContainer } from 'recharts';
 
-const GraphChartArr = ({ data,intervalValue,importantChannels,tipoRadioTV }) => {
+const GraphChartArr = ({ data,intervalValue,importantChannels,tipoRadioTV,activeButton }) => {
     let initiallyVisibleChannels = ['RAIRadio1', 'RAIRadio2', 'RAIRadio3'];
     if (tipoRadioTV === "TV") {
       initiallyVisibleChannels = ['RAI1', 'RAI2', 'RAI3'];
@@ -132,7 +132,7 @@ const lines = Object.keys(data[Object.keys(data)[0]] || {}).map(radioStation => 
 ));
 
   return (
-    <ResponsiveContainer width="100%" height={400}>
+    <ResponsiveContainer key={activeButton} width="100%" height={400}>
     <LineChart data={chartData}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="name" />
@@ -150,5 +150,6 @@ GraphChartArr.propTypes = {
     intervalValue: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
     importantChannels: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
     tipoRadioTV: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
+    activeButton: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
   };
   export default GraphChartArr;

@@ -1,11 +1,12 @@
 import 'dayjs/locale/it'; // Import the Italian locale
 import axios from "axios";
 import dayjs from "dayjs";
+import {enqueueSnackbar} from "notistack";
 import customParseFormat from 'dayjs/plugin/customParseFormat'; // For parsing custom formats
 import 'leaflet/dist/leaflet.css';
 import { Tooltip } from 'react-tooltip'
 import {useState, useEffect} from 'react';
-import { useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 // import {Popup,  Marker,TileLayer, MapContainer  } from 'react-leaflet';
 
 import Card from '@mui/material/Card';
@@ -36,17 +37,23 @@ export default function FascicoloprodView() {
 
     const channels = [];
     const pesoNum = 1
-    
+    const navigate = useNavigate();
+  
     const location = useLocation();
     const [loading, setLoading] = useState(true);
-    const [isVisible, setIsVisible] = useState(false);
+     
     
-    const toggleVisibility = () => {
-        setIsVisible(!isVisible); // Toggle the visibility state
-    };
-    const shareVisibility = () => {
-        setIsVisible(false); // Toggle the visibility state
-    };
+     // State to track the active button ("share" or "ascolti")
+     const [activeButton, setActiveButton] = useState('share'); // Default to showing "share"
+
+     // Modify your button click handlers to simply update the activeButton state
+     const handleShareClick = () => {
+       setActiveButton('share');
+     };
+     
+     const handleAscoltiClick = () => {
+       setActiveButton('ascolti');
+     };
 
     let importantChannels = [];
     
@@ -83,14 +90,17 @@ export default function FascicoloprodView() {
     let tipoRadioTV = 'RADIO';
     const searchParams = new URLSearchParams(location.search);
     const tipo = searchParams.get('type');
+    let ascoltatoriRadioLabel = '';
     if ((tipo === null)||(tipo === 'RADIO')) { 
         tipoRadioTV = 'RADIO';
         importantChannels = ['RadioDeejay', 'RAIRadio1','RAIRadio2','RAIRadio3','RDS','RTL','Radio24','RadioM2O','RADIOSUBASIO','RADIOKISSKISS','RadioFRECCIA','RadioCapital','R101','VIRGINRadio','RADIOMONTECARLO','Radio105','RadioZETA','RadioItaliaSMI','RadioNORBA'];
+        ascoltatoriRadioLabel = 'ASCOLTATORI RADIO';
 
     }
     else { 
         tipoRadioTV = 'TV';
         importantChannels = ['RAI1', 'RAI2','RAI3','RETE4','CANALE5','ITALIA1','LA7'];
+        ascoltatoriRadioLabel = 'SPETTATORI TV';
     }
 
     useEffect(() => {
@@ -325,7 +335,7 @@ export default function FascicoloprodView() {
 
     };
     
-    const calculateAscoltoRadio = (slot) => {
+    const calculateShareRadio = (slot) => {
         // console.log("uniquetimeSlots",uniquetimeSlots[slot]);
         const dati = uniquetimeSlots[slot];
         let ar = 0;
@@ -337,7 +347,19 @@ export default function FascicoloprodView() {
         const perc_ar = ((ar/52231073)*100).toFixed(1);
         return perc_ar;
     }
-    const displayAscoltoRadio = (slot) => {
+    const calculateAscoltoRadio = (slot) => {
+        // console.log("uniquetimeSlots",uniquetimeSlots[slot]);
+        const dati = uniquetimeSlots[slot];
+        let ar = 0;
+        dati.forEach((item) => {
+            // console.log("ar:item",item)
+            ar += item
+
+        });
+        const perc_ar = ar.toFixed(0);
+        return perc_ar;
+    }
+    const displayShareRadio = (slot) => {
         // console.log("uniquetimeSlots",uniquetimeSlots[slot]);
         const dati = uniquetimeSlots[slot];
         let ar = 0;
@@ -347,7 +369,19 @@ export default function FascicoloprodView() {
 
         });
         const perc_ar = ((ar/52231073)*100).toFixed(1);
-           return `( ${perc_ar}% = ${ar} (campione) / 52231073 (popolazione italiana) )`;
+           return `( ${perc_ar}% (popolazione italiana) )`;
+
+    }
+    const displayAscoltiRadio = (slot) => {
+        // console.log("uniquetimeSlots",uniquetimeSlots[slot]);
+        const dati = uniquetimeSlots[slot];
+        let ar = 0;
+        dati.forEach((item) => {
+            // console.log("ar:item",item)
+            ar += item
+
+        });
+           return `( ${ar.toFixed(0)}% (popolazione italiana) )`;
 
     }
     
@@ -377,11 +411,60 @@ export default function FascicoloprodView() {
     
     // Sort channelNames based on audience size
     const sortedChannelNames = channelNames.sort((a, b) => (audienceSizes[b] || 0) - (audienceSizes[a] || 0));
+      
+    const disableDates = (date) => {
+        // Define the minimum date that can be selected (29/01/2024)
+        const minDate = dayjs('29/01/2024', 'DD/MM/YYYY');
+        // Get the current date and time
+        const now = dayjs();
+      
+        // Check if the date is before the minimum date
+        if (date.isBefore(minDate, 'day')) {
+          // Disable dates before 29/01/2024
+          return true;
+        }
+      
+        // Check if the date is today and the current time is before 11:59 AM
+        if (date.isSame(now, 'day') && now.hour() < 12) {
+          // Disable today's date selection until 11:59 AM
+          return true;
+        }
+      
+        // Don't disable the date
+        return false;
+      };
+  
+    // Function to determine if the selected date should disable content
+    const checkContentVisibility = (date) => {
+        const minDate = dayjs('29/01/2024', 'DD/MM/YYYY');
+        const now = dayjs();
+        const dayjsDate = dayjs(date, 'DD/MM/YYYY');
+        
+        // Ensure dayjsDate is valid
+        if (!dayjsDate.isValid()) {
+          console.log('Selected date is invalid.');
+          return false;
+        }
+      
+        return dayjsDate.isBefore(minDate, 'day') || (dayjsDate.isSame(now, 'day') && now.hour() < 23);
+      };
+    // Update content visibility based on selected date
+    useEffect(() => {
+        const dateIsValid = checkContentVisibility(selectedDate);
+        console.log("INVALID",selectedDate);
+        console.log("INVALID",dateIsValid);
+        if (dateIsValid) {
+            enqueueSnackbar(`Non hai accesso a questa pagina!`, {variant: 'error'});
+            navigate('/'); // Assuming '/404' is your path to the 404 page
+        }
+    }, [selectedDate, navigate]);
+
+
     
-    if (loading) {
+        if (loading) {
         return <p>Caricamento dati raccolti in corso... </p>; // You can replace this with your loading indicator component
         }
-    
+ 
             return (
                 <Container>
                     <Scrollbar style={{ width: '100%'}}>
@@ -402,9 +485,20 @@ export default function FascicoloprodView() {
                                 onChange={handleDateChange}
                                 inputFormat="DD/MM/YYYY" // Explicitly specify the input format here
                                 renderInput={(params) => <TextField {...params} />}
+                                shouldDisableDate={disableDates}
                             />
-                            <Button onClick={shareVisibility}>SHARE</Button>
-                            <Button onClick={toggleVisibility}>ASCOLTI</Button>
+                            <Button
+                            variant={activeButton === 'share' ? 'contained' : 'outlined'}
+                            onClick={handleShareClick}
+                            >
+                            SHARE
+                            </Button>
+                            <Button
+                            variant={activeButton === 'ascolti' ? 'contained' : 'outlined'}
+                            onClick={handleAscoltiClick}
+                            >
+                            ASCOLTI
+                            </Button>
                             <Button disabled onClick={handlePrint}>STAMPA</Button>
                             <select id="intervalSelect" value={intervalValue} onChange={handleIntervalChange}>
                                 {intervalOptions.map((option) => (
@@ -414,140 +508,201 @@ export default function FascicoloprodView() {
 
                         </DemoContainer>
                     </LocalizationProvider>
-                    <Card style={{ display: isVisible ? 'none' : 'block' }}>
-                        <CardContent  sx={{ pl: 0 }}>
-                        <GraphChartArr data={timeSlots}  intervalValue={intervalValue} importantChannels={channels} tipoRadioTV={tipo} /> {/* Render the GraphChart component */}
-                        </CardContent>
-                    </Card>
-                        <Card style={{ display: isVisible ? 'block' : 'none' }}>
-                            <CardContent  sx={{ pl: 0 }}>
-                            <GraphChart userListeningMap={userListeningMap}   /> {/* Render the GraphChart component */}
-                            </CardContent>
-                        </Card>
-                        <Card style={{ display: isVisible ? 'block' : 'none' }}>
+                     
+                                {activeButton === 'share'  && (
+                                <Card style={{ display: 'block' }}>
+                                    <CardContent  sx={{ pl: 0 }}>
+                                    <GraphChartArr activeButton={activeButton} data={timeSlots}  intervalValue={intervalValue} importantChannels={channels} tipoRadioTV={tipo} /> {/* Render the GraphChart component */}
+                                    </CardContent>
+                                </Card>
+                                )}
 
-                        <CardContent>
+                                {activeButton === 'ascolti'   && (
+                                <Card style={{ display: 'block' }}>
+                                        <CardContent  sx={{ pl: 0 }}>
+                                        <GraphChart activeButton={activeButton} userListeningMap={userListeningMap}  tipoRadioTV={tipo}  /> {/* Render the GraphChart component */}
+                                        </CardContent>
+                                    </Card>
+                                )}
 
-        
-                        <Typography variant="h5" sx={{ml: 2, mt: 3}}>
-                                ASCOLTO MEDIO
-                                <ExportExcel  exdata={channelNames} fileName="Excel-Export-Ascolti" idelem="export-table"/>
-                        </Typography>
-                                 
-                            <TableContainer id="export-table"  sx={{maxHeight: '500px',overflow: 'auto'}}>
-                                <Table sx={{minWidth: 800}}>
-                                    
-                                    <TableHead>
-                                    <TableRow>
-                                        <TableCell style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 1000 }}>
-                                        EMITTENTE
-                                        </TableCell>
-                                        {Object.keys(timeSlots).map((timeSlotKey) => (
-                                        <TableCell key={timeSlotKey} style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 1000 }}>
-                                           <strong> {timeSlotKey} </strong> 
-                                        </TableCell>
-                                        ))}
-                                    </TableRow>
-
-                                    </TableHead>
-
-                                    <TableBody>
-                                        {sortedChannelNames.map((channel, index) => (
-                                            <TableRow key={index}>
-
-                                                <TableCell>{channel}</TableCell>
-                                                {Object.keys(timeSlots).map((timeSlotKey) => (
-                                                    <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
-                                                        <span data-tooltip-id="my-tooltip" data-tooltip-content={calculateAudienceByMinute(channel, timeSlotKey)} >{calculateAudienceByMinute(channel, timeSlotKey)}</span>
-
-
-                                                    </TableCell>
-
-                                                ))}
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
+                                {activeButton === 'ascolti'  && (
+                                <Card style={{ display: 'block' }}>
+                                    <CardContent>
+                                        <Typography variant="h5" sx={{ml: 2, mt: 3}}>
+                                                ASCOLTO MEDIO (AMR)
+                                        </Typography>
+                                            
+                                    <Typography variant="p" sx={{ml: 2, mt: 3}}>
+                                    (Rapporto tra la somma degli {ascoltatoriRadioLabel} per minuto e la durata in minuti dell’intervallo di riferimento)
+                                    </Typography>
+                                    <ExportExcel  exdata={channelNames} fileName={`Export-Ascolti-${tipo}-${dayjs(selectedDate).format('DD-MM-YYYY')}`} idelem={`Export-Ascolti-${tipo}-${dayjs(selectedDate).format('DD-MM-YYYY')}`}/>
                             
-                        </CardContent>
-                    </Card>
-    
-                <Card style={{ display: isVisible ? 'none' : 'block' }}>
-                <CardContent>
-                    <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>SHARE</Typography>
-                    <Typography variant="p" sx={{ ml: 2, mt: 3, mb: 2 }}>Data da rapporto tra AMR e AUDIENCE nell&apos;intervallo considerato di {intervalValue} minuti.</Typography>
-                    <ExportExcel  exdata={channelNames} fileName="Excel-Export-Share" idelem="export-table-share"/>
-                    <br />
-                    <TableContainer id="export-table-share"  sx={{maxHeight: '500px',overflow: 'auto'}}>
-                                <Table sx={{minWidth: 800}}>
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 1000 }}>EMITTENTE</TableCell>
-                                            {Object.keys(timeSlots).map((timeSlotKey) => (
-                                                <TableCell key={timeSlotKey} style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 1000 }}>{timeSlotKey} </TableCell>
-                                            ))}
-                                        </TableRow>
-                                    </TableHead>
-
-                                    <TableBody>
-                                        {sortedChannelNames.map((channel, index) => (
-                                            <TableRow key={index}>
-
-                                                <TableCell>{channel} %</TableCell>
-                                                {Object.keys(timeSlots).map((timeSlotKey) => (
-                                                    <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
-                                                        <span data-tooltip-id="my-tooltip" data-tooltip-content={calculateShareSlotCanale(channel, timeSlotKey)} >{calculateShareSlotCanale(channel, timeSlotKey)}</span>
-                            
+                                        <TableContainer id={`Export-Ascolti-${tipo}-${dayjs(selectedDate).format('DD-MM-YYYY')}`}  sx={{maxHeight: '500px',overflow: 'auto'}}>
+                                            <Table sx={{minWidth: 800}}>
+                                                
+                                                <TableHead>
+                                                <TableRow>
+                                                    <TableCell style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 1000 }}>
+                                                    EMITTENTE
                                                     </TableCell>
-
-                                                ))}
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-
-                </CardContent>
-                </Card>
-                
-                <Card style={{ display: isVisible ? 'none' : 'block' }}>
-                <CardContent>
-                    <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>ASCOLTATORI RADIO</Typography>
-                    <br />
-                    <TableContainer id="export-table-share"  sx={{overflow: 'unset'}}>
-                                <Table sx={{minWidth: 800}}>
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell> </TableCell>
-                                            {Object.keys(timeSlots).map((timeSlotKey) => (
-                                                <TableCell key={timeSlotKey}>{timeSlotKey} </TableCell>
-                                            ))}
-                                        </TableRow>
-                                    </TableHead>
-
-                                    <TableBody>
-
-                                            <TableRow >
-
-                                                <TableCell>ASCOLTATORI RADIO</TableCell>
-                                                {Object.keys(timeSlots).map((timeSlotKey) => (
-                                                    <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
-                                                        <span data-tooltip-id="my-tooltip" data-tooltip-content={displayAscoltoRadio(timeSlotKey)} >{calculateAscoltoRadio(timeSlotKey)}</span>
-                            
+                                                    {Object.keys(timeSlots).map((timeSlotKey) => (
+                                                    <TableCell key={timeSlotKey} style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 1000 }}>
+                                                    <strong> {timeSlotKey} </strong> 
                                                     </TableCell>
+                                                    ))}
+                                                </TableRow>
 
-                                                ))}
-                                            </TableRow>
+                                                </TableHead>
+
+                                                <TableBody>
+                                                    {sortedChannelNames.map((channel, index) => (
+                                                        <TableRow key={index}>
+
+                                                            <TableCell>{channel}</TableCell>
+                                                            {Object.keys(timeSlots).map((timeSlotKey) => (
+                                                                <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
+                                                                    <span data-tooltip-id="my-tooltip" data-tooltip-content={calculateAudienceByMinute(channel, timeSlotKey)} >{calculateAudienceByMinute(channel, timeSlotKey)}</span>
+
+
+                                                                </TableCell>
+
+                                                            ))}
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </TableContainer>
                                         
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
+                                    </CardContent>
+                                </Card>
+                                )}
+                            {activeButton === 'share'  && (
+                                <Card style={{ display: 'block' }}>
+                            <CardContent>
+                                <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>SHARE (SH)</Typography>
+                                <Typography variant="p" sx={{ml: 2, mt: 2}}>
+                                (Rapporto tra Ascolto Medio (AMR) e il totale ascoltatori nell’intervallo di riferimento)
+                                </Typography>
+                                    <ExportExcel  exdata={channelNames} fileName={`Export-SHARE-${tipo}-${dayjs(selectedDate).format('DD-MM-YYYY')}`} idelem={`Export-SHARE-${tipo}-${dayjs(selectedDate).format('DD-MM-YYYY')}`}/>
+                                <br />
+                                <TableContainer id={`Export-SHARE-${tipo}-${dayjs(selectedDate).format('DD-MM-YYYY')}`}  sx={{maxHeight: '500px',overflow: 'auto'}}>
+                                            <Table sx={{minWidth: 800}}>
+                                                <TableHead>
+                                                    <TableRow>
+                                                        <TableCell style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 1000 }}>EMITTENTE</TableCell>
+                                                        {Object.keys(timeSlots).map((timeSlotKey) => (
+                                                            <TableCell key={timeSlotKey} style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 1000 }}>{timeSlotKey} </TableCell>
+                                                        ))}
+                                                    </TableRow>
+                                                </TableHead>
 
-                </CardContent>
-                </Card>
-                
-           
+                                                <TableBody>
+                                                    {sortedChannelNames.map((channel, index) => (
+                                                        <TableRow key={index}>
+
+                                                            <TableCell>{channel} %</TableCell>
+                                                            {Object.keys(timeSlots).map((timeSlotKey) => (
+                                                                <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
+                                                                    <span data-tooltip-id="my-tooltip" data-tooltip-content={calculateShareSlotCanale(channel, timeSlotKey)} >{calculateShareSlotCanale(channel, timeSlotKey)}</span>
+                                        
+                                                                </TableCell>
+
+                                                            ))}
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </TableContainer>
+
+                            </CardContent>
+                            </Card>
+                            )}
+                            {activeButton === 'share'  && (
+                                <Card style={{ display: 'block' }}>
+                            <CardContent>
+                                <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>{ascoltatoriRadioLabel}</Typography>
+                                <Typography variant="p" sx={{ml: 2, mt: 2}}>
+                                (Percentuale di {ascoltatoriRadioLabel} sul totale popolazione 14+ nell’intervallo di riferimento | pop 52.231.073)
+                                </Typography>
+                                <ExportExcel fileName={`Export-SHARE-Globale-${tipo}-${dayjs(selectedDate).format('DD-MM-YYYY')}`}  idelem={`Export-SHARE-Globale-${tipo}-${dayjs(selectedDate).format('DD-MM-YYYY')}`}/>
+
+                                <br />
+                                <TableContainer id={`Export-SHARE-Globale-${tipo}-${dayjs(selectedDate).format('DD-MM-YYYY')}`}  sx={{overflow: 'unset'}}>
+                                            <Table sx={{minWidth: 800}}>
+                                                <TableHead>
+                                                    <TableRow>
+                                                        <TableCell> </TableCell>
+                                                        {Object.keys(timeSlots).map((timeSlotKey) => (
+                                                            <TableCell key={timeSlotKey}>{timeSlotKey} </TableCell>
+                                                        ))}
+                                                    </TableRow>
+                                                </TableHead>
+
+                                                <TableBody>
+
+                                                        <TableRow >
+
+                                                            <TableCell>{ascoltatoriRadioLabel}</TableCell>
+                                                            {Object.keys(timeSlots).map((timeSlotKey) => (
+                                                                <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
+                                                                    <span data-tooltip-id="my-tooltip" data-tooltip-content={displayShareRadio(timeSlotKey)} >{calculateShareRadio(timeSlotKey)}</span>
+                                        
+                                                                </TableCell>
+
+                                                            ))}
+                                                        </TableRow>
+                                                    
+                                                </TableBody>
+                                            </Table>
+                                        </TableContainer>
+
+                            </CardContent>
+                            </Card>
+                            )}
+                            {activeButton === 'ascolti'  && (
+                            <Card style={{ display: 'block' }}>
+                            <CardContent>
+                                <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>{ascoltatoriRadioLabel}</Typography>
+                                <Typography variant="p" sx={{ml: 2, mt: 2}}>
+                                (Percentuale di {ascoltatoriRadioLabel} sul totale popolazione 14+ nell’intervallo di riferimento | pop 52.231.073)
+                                </Typography>
+
+
+                                <ExportExcel fileName="Excel-Export-Share-Global" idelem={`export-table-share-global_${tipo}`}/>
+                                
+                                <TableContainer id={`export-table-share-global_${tipo}`}  sx={{overflow: 'unset'}}>
+                                            <Table sx={{minWidth: 800}}>
+                                                <TableHead>
+                                                    <TableRow>
+                                                        <TableCell> </TableCell>
+                                                        {Object.keys(timeSlots).map((timeSlotKey) => (
+                                                            <TableCell key={timeSlotKey}><strong>{timeSlotKey}</strong></TableCell>
+                                                        ))}
+                                                    </TableRow>
+                                                </TableHead>
+
+                                                <TableBody>
+
+                                                        <TableRow >
+
+                                                            <TableCell>{ascoltatoriRadioLabel}</TableCell>
+                                                            {Object.keys(timeSlots).map((timeSlotKey) => (
+                                                                <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
+                                                                    <span data-tooltip-id="my-tooltip" data-tooltip-content={displayAscoltiRadio(timeSlotKey)} >{calculateAscoltoRadio(timeSlotKey)}</span>
+                                        
+                                                                </TableCell>
+
+                                                            ))}
+                                                        </TableRow>
+                                                    
+                                                </TableBody>
+                                            </Table>
+                                        </TableContainer>
+
+                            </CardContent>
+                            </Card>
+                            )}               
+                       
 
             </Scrollbar>
 

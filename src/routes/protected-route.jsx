@@ -14,7 +14,7 @@ export const ProtectedRoute = ({ children, roles }) => {
         return <Navigate to="/login" state={{from: location}} />;
     }
     if (roles instanceof Array && roles.indexOf(ROLES[user.role - 1]) === -1) {
-        enqueueSnackbar(`You don't have access to the page!`, {variant: 'error'});
+        enqueueSnackbar(`Non hai accesso a questa pagina!`, {variant: 'error'});
         return <Navigate to='/'/>
     }
     return children;
