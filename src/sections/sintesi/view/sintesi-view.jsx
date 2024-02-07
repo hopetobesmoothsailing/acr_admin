@@ -1,5 +1,8 @@
+import 'dayjs/locale/it'; // Import the Italian locale
 import axios from "axios";
 import dayjs from "dayjs";
+// import {enqueueSnackbar} from "notistack";
+import customParseFormat from 'dayjs/plugin/customParseFormat'; // For parsing custom formats
 import 'leaflet/dist/leaflet.css';
 import { Tooltip } from 'react-tooltip'
 import {useState, useEffect} from 'react';
@@ -25,6 +28,9 @@ import ExportExcel from "../export-to-excel";
 import GraphChartArr from "../graph-chart-arr";
 import {SERVER_URL} from "../../../utils/consts";
 import GraphChartArrBars from "../graph-chart-arr-bars";
+
+dayjs.extend(customParseFormat); // Extend dayjs with the customParseFormat plugin
+dayjs.locale('it'); // Set the locale to Italian
 
 // ----------------------------------------------------------------------
 
@@ -59,7 +65,7 @@ export default function SintesiView() {
     // Format the date to DD/MM/YYYY
     const formattedYesterday = `${yesterday.getDate().toString().padStart(2, '0')}/${(yesterday.getMonth() + 1).toString().padStart(2, '0')}/${yesterday.getFullYear()}`;  
     // Set yesterday's date as selectedDate
-    const [selectedDate, setSelectedDate] = useState(dayjs(yesterday).format('DD/MM/YYYY'));
+    const [selectedDate, setSelectedDate] =  useState(dayjs(yesterday).format('DD/MM/YYYY'));
     const [startDate, setStartDate] = useState(dayjs().subtract(7, 'day').format('DD/MM/YYYY'));
     const [stopDate, setStopDate] = useState(dayjs().add(0, 'day').format('DD/MM/YYYY'));
     const [users, setUsers] = useState([]);
@@ -243,7 +249,7 @@ export default function SintesiView() {
 
     console.log("TIMESLOTS",timeSlots)
     
-    const timeSlotLabels = Object.keys(timeSlots);   
+//    const timeSlotLabels = Object.keys(timeSlots);   
     // const channelNames = Object.keys(timeSlotSeries);
     const channelNames = Array.from(
         new Set(Object.values(timeSlots).flatMap((data) => Object.keys(data)))
@@ -317,6 +323,12 @@ export default function SintesiView() {
         return shareSlotCanale.toFixed(2);
 
     };
+    const audienceSizes24 = Object.keys(timeSlots['00:00 - 23:59'] || {}).reduce((acc, channel) => {
+        acc[channel] = timeSlots['00:00 - 23:59'][channel];
+        return acc;
+    }, {});
+    const sortedChannelNames = channelNames.sort((a, b) => (audienceSizes24[b] || 0) - (audienceSizes24[a] || 0));
+    
 
     if (loading) {
         return <p>Caricamento dati raccolti in corso... </p>; // You can replace this with your loading indicator component
@@ -328,10 +340,10 @@ export default function SintesiView() {
                     <Typography variant="h4" sx={{mb: 5}}>
                        Sintesi degli ascolti per le date selezionate
                     </Typography>
-                    <LocalizationProvider dateAdapter={AdapterDayjs}>
-                        <DatePicker
+                    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="it">
+                    <DatePicker
                         label="Start Date"
-                        value={dayjs(startDate, 'DD/MM/YYYY')}
+                        value={selectedDate ? dayjs(startDate, 'DD/MM/YYYY') : null}
                         onChange={(newValue) => setStartDate(newValue)}
                         renderInput={(params) => <TextField {...params} />}
                         />
@@ -412,31 +424,35 @@ export default function SintesiView() {
                     <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>SHARE</Typography>
                     <Typography variant="p" sx={{ ml: 2, mt: 3, mb: 2 }}>Data da rapporto tra AMR e AUDIENCE nell&apos;intervallo considerato di ${intervalValue} minuti.</Typography>
                     <br />
-                    <TableContainer id="export-table-share">
-                    <Table sx={{ minWidth: 800 }}>
-                        <TableHead>
-                            <TableRow>
-                            <TableCell>IntervalloTemporale</TableCell>
-                            {Object.keys(userListeningMap).map((channel) => (
-                                <TableCell key={channel}>{channel}</TableCell>
-                            ))}
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {timeSlotLabels.map((timeSlotKey, index) => (
-                            <TableRow key={index}>
-                                <TableCell><strong>{timeSlotKey}</strong></TableCell>
-                                {Object.keys(userListeningMap).map((channel) => (
-                                <TableCell style={{ textAlign: 'center' }} key={channel}>
-                                    {/* Use calculateAudienceShare to retrieve data */}
-                                    <span data-tooltip-id="my-tooltip" data-tooltip-content="Share Canale">{calculateShareSlotCanale(channel, timeSlotKey)}%</span>
-                                </TableCell>
-                                ))}
-                            </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                    </TableContainer>
+                    <TableContainer id={`Export-SHARE-${tipoRadioTV}-${dayjs(selectedDate).format('MM-DD-YYYY')}`}  sx={{maxHeight: '500px',overflow: 'auto'}}>
+                                            <Table sx={{minWidth: 800}}>
+                                                <TableHead>
+                                                    <TableRow>
+                                                        <TableCell style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 1000 }}>EMITTENTE</TableCell>
+                                                        {Object.keys(timeSlots).map((timeSlotKey) => (
+                                                            <TableCell key={timeSlotKey} style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 1000 }}>{timeSlotKey} </TableCell>
+                                                        ))}
+                                                    </TableRow>
+                                                </TableHead>
+
+                                                <TableBody>
+                                                    {sortedChannelNames.map((channel, index) => (
+                                                        <TableRow key={index}>
+
+                                                            <TableCell>{channel} %</TableCell>
+                                                            {Object.keys(timeSlots).map((timeSlotKey) => (
+                                                                <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
+                                                                    <span data-tooltip-id="my-tooltip" >{calculateShareSlotCanale(channel, timeSlotKey)}</span>
+                                        
+                                                                </TableCell>
+
+                                                            ))}
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </TableContainer>
+
                 </CardContent>
                 </Card>
            
