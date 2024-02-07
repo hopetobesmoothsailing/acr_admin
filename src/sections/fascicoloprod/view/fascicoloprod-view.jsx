@@ -550,9 +550,9 @@ console.log("ULM",userListeningMap);
                                     <Typography variant="p" sx={{ml: 2, mt: 3}}>
                                     (Rapporto tra la somma degli {ascoltatoriRadioLabel} per minuto e la durata in minuti dell’intervallo di riferimento)
                                     </Typography>
-                                    <ExportExcel  exdata={channelNames} fileName={`Export-Ascolti-${tipoRadioTV}-${dayjs(selectedDate).format('DD-MM-YYYY')}`} idelem={`Export-Ascolti-${tipoRadioTV}-${dayjs(selectedDate).format('DD-MM-YYYY')}`}/>
+                                    <ExportExcel  exdata={channelNames} fileName={`Export-Ascolti-${tipoRadioTV}-${dayjs(selectedDate).format('MM-DD-YYYY')}`} idelem={`Export-Ascolti-${tipoRadioTV}-${dayjs(selectedDate).format('MM-DD-YYYY')}`}/>
                             
-                                        <TableContainer id={`Export-Ascolti-${tipoRadioTV}-${dayjs(selectedDate).format('DD-MM-YYYY')}`}  sx={{maxHeight: '500px',overflow: 'auto'}}>
+                                        <TableContainer id={`Export-Ascolti-${tipoRadioTV}-${dayjs(selectedDate).format('MM-DD-YYYY')}`}  sx={{maxHeight: '500px',overflow: 'auto'}}>
                                             <Table sx={{minWidth: 800}}>
                                                 
                                                 <TableHead>
@@ -598,9 +598,9 @@ console.log("ULM",userListeningMap);
                                 <Typography variant="p" sx={{ml: 2, mt: 2}}>
                                 (Rapporto tra Ascolto Medio (AMR) e il totale ascoltatori nell’intervallo di riferimento)
                                 </Typography>
-                                    <ExportExcel  exdata={channelNames} fileName={`Export-SHARE-${tipoRadioTV}-${dayjs(selectedDate).format('DD-MM-YYYY')}`} idelem={`Export-SHARE-${tipoRadioTV}-${dayjs(selectedDate).format('DD-MM-YYYY')}`}/>
+                                    <ExportExcel  exdata={channelNames} fileName={`Export-SHARE-${tipoRadioTV}-${dayjs(selectedDate).format('MM-DD-YYYY')}`} idelem={`Export-SHARE-${tipoRadioTV}-${dayjs(selectedDate).format('MM-DD-YYYY')}`}/>
                                 <br />
-                                <TableContainer id={`Export-SHARE-${tipoRadioTV}-${dayjs(selectedDate).format('DD-MM-YYYY')}`}  sx={{maxHeight: '500px',overflow: 'auto'}}>
+                                <TableContainer id={`Export-SHARE-${tipoRadioTV}-${dayjs(selectedDate).format('MM-DD-YYYY')}`}  sx={{maxHeight: '500px',overflow: 'auto'}}>
                                             <Table sx={{minWidth: 800}}>
                                                 <TableHead>
                                                     <TableRow>
@@ -639,10 +639,10 @@ console.log("ULM",userListeningMap);
                                 <Typography variant="p" sx={{ml: 2, mt: 2}}>
                                 (Percentuale di {ascoltatoriRadioLabel} sul totale popolazione 14+ nell’intervallo di riferimento | pop 52.231.073)
                                 </Typography>
-                                <ExportExcel fileName={`Export-SHARE-Globale-${tipoRadioTV}-${dayjs(selectedDate).format('DD-MM-YYYY')}`}  idelem={`Export-SHARE-Globale-${tipoRadioTV}-${dayjs(selectedDate).format('DD-MM-YYYY')}`}/>
+                                <ExportExcel fileName={`Export-SHARE-Globale-${tipoRadioTV}-${dayjs(selectedDate).format('MM-DD-YYYY')}`}  idelem={`Export-SHARE-Globale-${tipoRadioTV}-${dayjs(selectedDate).format('MM-DD-YYYY')}`}/>
 
                                 <br />
-                                <TableContainer id={`Export-SHARE-Globale-${tipoRadioTV}-${dayjs(selectedDate).format('DD-MM-YYYY')}`}  sx={{overflow: 'unset'}}>
+                                <TableContainer id={`Export-SHARE-Globale-${tipoRadioTV}-${dayjs(selectedDate).format('MM-DD-YYYY')}`}  sx={{overflow: 'unset'}}>
                                             <Table sx={{minWidth: 800}}>
                                                 <TableHead>
                                                     <TableRow>
