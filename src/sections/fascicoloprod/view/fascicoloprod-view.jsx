@@ -507,6 +507,7 @@ console.log("ULM",userListeningMap);
                             SHARE
                             </Button>
                             <Button
+                            disabled= {tipo === 'TV' ? 'disabled': ''}
                             variant={activeButton === 'ascolti' ? 'contained' : 'outlined'}
                             onClick={handleAscoltiClick}
                             >
@@ -630,7 +631,7 @@ console.log("ULM",userListeningMap);
                             </CardContent>
                             </Card>
                             )}
-                            {activeButton === 'share'  && (
+                            {activeButton === 'share' && (tipo !== 'TV') && (
                                 <Card style={{ display: 'block', overflow:'auto' }}>
                             <CardContent>
                                 <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>{ascoltatoriRadioLabel}</Typography>

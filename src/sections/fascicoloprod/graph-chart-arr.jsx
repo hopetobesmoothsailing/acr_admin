@@ -147,7 +147,7 @@ const lines = Object.keys(data[Object.keys(data)[0]] || {}).map(radioStation => 
     <LineChart data={chartData}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="name" />
-        <YAxis domain={[0, 'dataMax + 10']} orientation="right" />
+        <YAxis domain={[0, 100]} orientation="right" />
         <Tooltip />
         <Legend onClick={(e) => toggleLineVisibility(e.value)} />
         {lines}
