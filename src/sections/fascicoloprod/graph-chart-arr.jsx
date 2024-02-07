@@ -5,7 +5,7 @@ import { Line, XAxis, YAxis, Legend, Tooltip, LineChart, CartesianGrid, Responsi
 const GraphChartArr = ({ data,intervalValue,importantChannels,tipoRadioTV,activeButton }) => {
     let initiallyVisibleChannels = ['RAIRadio1', 'RAIRadio2', 'RAIRadio3'];
     if (tipoRadioTV === "TV") {
-      initiallyVisibleChannels = ['RAI1', 'RAI2', 'RAI3'];
+      initiallyVisibleChannels = ['RAI1', 'RAI2', 'RAI3','CANALE5','ITALIA1','RETE4','LA7'];
     }
     const [visibleLines, setVisibleLines] = useState(() => {
       const initialVisibility = {};

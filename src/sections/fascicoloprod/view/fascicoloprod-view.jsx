@@ -93,6 +93,7 @@ export default function FascicoloprodView() {
     let ascoltatoriRadioLabel = '';
     if ((tipo === null)||(tipo === 'RADIO')) { 
         tipoRadioTV = 'RADIO';
+        
         importantChannels = ['RadioDeejay', 'RAIRadio1','RAIRadio2','RAIRadio3','RDS','RTL','Radio24','RadioM2O','RADIOSUBASIO','RADIOKISSKISS','RadioFRECCIA','RadioCapital','R101','VIRGINRadio','RADIOMONTECARLO','Radio105','RadioZETA','RadioItaliaSMI','RadioNORBA'];
         ascoltatoriRadioLabel = 'ASCOLTATORI RADIO';
 
@@ -526,7 +527,7 @@ console.log("ULM",userListeningMap);
                                 {activeButton === 'share'  && (
                                 <Card style={{ display: 'block' }}>
                                     <CardContent  sx={{ pl: 0 }}>
-                                    <GraphChartArr activeButton={activeButton} data={timeSlots}  intervalValue={intervalValue} importantChannels={channels} tipoRadioTV={tipo} /> {/* Render the GraphChart component */}
+                                    <GraphChartArr activeButton={activeButton} data={timeSlots}  intervalValue={intervalValue} importantChannels={channels} tipoRadioTV={tipoRadioTV} /> {/* Render the GraphChart component */}
                                     </CardContent>
                                 </Card>
                                 )}
@@ -534,7 +535,7 @@ console.log("ULM",userListeningMap);
                                 {activeButton === 'ascolti'   && (
                                 <Card style={{ display: 'block' }}>
                                         <CardContent  sx={{ pl: 0 }}>
-                                        <GraphChart activeButton={activeButton} userListeningMap={userListeningMap}  tipoRadioTV={tipo}  /> {/* Render the GraphChart component */}
+                                        <GraphChart activeButton={activeButton} userListeningMap={userListeningMap}  tipoRadioTV={tipoRadioTV}  /> {/* Render the GraphChart component */}
                                         </CardContent>
                                     </Card>
                                 )}
@@ -549,9 +550,9 @@ console.log("ULM",userListeningMap);
                                     <Typography variant="p" sx={{ml: 2, mt: 3}}>
                                     (Rapporto tra la somma degli {ascoltatoriRadioLabel} per minuto e la durata in minuti dell’intervallo di riferimento)
                                     </Typography>
-                                    <ExportExcel  exdata={channelNames} fileName={`Export-Ascolti-${tipo}-${dayjs(selectedDate).format('DD-MM-YYYY')}`} idelem={`Export-Ascolti-${tipo}-${dayjs(selectedDate).format('DD-MM-YYYY')}`}/>
+                                    <ExportExcel  exdata={channelNames} fileName={`Export-Ascolti-${tipoRadioTV}-${dayjs(selectedDate).format('DD-MM-YYYY')}`} idelem={`Export-Ascolti-${tipoRadioTV}-${dayjs(selectedDate).format('DD-MM-YYYY')}`}/>
                             
-                                        <TableContainer id={`Export-Ascolti-${tipo}-${dayjs(selectedDate).format('DD-MM-YYYY')}`}  sx={{maxHeight: '500px',overflow: 'auto'}}>
+                                        <TableContainer id={`Export-Ascolti-${tipoRadioTV}-${dayjs(selectedDate).format('DD-MM-YYYY')}`}  sx={{maxHeight: '500px',overflow: 'auto'}}>
                                             <Table sx={{minWidth: 800}}>
                                                 
                                                 <TableHead>
@@ -597,9 +598,9 @@ console.log("ULM",userListeningMap);
                                 <Typography variant="p" sx={{ml: 2, mt: 2}}>
                                 (Rapporto tra Ascolto Medio (AMR) e il totale ascoltatori nell’intervallo di riferimento)
                                 </Typography>
-                                    <ExportExcel  exdata={channelNames} fileName={`Export-SHARE-${tipo}-${dayjs(selectedDate).format('DD-MM-YYYY')}`} idelem={`Export-SHARE-${tipo}-${dayjs(selectedDate).format('DD-MM-YYYY')}`}/>
+                                    <ExportExcel  exdata={channelNames} fileName={`Export-SHARE-${tipoRadioTV}-${dayjs(selectedDate).format('DD-MM-YYYY')}`} idelem={`Export-SHARE-${tipoRadioTV}-${dayjs(selectedDate).format('DD-MM-YYYY')}`}/>
                                 <br />
-                                <TableContainer id={`Export-SHARE-${tipo}-${dayjs(selectedDate).format('DD-MM-YYYY')}`}  sx={{maxHeight: '500px',overflow: 'auto'}}>
+                                <TableContainer id={`Export-SHARE-${tipoRadioTV}-${dayjs(selectedDate).format('DD-MM-YYYY')}`}  sx={{maxHeight: '500px',overflow: 'auto'}}>
                                             <Table sx={{minWidth: 800}}>
                                                 <TableHead>
                                                     <TableRow>
@@ -638,10 +639,10 @@ console.log("ULM",userListeningMap);
                                 <Typography variant="p" sx={{ml: 2, mt: 2}}>
                                 (Percentuale di {ascoltatoriRadioLabel} sul totale popolazione 14+ nell’intervallo di riferimento | pop 52.231.073)
                                 </Typography>
-                                <ExportExcel fileName={`Export-SHARE-Globale-${tipo}-${dayjs(selectedDate).format('DD-MM-YYYY')}`}  idelem={`Export-SHARE-Globale-${tipo}-${dayjs(selectedDate).format('DD-MM-YYYY')}`}/>
+                                <ExportExcel fileName={`Export-SHARE-Globale-${tipoRadioTV}-${dayjs(selectedDate).format('DD-MM-YYYY')}`}  idelem={`Export-SHARE-Globale-${tipoRadioTV}-${dayjs(selectedDate).format('DD-MM-YYYY')}`}/>
 
                                 <br />
-                                <TableContainer id={`Export-SHARE-Globale-${tipo}-${dayjs(selectedDate).format('DD-MM-YYYY')}`}  sx={{overflow: 'unset'}}>
+                                <TableContainer id={`Export-SHARE-Globale-${tipoRadioTV}-${dayjs(selectedDate).format('DD-MM-YYYY')}`}  sx={{overflow: 'unset'}}>
                                             <Table sx={{minWidth: 800}}>
                                                 <TableHead>
                                                     <TableRow>
@@ -682,9 +683,9 @@ console.log("ULM",userListeningMap);
                                 </Typography>
 
 
-                                <ExportExcel fileName="Excel-Export-Share-Global" idelem={`export-table-share-global_${tipo}`}/>
+                                <ExportExcel fileName="Excel-Export-Share-Global" idelem={`export-table-share-global_${tipoRadioTV}`}/>
                                 
-                                <TableContainer id={`export-table-share-global_${tipo}`}  sx={{overflow: 'unset'}}>
+                                <TableContainer id={`export-table-share-global_${tipoRadioTV}`}  sx={{overflow: 'unset'}}>
                                             <Table sx={{minWidth: 800}}>
                                                 <TableHead>
                                                     <TableRow>
