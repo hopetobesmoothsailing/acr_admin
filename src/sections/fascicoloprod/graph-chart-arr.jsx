@@ -62,7 +62,7 @@ const GraphChartArr = ({ data,intervalValue,importantChannels,tipoRadioTV,active
     Object.keys(data).forEach(timeSlot => {
       // Create a data object for the current time slot
       const timeSlotData = { name: timeSlot };
-      if (timeSlot !== "06:00 - 23:59") {
+      if ((timeSlot !== "06:00 - 23:59")&&(timeSlot !== "00:00 - 23:59")) {
       // Iterate through each radio station within the time slot
       Object.entries(data[timeSlot]).forEach(([radioStation]) => {
         // Convert the value to a number
@@ -76,7 +76,18 @@ const GraphChartArr = ({ data,intervalValue,importantChannels,tipoRadioTV,active
       formattedData.push(timeSlotData);
       }
     });
-
+    formattedData.sort((a, b) => {
+      // Extract start times
+      const startTimeA = a.name.split(' - ')[0];
+      const startTimeB = b.name.split(' - ')[0];
+    
+      // Convert start times to minutes since start of the day
+      const minutesA = parseInt(startTimeA.split(':')[0], 10) * 60 + parseInt(startTimeA.split(':')[1], 10);
+      const minutesB = parseInt(startTimeB.split(':')[0], 10) * 60 + parseInt(startTimeB.split(':')[1], 10);
+    
+      // Compare the minutes to sort
+      return minutesA - minutesB;
+    });
     return formattedData;
   }, [data,importantChannels,intervalValue]);
 

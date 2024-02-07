@@ -1,12 +1,12 @@
 import 'dayjs/locale/it'; // Import the Italian locale
 import axios from "axios";
 import dayjs from "dayjs";
-import {enqueueSnackbar} from "notistack";
+// import {enqueueSnackbar} from "notistack";
 import customParseFormat from 'dayjs/plugin/customParseFormat'; // For parsing custom formats
 import 'leaflet/dist/leaflet.css';
 import { Tooltip } from 'react-tooltip'
 import {useState, useEffect} from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { /* useNavigate, */useLocation } from 'react-router-dom';
 // import {Popup,  Marker,TileLayer, MapContainer  } from 'react-leaflet';
 
 import Card from '@mui/material/Card';
@@ -37,7 +37,7 @@ export default function FascicoloprodView() {
 
     const channels = [];
     const pesoNum = 1
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
   
     const location = useLocation();
     const [loading, setLoading] = useState(true);
@@ -145,11 +145,12 @@ export default function FascicoloprodView() {
     
     const generateTimeSlots = (intervalValue) => {
         const slots = {
+            "00:00 - 23:59": [],
             "06:00 - 23:59": [] // Add your custom slot as the first entry
         };
         const minutesInDay = 24 * 60;
-        let currentMinute = 360;
-      
+        let currentMinute = 0;
+        
         while (currentMinute < minutesInDay) {
             const startMinute = currentMinute;
             const endMinute = Math.min(currentMinute + intervalValue - 1, minutesInDay - 1);
@@ -200,7 +201,7 @@ export default function FascicoloprodView() {
         const [, timePart] = recordedAt.split(' ');
          const [hours,] = timePart.split(':').map(Number);
         // Define the time range
-        const startHour = 6; // 06:00 AM
+        const startHour = 0; // 06:00 AM
         const endHour = 23; // 23:59 PM
     
         // Check if the time is within the desired range
@@ -301,9 +302,13 @@ export default function FascicoloprodView() {
     const calculateAudienceByMinute = (channel, slot) => {
         const minutoMedio = timeSlots[slot][channel] || 0 ;
         let audienceByMinute = 0;
-        if (slot === '06:00 - 23:59') {
-        const day_interval = 1440 - 360;
+        if (slot === '00:00 - 23:59') {
+        const day_interval = 1440;
         audienceByMinute = minutoMedio*pesoNum/(day_interval);
+        }
+        else if (slot === '06:00 - 23:59') {
+            const day_interval = 1440 - 360;
+            audienceByMinute = minutoMedio*pesoNum/(day_interval);
         }
         else
         audienceByMinute = minutoMedio*pesoNum/intervalValue;
@@ -404,19 +409,24 @@ export default function FascicoloprodView() {
     };
     */
 
-    const audienceSizes = Object.keys(timeSlots['06:00 - 23:59'] || {}).reduce((acc, channel) => {
+    /* const audienceSizes = Object.keys(timeSlots['06:00 - 23:59'] || {}).reduce((acc, channel) => {
         acc[channel] = timeSlots['06:00 - 23:59'][channel];
         return acc;
     }, {});
-    
+    */
+    const audienceSizes24 = Object.keys(timeSlots['00:00 - 23:59'] || {}).reduce((acc, channel) => {
+        acc[channel] = timeSlots['00:00 - 23:59'][channel];
+        return acc;
+    }, {});
+
     // Sort channelNames based on audience size
-    const sortedChannelNames = channelNames.sort((a, b) => (audienceSizes[b] || 0) - (audienceSizes[a] || 0));
+    const sortedChannelNames = channelNames.sort((a, b) => (audienceSizes24[b] || 0) - (audienceSizes24[a] || 0));
       
     const disableDates = (date) => {
         // Define the minimum date that can be selected (29/01/2024)
         const minDate = dayjs('29/01/2024', 'DD/MM/YYYY');
         // Get the current date and time
-        const now = dayjs();
+        // const now = dayjs();
       
         // Check if the date is before the minimum date
         if (date.isBefore(minDate, 'day')) {
@@ -425,17 +435,18 @@ export default function FascicoloprodView() {
         }
       
         // Check if the date is today and the current time is before 11:59 AM
-        if (date.isSame(now, 'day') && now.hour() < 12) {
+        /* if (date.isSame(now, 'day') && now.hour() < 12) {
           // Disable today's date selection until 11:59 AM
           return true;
-        }
+        } 
+        */
       
         // Don't disable the date
         return false;
       };
   
     // Function to determine if the selected date should disable content
-    const checkContentVisibility = (date) => {
+    /* const checkContentVisibility = (date) => {
         const minDate = dayjs('29/01/2024', 'DD/MM/YYYY');
         const now = dayjs();
         const dayjsDate = dayjs(date, 'DD/MM/YYYY');
@@ -446,10 +457,11 @@ export default function FascicoloprodView() {
           return false;
         }
       
-        return dayjsDate.isBefore(minDate, 'day') || (dayjsDate.isSame(now, 'day') && now.hour() < 23);
+        return dayjsDate.isBefore(minDate, 'day')  || (dayjsDate.isSame(now, 'day') && now.hour() < 23);
       };
+    */
     // Update content visibility based on selected date
-    useEffect(() => {
+    /* useEffect(() => {
         const dateIsValid = checkContentVisibility(selectedDate);
         console.log("INVALID",selectedDate);
         console.log("INVALID",dateIsValid);
@@ -458,8 +470,9 @@ export default function FascicoloprodView() {
             navigate('/'); // Assuming '/404' is your path to the 404 page
         }
     }, [selectedDate, navigate]);
+    */
 
-
+console.log("ULM",userListeningMap);
     
         if (loading) {
         return <p>Caricamento dati raccolti in corso... </p>; // You can replace this with your loading indicator component
@@ -618,7 +631,7 @@ export default function FascicoloprodView() {
                             </Card>
                             )}
                             {activeButton === 'share'  && (
-                                <Card style={{ display: 'block' }}>
+                                <Card style={{ display: 'block', overflow:'auto' }}>
                             <CardContent>
                                 <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>{ascoltatoriRadioLabel}</Typography>
                                 <Typography variant="p" sx={{ml: 2, mt: 2}}>
@@ -660,7 +673,7 @@ export default function FascicoloprodView() {
                             </Card>
                             )}
                             {activeButton === 'ascolti'  && (
-                            <Card style={{ display: 'block' }}>
+                            <Card style={{ display: 'block', overflow:'auto' }}>
                             <CardContent>
                                 <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>{ascoltatoriRadioLabel}</Typography>
                                 <Typography variant="p" sx={{ml: 2, mt: 2}}>

@@ -66,46 +66,43 @@ const GraphChart = ({ userListeningMap,tipoRadioTV,activeButton}) => {
     'ALTRERADIO': '#AAAAAA'
   };
   const chartData = useMemo(() => {
-    if (!userListeningMap || typeof userListeningMap !== 'object') {
-      console.log('Invalid userListeningMap data');
-      return [];
-    }
-
     const data = [];
-
-    // Create a map to store data grouped by intervals
-    const intervalDataMap = new Map();
-
-    Object.keys(userListeningMap).forEach(radioStation => {
-      const timeSlots = userListeningMap[radioStation];
-      // Iterate through each time slot for the current radio station
-      Object.keys(timeSlots).forEach(interval => {
-        const timeSlot = interval.split(' - ')[0]; // Extracting the start time from the interval
-        const intervalSet = timeSlots[interval]; // Get the set for the current time slot
-
-        // Check if the interval exists in the intervalDataMap
-        if (!intervalDataMap.has(timeSlot)) {
-          // If not, create a new entry
-          intervalDataMap.set(timeSlot, {});
+    Object.keys(userListeningMap).forEach(channel => {
+      Object.keys(userListeningMap[channel]).forEach(slot => {
+        if (!['00:00 - 23:59', '06:00 - 23:59'].includes(slot)) {
+          const slotSum = Array.from(userListeningMap[channel][slot]).reduce((sum, value) => sum + value, 0);
+          data.push({
+            name: slot,
+            [channel]: slotSum,
+          });
         }
-
-        // Calculate the sum of values in the set for the current time slot
-        const intervalSum = Array.from(intervalSet).reduce((sum, value) => sum + value, 0);
-
-        // Add or update data for the current radio station within the interval
-        intervalDataMap.get(timeSlot)[radioStation] = intervalSum.toFixed(2);
       });
     });
 
-    // Convert the intervalDataMap into an array for chart rendering
-    intervalDataMap.forEach((intervalData, interval) => {
-      const rowData = { name: interval, ...intervalData };
-      data.push(rowData);
+    // Sort data based on the start time of each slot
+    data.sort((a, b) => {
+      const getMinutes = time => parseInt(time.split(':')[0], 10) * 60 + parseInt(time.split(':')[1], 10);
+      const minutesA = getMinutes(a.name.split(' - ')[0]);
+      const minutesB = getMinutes(b.name.split(' - ')[0]);
+      return minutesA - minutesB;
     });
 
-    // console.log("data", data);
-    
-    return data;
+    // Deduplicate entries by combining data with the same time slot
+    const deduplicatedData = [];
+    data.forEach(item => {
+      const existingEntry = deduplicatedData.find(entry => entry.name === item.name);
+      if (existingEntry) {
+        Object.keys(item).forEach(key => {
+          if (key !== 'name') {
+            existingEntry[key] = (existingEntry[key] || 0) + item[key];
+          }
+        });
+      } else {
+        deduplicatedData.push({ ...item });
+      }
+    });
+
+    return deduplicatedData;
   }, [userListeningMap]);
 
   // Generate lines for each radio station
