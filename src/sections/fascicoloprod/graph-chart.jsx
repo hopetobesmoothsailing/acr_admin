@@ -40,7 +40,7 @@ const GraphChart = ({ userListeningMap,tipoRadioTV,activeButton}) => {
           const slotSum = Array.from(userListeningMap[channel][slot]).reduce((sum, value) => sum + value, 0);
           data.push({
             name: slot,
-            [channel]: slotSum,
+            [channel]: slotSum.toFixed,
           });
         }
       });
@@ -61,7 +61,7 @@ const GraphChart = ({ userListeningMap,tipoRadioTV,activeButton}) => {
       if (existingEntry) {
         Object.keys(item).forEach(key => {
           if (key !== 'name') {
-            existingEntry[key] = (existingEntry[key] || 0) + item[key];
+            existingEntry[key] = parseInt((existingEntry[key] || 0) + item[key],10).toFixed(0);
           }
         });
       } else {

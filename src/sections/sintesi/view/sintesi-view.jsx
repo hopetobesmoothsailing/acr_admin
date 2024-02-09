@@ -149,8 +149,8 @@ export default function SintesiView() {
     
     const generateTimeSlots = (intervalValue) => {
         const slots = {
-            "00:00 - 23:59": [],
-            "06:00 - 23:59": [] // Add your custom slot as the first entry
+            "00:00:00 - 23:59:59": [],
+            "06:00:00 - 23:59:59": [] // Add your custom slot as the first entry
         };
         const minutesInDay = 24 * 60;
         let currentMinute = 0;
@@ -253,8 +253,8 @@ export default function SintesiView() {
         new Set(Object.values(timeSlots).flatMap((data) => Object.keys(data)))
     );
     channelNames.sort();
-    const audienceSizes24 = Object.keys(timeSlots['00:00 - 23:59'] || {}).reduce((acc, channel) => {
-        acc[channel] = timeSlots['00:00 - 23:59'][channel];
+    const audienceSizes24 = Object.keys(timeSlots['00:00:00 - 23:59:59'] || {}).reduce((acc, channel) => {
+        acc[channel] = timeSlots['00:00:00 - 23:59:59'][channel];
         return acc;
     }, {});
 
@@ -369,18 +369,33 @@ export default function SintesiView() {
                         </DemoContainer>
                     </LocalizationProvider>
                     <Card style={{ display: isVisible ? 'none' : 'block' }}>
-                        <CardContent  sx={{ pl: 0 }}>
+                        <CardContent  sx={{ pl: 0  }} >
+                        <h5>Sintesi Share Canali per fasce orarie nel periodo considerato</h5>
                         <GraphChartArr   data={timeSlots}  intervalValue={intervalValue} importantChannels={channels} tipoRadioTV={tipoRadioTV} /> {/* Render the GraphChart component */}
                         </CardContent>
                     </Card>
                     <Card style={{ display: isVisible ? 'none' : 'block' }}>
-                        <CardContent  sx={{ pl: 0 }}>
-                        <GraphChartArrBars data={timeSlots} channels={channels} importantChannels={importantChannels} tipoRadioTV={tipoRadioTV} timeSlots={timeSlots} intervalValue={intervalValue} /> {/* Render the GraphChart component */}
+                    <h2>Sintesi 00:00 - 23:59</h2>
+                      <CardContent  sx={{ pl: 0 }} style={{width:'25%',float:'left'}}>
+                        <h5>Sintesi Gruppo 00:00 - 23:59</h5>
+                        <GraphChartArrBars data={timeSlots} channels={channels} importantChannels={importantChannels} tipoRadioTV={tipoRadioTV} timeSlots={timeSlots} slotSel="00:00:00 - 23:59:59" intervalValue={intervalValue} /> {/* Render the GraphChart component */}
                         </CardContent>
-                        <CardContent  sx={{ pl: 0 }}>
-                        <GraphChartArrBarsCh data={timeSlots} channels={channels} importantChannels={importantChannels} tipoRadioTV={tipoRadioTV} timeSlots={timeSlots} intervalValue={intervalValue} /> {/* Render the GraphChart component */}
+                        <CardContent  sx={{ pl: 0 }}  style={{width:'75%',float:'right'}}>
+                        <h5>Sintesi Canali 00:00 - 23:59</h5>
+                        <GraphChartArrBarsCh data={timeSlots} channels={channels} importantChannels={importantChannels} tipoRadioTV={tipoRadioTV} timeSlots={timeSlots}  slotSel="00:00:00 - 23:59:59" intervalValue={intervalValue} /> {/* Render the GraphChart component */}
                         </CardContent>
                     </Card>
+                    <Card style={{ display: isVisible ? 'none' : 'block' }}>
+                    <h2>Sintesi 06:00 - 23:59</h2>
+                        <CardContent  sx={{ pl: 0 }} style={{width:'25%',float:'left'}}>
+                        <h5>Sintesi Gruppo 06:00 - 23:59</h5>
+                        <GraphChartArrBars data={timeSlots} channels={channels} importantChannels={importantChannels} tipoRadioTV={tipoRadioTV} timeSlots={timeSlots} slotSel="06:00:00 - 23:59:59" intervalValue={intervalValue} /> {/* Render the GraphChart component */}
+                        </CardContent>
+                        <CardContent  sx={{ pl: 0 }}  style={{width:'75%',float:'right'}}>
+                        <h5>Sintesi Canali 06:00 - 23:59</h5>
+                        <GraphChartArrBarsCh data={timeSlots} channels={channels} importantChannels={importantChannels} tipoRadioTV={tipoRadioTV} timeSlots={timeSlots}  slotSel="06:00:00 - 23:59:59" intervalValue={intervalValue} /> {/* Render the GraphChart component */}
+                        </CardContent>
+                    </Card>                    
                     <Card style={{ display: isVisible ? 'block' : 'none' }}>
                         <CardContent>
                         <Typography variant="h5" sx={{ml: 2, mt: 3}}>
@@ -425,10 +440,13 @@ export default function SintesiView() {
                 <Card style={{ display: isVisible ? 'none' : 'block' }}>
                 <CardContent>
                     <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>SHARE</Typography>
-                    <Typography variant="p" sx={{ ml: 2, mt: 3, mb: 2 }}>Data da rapporto tra AMR e AUDIENCE nell&apos;intervallo considerato di ${intervalValue} minuti.</Typography>
-                    <br />
-                    <TableContainer id={`Export-SHARE-${tipoRadioTV}-${dayjs(selectedDate).format('MM-DD-YYYY')}`}  sx={{maxHeight: '500px',overflow: 'auto'}}>
-                        <Table sx={{minWidth: 800}}>
+                    <Typography variant="p" sx={{ml: 2, mt: 2}}>
+                                (Rapporto tra Ascolto Medio (AMR) e il totale ascoltatori nell’intervallo di riferimento)
+                    </Typography>
+                                    <ExportExcel  exdata={channelNames} fileName={`Export-SHARE-${tipoRadioTV}-${dayjs(selectedDate).format('DD-MM-YYYY')}-${dayjs(stopDate).format('MM-DD-YYYY')}`} idelem={`Export-SHARE-${tipoRadioTV}-${dayjs(selectedDate).format('DD-MM-YYYY')}-${dayjs(stopDate).format('MM-DD-YYYY')}`}/>
+                                <br />
+                    <TableContainer id={`Export-SHARE-${tipoRadioTV}-${dayjs(selectedDate).format('DD-MM-YYYY')}-${dayjs(stopDate).format('MM-DD-YYYY')}`}  sx={{maxHeight: '500px',overflow: 'auto'}}>
+                    <Table sx={{minWidth: 800}}>
                             <TableHead>
                                 <TableRow>
                                     <TableCell style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 1000 }}>EMITTENTE</TableCell>

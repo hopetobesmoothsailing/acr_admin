@@ -3,7 +3,7 @@ import React, { useMemo } from 'react';
 import { Bar, XAxis, YAxis, Legend, Tooltip, BarChart, CartesianGrid, ResponsiveContainer } from 'recharts';
 
 
-const GraphChartArrBars = ({ data,importantChannels,tipoRadioTV,intervalValue }) => {
+const GraphChartArrBars = ({ data,importantChannels,tipoRadioTV,intervalValue,slotSel }) => {
   
   const chartData = useMemo(() => {
     if (!data || typeof data !== 'object') {
@@ -40,7 +40,7 @@ const GraphChartArrBars = ({ data,importantChannels,tipoRadioTV,intervalValue })
     Object.keys(data).forEach(timeSlot => {
       // Create a data object for the current time slot
       const timeSlotData = { name: timeSlot };
-      if ((timeSlot === "00:00 - 23:59")) {
+         if ((timeSlot === slotSel)) {
        
       // Iterate through each radio station within the time slot
       Object.entries(data[timeSlot]).forEach(([radioStation ]) => {
@@ -56,7 +56,7 @@ const GraphChartArrBars = ({ data,importantChannels,tipoRadioTV,intervalValue })
     });
 
     return formattedData;
-  }, [data,importantChannels,intervalValue]);
+  }, [data,importantChannels,intervalValue,slotSel]);
 
    
   const groups = {
@@ -94,7 +94,7 @@ const GraphChartArrBars = ({ data,importantChannels,tipoRadioTV,intervalValue })
     <BarChart data={aggregatedChartData}>
       <CartesianGrid strokeDasharray="3 3" />
       <XAxis dataKey="name" />
-      <YAxis   domain={[0, 100]} orientation="right" />
+      <YAxis   domain={[0,'dataMax + 10']} orientation="right" />
       <Tooltip />
       <Legend />
       {bars}
@@ -108,5 +108,6 @@ GraphChartArrBars.propTypes = {
     intervalValue: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
     importantChannels: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
     tipoRadioTV: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
+    slotSel: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
     };
   export default GraphChartArrBars;
