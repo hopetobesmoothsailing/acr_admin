@@ -2,13 +2,33 @@ import PropTypes from 'prop-types';
 import React, { useMemo } from 'react';
 import { Bar, XAxis, YAxis, Legend, Tooltip, BarChart, CartesianGrid, ResponsiveContainer } from 'recharts';
 
-const GraphChartArrBars = ({ data }) => {
+const GraphChartArrBars = ({ data,importantChannels,tipoRadioTV,intervalValue }) => {
+  
   const chartData = useMemo(() => {
     if (!data || typeof data !== 'object') {
       console.log('Invalid data for CustomGraphChart');
       return [];
     }
-  
+    /* const calculateShareSlotCanale = (channel, slot) => {
+      let audienceSlotCanali = 0
+      importantChannels.forEach(canalealtro => {
+          if ((canalealtro !== "NULL")) {
+              // const uniqueUsersListeningch = userListeningMap[channel]?.[slot]?.size || 0;
+              // audienceSlotCanali += uniqueUsersListeningch*parseFloat(timeSlots[slot][canalealtro] || 0)
+              audienceSlotCanali += parseFloat(data[slot][canalealtro] || 0)
+          }
+      });
+      const minuto = data[slot][channel] || 0 ;
+      // come indicato da cristiano corrisponde ai minuti totali di ascolto nel periodo e non minuti * utenti
+      // const audienceByMinute = minuto*(uniqueUsersListening*pesoNum);
+      const audienceByMinute = minuto;
+      
+      const shareSlotCanale = (((audienceByMinute/intervalValue) || 0)/ (audienceSlotCanali/intervalValue))*100 || 0 ;
+      return shareSlotCanale.toFixed(2);
+
+    };
+    */ 
+
 
     const formattedData = [];
 
@@ -16,17 +36,21 @@ const GraphChartArrBars = ({ data }) => {
     Object.keys(data).forEach(timeSlot => {
       // Create a data object for the current time slot
       const timeSlotData = { name: timeSlot };
-
+      if ((timeSlot === "00:00 - 23:59")) {
+       
       // Iterate through each radio station within the time slot
-      Object.entries(data[timeSlot]).forEach(([radioStation, value]) => {
-        // Convert the value to a number
+      Object.entries(data[timeSlot]).forEach(([radioStation,value ]) => {
+          // Convert the value to a number
         const numericValue = parseInt(value, 10);
+        // const shareslotcanale = calculateShareSlotCanale(radioStation,timeSlot);
+        // console.log("SHARESLOTCH:",shareslotcanale);
         // Add the radio station and its numeric value to the data object
-        timeSlotData[radioStation] = numericValue;
+        timeSlotData[radioStation] = numericValue/1440;
+        
       });
-
-      // Push the data object to the formattedData array
       formattedData.push(timeSlotData);
+      }
+      // Push the data object to the formattedData array
     });
 
     return formattedData;
@@ -78,27 +102,27 @@ const GraphChartArrBars = ({ data }) => {
   // Aggregate data by group
   const aggregatedChartData = chartData.map(dataPoint => {
     const aggregatedData = { name: dataPoint };
-    
     Object.keys(groups).forEach(group => {
       // Sum the values for radio stations within each group
       aggregatedData[group] = groups[group].reduce((sum, radioStation) => sum + (dataPoint[radioStation] || 0), 0);
     });
-    
     return aggregatedData;
+     
+     
   });
   // Generate bars for each radio station
   const bars = Object.keys(aggregatedChartData[0])
     .filter(key => key !== 'name') // Assuming 'name' is your XAxis key, remove it from bar generation
     .map((radioStation, index) => (
-      <Bar key={radioStation} dataKey={radioStation} fill={radioGroupColors[radioStation]} />
+      <Bar key={radioStation} dataKey={radioStation} fill={radioGroupColors[radioStation]}  />
     ));
 
   return (
-    <ResponsiveContainer width="90%" height={400}>
+    <ResponsiveContainer width="100%" height={400}>
     <BarChart data={aggregatedChartData}>
       <CartesianGrid strokeDasharray="3 3" />
       <XAxis dataKey="name" />
-      <YAxis   domain={[0, 'dataMax + 100']} orientation="right" />
+      <YAxis   domain={[0, 'auto']} orientation="right" />
       <Tooltip />
       <Legend />
       {bars}
@@ -109,5 +133,8 @@ const GraphChartArrBars = ({ data }) => {
   // PropTypes validation
 GraphChartArrBars.propTypes = {
     data: PropTypes.object.isRequired, // Validate userListeningMap as an object and is required
-  };
+    intervalValue: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
+    importantChannels: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
+    tipoRadioTV: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
+    };
   export default GraphChartArrBars;

@@ -5,7 +5,7 @@ import {useFormik} from "formik";
 import {useDispatch} from "react-redux";
 
 import Box from '@mui/material/Box';
-import Link from '@mui/material/Link';
+// import Link from '@mui/material/Link';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
@@ -122,9 +122,10 @@ export default function LoginView() {
                 </Typography>
             )}
             <Stack direction="row" alignItems="center" justifyContent="flex-end" sx={{my: 3}}>
-                <Link variant="subtitle2" underline="hover">
+               { /* <Link variant="subtitle2" underline="hover">
                     Forgot password?
                 </Link>
+            */ }
             </Stack>
             <LoadingButton
                 fullWidth
@@ -164,14 +165,14 @@ export default function LoginView() {
                         maxWidth: 420,
                     }}
                 >
-                    <Typography variant="h4">Sign in to Welcomeland</Typography>
+                    <Typography variant="h4">Accedi</Typography>
 
-                    <Typography variant="body2" sx={{mt: 2, mb: 5}}>
+                    { /* <Typography variant="body2" sx={{mt: 2, mb: 5}}>
                         Don’t have an account?
                         <Link href='/signup' variant="subtitle2" sx={{ml: 0.5}}>
                             Sign Up
                         </Link>
-                    </Typography>
+                </Typography> */ }
 
                     {renderForm}
                 </Card>

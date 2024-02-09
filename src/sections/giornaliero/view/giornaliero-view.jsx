@@ -116,7 +116,7 @@ export default function GiornalieroView() {
           }
         });
         
-        return totaleContattiSlot;
+        return totaleContattiSlot.toFixed(0);
       };
 
 
@@ -138,7 +138,7 @@ export default function GiornalieroView() {
     
           if (minuteKey >= startMinuteKey && minuteKey <= endMinuteKey) {
             const weight_s = idToWeightMap[item.user_id] || 1;
-            totalAudienceAllChannels += 1 * weight_s;
+            totalAudienceAllChannels += 1 * weight_s.toFixed(0);
           }
         });
       });
@@ -175,7 +175,7 @@ export default function GiornalieroView() {
                         audienceprog += 1*weight_s;
                         if (utenti.indexOf(item.user_id) === -1) {
                             utenti.push(item.user_id);
-                            numeroindividui += weight_s;
+                            numeroindividui += weight_s.toFixed(0);
                         }
                     }
                    
@@ -394,7 +394,7 @@ export default function GiornalieroView() {
             // const audienceByMinute = minuto*(uniqueUsersListening*pesoNum);
             const audienceByMinute = minuto;
             const shareSlotCanale = (((audienceByMinute/intervalValue) || 0)/ (audienceSlotCanali/intervalValue))*100 || 0 ;
-            return shareSlotCanale.toFixed(2).toString().replace(".", ",");
+            return shareSlotCanale.toFixed(1).toString().replace(".", ",");
     
         };
         const calculateAudience = (channel, slot) => {
@@ -411,7 +411,7 @@ export default function GiornalieroView() {
             });
             }
             // Calculate the share percentage for the channel in the given time slot
-            return somma;
+            return somma.toFixed(0);
         };
 
 
@@ -467,12 +467,12 @@ if (loading) {
                     <CardContent>
                     <Scrollbar>
                     <Typography variant="p" gutterBottom>
-                    <p>Ora: Titolo Programma (min. Ascolto - Share - Contatti) </p>
+                    <p>Ora: Titolo Programma (Share - Contatti) </p>
                     {top10ParsedEvents.map((event, index) => (
                     <div key={index}>
                         {event.audience > 0 && ( // Check if audience > 0
                                     <p>
-                                        {event.timeInterval}: {event.title} (<strong>{(event.audience)} -  {event.share}% -  {event.contacts}</strong>)
+                                        {event.timeInterval}: {event.title} (<strong>{event.share}% -  {event.contacts}</strong>)
                                     </p>
                                 )}                    
                     </div>
