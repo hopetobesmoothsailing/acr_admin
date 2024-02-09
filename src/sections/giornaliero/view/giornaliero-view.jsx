@@ -499,7 +499,7 @@ if (loading) {
                                 <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>Ascolto Individui</TableCell>
                                 <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>Share Individui</TableCell>
                                 <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>Durata Media</TableCell>
-                                <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>Durata</TableCell>
+                                
                                 
                                 
                             </TableRow>
@@ -512,8 +512,7 @@ if (loading) {
                                         <TableCell style={{textAlign:"center"}}>{calculateAudience(channel_name, timeSlotKey)}</TableCell>
                                         <TableCell style={{textAlign:"center"}}>{calculateShareSlotCanale(channel_name, timeSlotKey)}%</TableCell>
                                         <TableCell style={{textAlign:"center"}}>{(timeSlots[timeSlotKey][channel_name]/intervalValue).toFixed(2) || 0}</TableCell>
-                                        <TableCell style={{textAlign:"center"}}>{timeSlots[timeSlotKey][channel_name] || '0'}</TableCell>
-
+    
                                     </TableRow>
                                 ))}
 
