@@ -37,17 +37,12 @@ export default function SintesiView() {
     const location = useLocation();
     const [loading, setLoading] = useState(true);
     const [isVisible, setIsVisible] = useState(false);
-    const [isVisibleDett, setIsVisibleDett] = useState(false);
-
-    const toggleVisibility = () => {
-        setIsVisible(!isVisible); // Toggle the visibility state
-    };
+   
+    
     const shareVisibility = () => {
         setIsVisible(false); // Toggle the visibility state
     };
-    const dettVisibility = () => {
-        setIsVisibleDett(!isVisibleDett); // Toggle the visibility state
-    };
+    
     // const importantChannels = ['RadioDeejay', 'RAIRadio1','RAIRadio2','RAIRadio3','RAIIsoradio','RDS','RTL','Radio24','RadioM2O','RADIOSUBASIO','RADIOBELLAEMONELLA','RADIOITALIAANNI60','RADIOKISSKISS','RADIOKISSKISSNAPOLI','RADIOKISSKISSITALIA','RadioFRECCIA','RadioIBIZA','RadioCapital','R101','VIRGINRadio','RADIOMONTECARLO','Radio105','RadioZETA','RadioBRUNO','RadioItaliaSMI'];
 
     const importantChannels = ['RadioDeejay', 'RAIRadio1','RAIRadio2','RAIRadio3','RAIIsoradio','RDS','RTL','Radio24','RadioM2O','RADIOSUBASIO','RADIOBELLAEMONELLA','RADIOITALIAANNI60','RADIOKISSKISS','RADIOKISSKISSNAPOLI','RADIOKISSKISSITALIA','RadioFRECCIA','RadioIBIZA','RadioCapital','R101','VIRGINRadio','RADIOMONTECARLO','Radio105','RadioZETA','RadioBRUNO','RadioItaliaSMI'];
@@ -92,14 +87,7 @@ export default function SintesiView() {
             setLoading(false);
         }
     };
-    
-    
-    // Function to handle button click to change the displayed table
-    
-    const handlePrint = () => {
-      window.print();
-    };
-
+     
     let tipoRadioTV = 'RADIO';
     const searchParams = new URLSearchParams(location.search);
     const tipo = searchParams.get('type');
@@ -174,8 +162,6 @@ export default function SintesiView() {
       
       // Usage example:
       const intervalOptions = [
-        { label: '1 minuto', value: 1 },
-        { label: '5 minuti', value: 5 },
         { label: '15 minuti', value: 15 },
         { label: '30 minuti', value: 30 },
         { label: '1 ora', value: 60 },
@@ -358,9 +344,6 @@ export default function SintesiView() {
                     <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en-gb">
                         <DemoContainer components={['DatePicker']}>                             
                             <Button onClick={shareVisibility}>SHARE</Button>
-                            <Button onClick={toggleVisibility}>ASCOLTI</Button>
-                            <Button onClick={handlePrint}>STAMPA</Button>
-                            <Button onClick={dettVisibility}>DETTAGLIO</Button>
                             <select id="intervalSelect" value={intervalValue} onChange={handleIntervalChange}>
                                 {intervalOptions.map((option) => (
                                 <option key={option.value} value={option.value}>{option.label}</option>

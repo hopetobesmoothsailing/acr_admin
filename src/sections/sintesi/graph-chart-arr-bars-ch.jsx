@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { useMemo } from 'react';
-import { Bar, XAxis, YAxis, Legend, Tooltip, BarChart, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { Bar, XAxis, YAxis, Legend,   BarChart, CartesianGrid, ResponsiveContainer } from 'recharts';
 
 import {RADIOSTATIONCOLORS} from "../../utils/consts";
 
@@ -48,7 +48,7 @@ const GraphChartArrBarCh = ({ data,importantChannels,tipoRadioTV,intervalValue,s
           // Convert the value to a number
          const shareslotcanale = calculateShareSlotCanale(radioStation,timeSlot);
         // Add the radio station and its numeric value to the data object
-        timeSlotData[radioStation] = shareslotcanale;
+        timeSlotData[radioStation] = shareslotcanale.toFixed(1);
         
       });
       formattedData.push(timeSlotData);
@@ -59,16 +59,15 @@ const GraphChartArrBarCh = ({ data,importantChannels,tipoRadioTV,intervalValue,s
     return formattedData;
   }, [data,importantChannels,intervalValue,slotSel]);
 
- 
- 
+  
 
 
   // Generate bars for each radio station
   const bars = Object.keys(chartData[0])
-    .filter(key => key !== 'name') // Assuming 'name' is your XAxis key, remove it from bar generation
-    .map((radioStation, index) => (
-      <Bar key={radioStation} dataKey={radioStation} fill={RADIOSTATIONCOLORS[radioStation]}  />
-    ));
+  .filter(key => key !== 'name') // Assuming 'name' is your XAxis key, remove it from bar generation
+  .map((radioStation, index) => (
+    <Bar key={radioStation} dataKey={radioStation} fill={RADIOSTATIONCOLORS[radioStation]} label={{ position: 'top' }} />
+  ));
 
   return (
     <ResponsiveContainer width="100%" height={400}>
@@ -76,7 +75,6 @@ const GraphChartArrBarCh = ({ data,importantChannels,tipoRadioTV,intervalValue,s
       <CartesianGrid strokeDasharray="3 3" />
       <XAxis dataKey="name" />
       <YAxis   domain={[0, 'dataMax + 10']} orientation="right" />
-      <Tooltip />
       <Legend />
       {bars}
     </BarChart>

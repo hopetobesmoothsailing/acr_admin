@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { useMemo } from 'react';
-import { Bar, XAxis, YAxis, Legend, Tooltip, BarChart, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { Bar, XAxis, YAxis, Legend,  BarChart, CartesianGrid, ResponsiveContainer } from 'recharts';
 
 
 const GraphChartArrBars = ({ data,importantChannels,tipoRadioTV,intervalValue,slotSel }) => {
@@ -30,7 +30,7 @@ const GraphChartArrBars = ({ data,importantChannels,tipoRadioTV,intervalValue,sl
       console.log("GRAPH_ASC:",audienceSlotCanali);
       } */
       const shareSlotCanale = (((((audienceByMinute/intervalValue) || 0)/ (audienceSlotCanali/intervalValue))*100) || 0 ) ;
-      return shareSlotCanale || 0;
+      return (shareSlotCanale || 0);
 
     };
 
@@ -48,7 +48,6 @@ const GraphChartArrBars = ({ data,importantChannels,tipoRadioTV,intervalValue,sl
          const shareslotcanale = calculateShareSlotCanale(radioStation,timeSlot);
         // Add the radio station and its numeric value to the data object
         timeSlotData[radioStation] = shareslotcanale;
-        
       });
       formattedData.push(timeSlotData);
       }
@@ -76,7 +75,7 @@ const GraphChartArrBars = ({ data,importantChannels,tipoRadioTV,intervalValue,sl
     const aggregatedData = { name: dataPoint };
     Object.keys(groups).forEach(group => {
       // Sum the values for radio stations within each group
-      aggregatedData[group] = groups[group].reduce((sum, radioStation) => sum + (dataPoint[radioStation] || 0), 0);
+      aggregatedData[group] = groups[group].reduce((sum, radioStation) => sum + (dataPoint[radioStation] || 0), 0).toFixed(2);
     });
     return aggregatedData;
      
@@ -86,7 +85,7 @@ const GraphChartArrBars = ({ data,importantChannels,tipoRadioTV,intervalValue,sl
   const bars = Object.keys(aggregatedChartData[0])
     .filter(key => key !== 'name') // Assuming 'name' is your XAxis key, remove it from bar generation
     .map((radioStation, index) => (
-      <Bar key={radioStation} dataKey={radioStation} fill={radioGroupColors[radioStation]}  />
+      <Bar key={radioStation} dataKey={radioStation} fill={radioGroupColors[radioStation]} label={{ position: 'top' }}  />
     ));
 
   return (
@@ -95,7 +94,7 @@ const GraphChartArrBars = ({ data,importantChannels,tipoRadioTV,intervalValue,sl
       <CartesianGrid strokeDasharray="3 3" />
       <XAxis dataKey="name" />
       <YAxis   domain={[0,'dataMax + 10']} orientation="right" />
-      <Tooltip />
+    
       <Legend />
       {bars}
     </BarChart>
