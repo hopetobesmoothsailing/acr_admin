@@ -2,6 +2,8 @@ import PropTypes from 'prop-types';
 import React, { useMemo,useState } from 'react';
 import { Line, XAxis, YAxis, Legend, Tooltip, LineChart, CartesianGrid, ResponsiveContainer } from 'recharts';
 
+import {RADIOSTATIONCOLORS} from "../../utils/consts";
+
 const GraphChartArr = ({ data,intervalValue,importantChannels,tipoRadioTV,activeButton }) => {
     let initiallyVisibleChannels = ['RAIRadio1', 'RAIRadio2', 'RAIRadio3'];
     if (tipoRadioTV === "TV") {
@@ -92,44 +94,6 @@ const GraphChartArr = ({ data,intervalValue,importantChannels,tipoRadioTV,active
   }, [data,importantChannels,intervalValue]);
 
   
-  const radioStationColors = {
-    'RadioDeejay': '#E53935',
-    'RAIRadio1': '#1b1fd8',
-    'RAIRadio2': '#d81b1d',
-    'RAIRadio3': '#35b143',
-    'RAIIsoradio': '#3949AB',
-    'RDS': '#1E88E5',
-    'RTL': '#039BE5',
-    'Radio24': '#00ACC1',
-    'RadioM2O': '#00897B',
-    'RADIOSUBASIO': '#43A047',
-    'RADIOBELLAEMONELLA': '#C0CA33',
-    'RADIOITALIAANNI60': '#FDD835',
-    'RADIOKISSKISS': '#FFB300',
-    'RADIOKISSKISSNAPOLI': '#FB8C00',
-    'RADIOKISSKISSITALIA': '#F4511E',
-    'RadioFRECCIA': '#6D4C41',
-    'RadioIBIZA': '#757575',
-    'RadioCapital': '#546E7A',
-    'R101': '#26A69A',
-    'VIRGINRadio': '#EC407A',
-    'RADIOMONTECARLO': '#AB47BC',
-    'Radio105': '#7E57C2',
-    'RadioZETA': '#5C6BC0',
-    'RadioBRUNO': '#42A5F5',
-    'RadioItaliaSMI': '#29B6F6',
-    'RAI1': '#5C6BC0',
-    'RAI2': '#D81B60',
-    'RAI3': 'green',
-    'RETE4': '#3949AB',
-    'CANALE5': 'orange',
-    'ITALIA1': '#42A5F5',
-    'LA7': '#C0CA33',
-
-    'ALTRERADIO': '#AAAAAA'
-  };
- 
-  
   // Generate lines for each radio station with toggle functionality
 // Correctly render lines based on visibility
 const lines = Object.keys(data[Object.keys(data)[0]] || {}).map(radioStation => (
@@ -137,7 +101,7 @@ const lines = Object.keys(data[Object.keys(data)[0]] || {}).map(radioStation => 
         key={radioStation}
         type="monotone"
         dataKey={radioStation}
-        stroke={radioStationColors[radioStation]}
+        stroke={RADIOSTATIONCOLORS[radioStation]}
         hide={!visibleLines[radioStation]} // Use hide prop to control visibility
     />
 ));

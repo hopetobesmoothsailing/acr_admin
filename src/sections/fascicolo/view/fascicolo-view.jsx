@@ -369,16 +369,15 @@ export default function FascicoloprodView() {
     }
     
     const displayTitleShare = (channel,slot) =>  {
-        let audienceSlotCanali = 0
-        channels.forEach(canalealtro => {
-            if ((canalealtro !== "NULL")) {
-                audienceSlotCanali += parseFloat(timeSlots[slot][canalealtro] || 0)
-            }
+        // console.log("uniquetimeSlots",uniquetimeSlots[slot]);
+        const dati = uniquetimeSlots[slot];
+        let ar = 0;
+        dati.forEach((item) => {
+            // console.log("ar:item",item)
+            ar += item
+
         });
-        // const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
-        const minuto = timeSlots[slot][channel] || 0 ;
-        const audienceByMinute = minuto;
-        return `(SHARE = (#AMR = ${(audienceByMinute).toFixed(2).toString().replace(".", ",")} minuti ) / #Audience canali :${audienceSlotCanali} minuti periodo considerato )`;
+         return `(SHARE = (#AMR = ${(ar).toFixed(2).toString().replace(".", ",")} minuti ) / 52231073 )`;
     }
     const audienceSizes24 = Object.keys(timeSlots['00:00 - 23:59'] || {}).reduce((acc, channel) => {
         acc[channel] = timeSlots['00:00 - 23:59'][channel];

@@ -2,8 +2,9 @@ import PropTypes from 'prop-types';
 import React, { useMemo } from 'react';
 import { Bar, XAxis, YAxis, Legend, Tooltip, BarChart, CartesianGrid, ResponsiveContainer } from 'recharts';
 
+import {RADIOSTATIONCOLORS} from "../../utils/consts";
 
-const GraphChartArrBars = ({ data,importantChannels,tipoRadioTV,intervalValue }) => {
+const GraphChartArrBarCh = ({ data,importantChannels,tipoRadioTV,intervalValue }) => {
   
   const chartData = useMemo(() => {
     if (!data || typeof data !== 'object') {
@@ -58,40 +59,20 @@ const GraphChartArrBars = ({ data,importantChannels,tipoRadioTV,intervalValue })
     return formattedData;
   }, [data,importantChannels,intervalValue]);
 
-   
-  const groups = {
-    RAI: ["RAIRadio1", "RAIRadio2", "RAIRadio3", "RAIIsoradio"],
-    MEDIASET: [ "Radio105", "R101", "RADIOSUBASIO", "VIRGINRadio"],
-    GEDI: ["RadioDeejay","M2O","RadioCapital"]
-    // Add more groups if needed
-  };
-  const radioGroupColors = {
-    'RAI': '#0066CC',
-    'MEDIASET': '#FF0000',
-    'GEDI': '#ab47bc',
-    'ALTRO': '#AAAAAA',
-  }
-  // Aggregate data by group
-  const aggregatedChartData = chartData.map(dataPoint => {
-    const aggregatedData = { name: dataPoint };
-    Object.keys(groups).forEach(group => {
-      // Sum the values for radio stations within each group
-      aggregatedData[group] = groups[group].reduce((sum, radioStation) => sum + (dataPoint[radioStation] || 0), 0);
-    });
-    return aggregatedData;
-     
-     
-  });
+ 
+ 
+
+
   // Generate bars for each radio station
-  const bars = Object.keys(aggregatedChartData[0])
+  const bars = Object.keys(chartData[0])
     .filter(key => key !== 'name') // Assuming 'name' is your XAxis key, remove it from bar generation
     .map((radioStation, index) => (
-      <Bar key={radioStation} dataKey={radioStation} fill={radioGroupColors[radioStation]}  />
+      <Bar key={radioStation} dataKey={radioStation} fill={RADIOSTATIONCOLORS[radioStation]}  />
     ));
 
   return (
     <ResponsiveContainer width="100%" height={400}>
-    <BarChart data={aggregatedChartData}>
+    <BarChart data={chartData}>
       <CartesianGrid strokeDasharray="3 3" />
       <XAxis dataKey="name" />
       <YAxis   domain={[0, 100]} orientation="right" />
@@ -103,10 +84,10 @@ const GraphChartArrBars = ({ data,importantChannels,tipoRadioTV,intervalValue })
   );
 };
   // PropTypes validation
-GraphChartArrBars.propTypes = {
+GraphChartArrBarCh.propTypes = {
     data: PropTypes.object.isRequired, // Validate userListeningMap as an object and is required
     intervalValue: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
     importantChannels: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
     tipoRadioTV: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
     };
-  export default GraphChartArrBars;
+  export default GraphChartArrBarCh;

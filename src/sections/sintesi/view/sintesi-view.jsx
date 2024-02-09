@@ -25,6 +25,7 @@ import ExportExcel from "../export-to-excel";
 import GraphChartArr from "../graph-chart-arr";
 import {SERVER_URL} from "../../../utils/consts";
 import GraphChartArrBars from "../graph-chart-arr-bars";
+import GraphChartArrBarsCh from "../graph-chart-arr-bars-ch";
 
 // ----------------------------------------------------------------------
 
@@ -375,6 +376,9 @@ export default function SintesiView() {
                     <Card style={{ display: isVisible ? 'none' : 'block' }}>
                         <CardContent  sx={{ pl: 0 }}>
                         <GraphChartArrBars data={timeSlots} channels={channels} importantChannels={importantChannels} tipoRadioTV={tipoRadioTV} timeSlots={timeSlots} intervalValue={intervalValue} /> {/* Render the GraphChart component */}
+                        </CardContent>
+                        <CardContent  sx={{ pl: 0 }}>
+                        <GraphChartArrBarsCh data={timeSlots} channels={channels} importantChannels={importantChannels} tipoRadioTV={tipoRadioTV} timeSlots={timeSlots} intervalValue={intervalValue} /> {/* Render the GraphChart component */}
                         </CardContent>
                     </Card>
                     <Card style={{ display: isVisible ? 'block' : 'none' }}>
