@@ -406,7 +406,7 @@ export default function GiornalieroView() {
             uniqueUsersListening.forEach(utente => {
                 if (utente) {
                     // console.log("Sommo singola audience utente", idToWeightMap[utente]);     
-                    somma +=  idToWeightMap[utente]
+                    somma +=  idToWeightMap[utente] || 0
                 }
             });
             }

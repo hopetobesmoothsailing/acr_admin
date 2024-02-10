@@ -37,7 +37,7 @@ const GraphChart = ({ userListeningMap,tipoRadioTV,activeButton}) => {
     Object.keys(userListeningMap).forEach(channel => {
       Object.keys(userListeningMap[channel]).forEach(slot => {
         if (!['00:00 - 23:59', '06:00 - 23:59'].includes(slot)) {
-          const slotSum = Array.from(userListeningMap[channel][slot]).reduce((sum, value) => sum + value, 0);
+          const slotSum = Array.from(userListeningMap[channel][slot]).reduce((sum, value) => sum + value || 0, 0);
           data.push({
             name: slot,
             [channel]: slotSum,

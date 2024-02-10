@@ -533,7 +533,7 @@ console.log("ULM",userListeningMap);
                                 )}
 
                                 {activeButton === 'ascolti'   && (
-                                <Card style={{ display: 'block' }}>
+                                <Card style={{ display: 'none' }}>
                                         <CardContent  sx={{ pl: 0 }}>
                                         <GraphChart activeButton={activeButton} userListeningMap={userListeningMap}  tipoRadioTV={tipoRadioTV}  /> {/* Render the GraphChart component */}
                                         </CardContent>
