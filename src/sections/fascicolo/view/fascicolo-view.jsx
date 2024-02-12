@@ -368,17 +368,7 @@ export default function FascicoloprodView() {
         return perc_ar;
     }
     
-    const displayTitleShare = (channel,slot) =>  {
-        // console.log("uniquetimeSlots",uniquetimeSlots[slot]);
-        const dati = uniquetimeSlots[slot];
-        let ar = 0;
-        dati.forEach((item) => {
-            // console.log("ar:item",item)
-            ar += item
-
-        });
-         return `(SHARE = (#AMR = ${(ar).toFixed(2).toString().replace(".", ",")} minuti ) / 52231073 )`;
-    }
+     
     const audienceSizes24 = Object.keys(timeSlots['00:00 - 23:59'] || {}).reduce((acc, channel) => {
         acc[channel] = timeSlots['00:00 - 23:59'][channel];
         return acc;
@@ -472,13 +462,13 @@ console.log("ULM",userListeningMap);
                             SHARE
                             </Button>
                             <Button
-                            disabled= {tipo === 'TV' ? 'disabled': ''}
+                           
                             variant={activeButton === 'ascolti' ? 'contained' : 'outlined'}
                             onClick={handleAscoltiClick}
                             >
                             ASCOLTI
                             </Button>
-                            <Button disabled onClick={handlePrint}>STAMPA</Button>
+                            <Button onClick={handlePrint}>STAMPA</Button>
                             <select id="intervalSelect" value={intervalValue} onChange={handleIntervalChange}>
                                 {intervalOptions.map((option) => (
                                 <option key={option.value} value={option.value}>{option.label}</option>
@@ -582,7 +572,7 @@ console.log("ULM",userListeningMap);
                                                             <TableCell>{channel} %</TableCell>
                                                             {Object.keys(timeSlots).map((timeSlotKey) => (
                                                                 <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
-                                                                    <span data-tooltip-id="my-tooltip" data-tooltip-content={displayTitleShare(channel, timeSlotKey)} >{calculateShareSlotCanale(channel, timeSlotKey)}</span>
+                                                                    <span data-tooltip-id="my-tooltip"  >{calculateShareSlotCanale(channel, timeSlotKey)}</span>
                                         
                                                                 </TableCell>
 
@@ -624,7 +614,7 @@ console.log("ULM",userListeningMap);
                                                             <TableCell>{ascoltatoriRadioLabel}</TableCell>
                                                             {Object.keys(timeSlots).map((timeSlotKey) => (
                                                                 <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
-                                                                    <span data-tooltip-id="my-tooltip" data-tooltip-content={displayTitleShare(timeSlotKey)} >{calculateShareRadio(timeSlotKey)}</span>
+                                                                    <span data-tooltip-id="my-tooltip"  >{calculateShareRadio(timeSlotKey)}</span>
                                         
                                                                 </TableCell>
 

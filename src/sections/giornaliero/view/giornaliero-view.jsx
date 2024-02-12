@@ -109,7 +109,7 @@ export default function GiornalieroView() {
           if (minuteKey >= startMinuteKey && minuteKey <= endMinuteKey && item.acr_result === channel) {
             if (usersInTimeSlot.indexOf(item.user_id) === -1) {
                 usersInTimeSlot.push(item.user_id);
-                const weight_s = idToWeightMap[item.user_id] || 1;
+                const weight_s = idToWeightMap[item.user_id] || 0;
                 totaleContattiSlot += weight_s;
                 
             }
@@ -127,7 +127,8 @@ export default function GiornalieroView() {
       const [, time] = recordedDate.split(' ');
       const [hour, minute] = time.split(':');
       const minuteKey = parseInt(hour, 10) * 60 + parseInt(minute, 10);
-    
+      // dovrei calcolare nell'intervallo coperto dal programma la share complessiva
+      if (item.acr_result === channel_name) {
       palDetails.forEach((detail) => {
         detail.events.forEach((event) => {
           const [start, end] = event.time_interval.split(' - ');
@@ -142,6 +143,7 @@ export default function GiornalieroView() {
           }
         });
       });
+     }
     });
     
     // Iterate over each palDetails object
@@ -170,7 +172,7 @@ export default function GiornalieroView() {
                     
                     if (minuteKey >= startMinuteKey && minuteKey <= endMinuteKey) {
                         let weight_s = 1
-                        weight_s = idToWeightMap[item.user_id] || 1;
+                        weight_s = idToWeightMap[item.user_id] || 0;
                         // console.log("PESO UTENTE item.user_id", weight_s)
                         audienceprog += 1*weight_s;
                         if (utenti.indexOf(item.user_id) === -1) {
@@ -181,7 +183,8 @@ export default function GiornalieroView() {
                    
                 }
             });
-            const shareprog = ((audienceprog / totalAudienceAllChannels) * 100).toFixed(3);
+            
+            const shareprog = ((audienceprog / totalAudienceAllChannels) * 100).toFixed(1);
             const durationstr =event.duration_in_minutes.split(" ");
             const durata = durationstr[0];
             const contatti = calculateContacts(channel_name,event.time_interval);
