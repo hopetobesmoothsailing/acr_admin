@@ -4,7 +4,7 @@ import { Bar, XAxis, YAxis, Legend,   BarChart, CartesianGrid, ResponsiveContain
 
 import {RADIOSTATIONCOLORS} from "../../utils/consts";
 
-const GraphChartArrBarCh = ({ data,importantChannels,tipoRadioTV,intervalValue,slotSel }) => {
+const GraphChartArrBarCh = ({ data,channels,importantChannels,tipoRadioTV,intervalValue,slotSel }) => {
   
   const chartData = useMemo(() => {
     if (!data || typeof data !== 'object') {
@@ -13,25 +13,26 @@ const GraphChartArrBarCh = ({ data,importantChannels,tipoRadioTV,intervalValue,s
     }
     const calculateShareSlotCanale = (channel, slot) => {
       let audienceSlotCanali = 0
-      importantChannels.forEach(canalealtro => {
+      channels.forEach(canalealtro => {
           if ((canalealtro !== "NULL")) {
-              // const uniqueUsersListeningch = userListeningMap[channel]?.[slot]?.size || 0;
-              // audienceSlotCanali += uniqueUsersListeningch*parseFloat(timeSlots[slot][canalealtro] || 0)
-              audienceSlotCanali += parseFloat(data[slot][canalealtro] || 0)
+               audienceSlotCanali += parseFloat(data[slot][canalealtro] || 0)
           }
       });
       const minuto = data[slot][channel] || 0 ;
-      // come indicato da cristiano corrisponde ai minuti totali di ascolto nel periodo e non minuti * utenti
-      // const audienceByMinute = minuto*(uniqueUsersListening*pesoNum);
-      const audienceByMinute = minuto;
-      /* if (channel === "RDS") {
-      console.log("GRAPH_CH:",channel);
-      console.log("GRAPH_SLOT:",slot);
-      console.log("GRAPH_ABM:",audienceByMinute);
-      console.log("GRAPH_ASC:",audienceSlotCanali);
-      } */
-      const shareSlotCanale = (((((audienceByMinute/intervalValue) || 0)/ (audienceSlotCanali/intervalValue))*100) || 0 ) ;
-      return shareSlotCanale || 0;
+      let audienceByMinute = 0;
+      let day_interval = intervalValue;
+      if (slot === '00:00:00 - 23:59:59') {
+          day_interval = 1440;
+          audienceByMinute = minuto;
+      }
+      else if (slot === '06:00:00 - 23:59:00') {
+              day_interval = 1440 - 360;
+              audienceByMinute = minuto;
+      }
+      else
+          audienceByMinute = minuto;
+      const shareSlotCanale = (((audienceByMinute/day_interval) || 0)/ (audienceSlotCanali/day_interval))*100 || 0 ;
+      return shareSlotCanale.toFixed(1);
 
     };
 
@@ -48,7 +49,7 @@ const GraphChartArrBarCh = ({ data,importantChannels,tipoRadioTV,intervalValue,s
           // Convert the value to a number
          const shareslotcanale = calculateShareSlotCanale(radioStation,timeSlot);
         // Add the radio station and its numeric value to the data object
-        timeSlotData[radioStation] = shareslotcanale.toFixed(1);
+        timeSlotData[radioStation] = parseFloat(shareslotcanale).toFixed(1);
         
       });
       formattedData.push(timeSlotData);
@@ -57,7 +58,7 @@ const GraphChartArrBarCh = ({ data,importantChannels,tipoRadioTV,intervalValue,s
     });
 
     return formattedData;
-  }, [data,importantChannels,intervalValue,slotSel]);
+  }, [data,intervalValue,slotSel,channels]);
 
   
 
@@ -85,6 +86,7 @@ const GraphChartArrBarCh = ({ data,importantChannels,tipoRadioTV,intervalValue,s
 GraphChartArrBarCh.propTypes = {
     data: PropTypes.object.isRequired, // Validate userListeningMap as an object and is required
     intervalValue: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
+    channels: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
     importantChannels: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
     tipoRadioTV: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
     slotSel: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required

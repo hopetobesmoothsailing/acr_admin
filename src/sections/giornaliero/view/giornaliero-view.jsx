@@ -128,7 +128,7 @@ export default function GiornalieroView() {
       const [hour, minute] = time.split(':');
       const minuteKey = parseInt(hour, 10) * 60 + parseInt(minute, 10);
       // dovrei calcolare nell'intervallo coperto dal programma la share complessiva
-      if (item.acr_result === channel_name) {
+      // if (item.acr_result === channel_name) {
       palDetails.forEach((detail) => {
         detail.events.forEach((event) => {
           const [start, end] = event.time_interval.split(' - ');
@@ -138,12 +138,12 @@ export default function GiornalieroView() {
           const endMinuteKey = endHour * 60 + endMinute;
     
           if (minuteKey >= startMinuteKey && minuteKey <= endMinuteKey) {
-            const weight_s = idToWeightMap[item.user_id] || 1;
+            const weight_s = idToWeightMap[item.user_id] || 0;
             totalAudienceAllChannels += 1 * weight_s.toFixed(0);
           }
         });
       });
-     }
+    // }
     });
     
     // Iterate over each palDetails object
@@ -205,8 +205,8 @@ export default function GiornalieroView() {
     });
 
     // console.log("Parsed Events", parsedEvents);
-    parsedEvents.sort((a, b) => b.contacts - a.contacts);
-    const top10ParsedEvents = parsedEvents.slice(0, 15);
+    // parsedEvents.sort((a, b) => b.contacts - a.contacts);
+    // const top10ParsedEvents = parsedEvents.slice(0, 15);
     // console.log("TOP 10 EVENTS", top10ParsedEvents);
    
 
@@ -331,9 +331,9 @@ export default function GiornalieroView() {
                     weight_s = idToWeightMap[item.user_id];
                     // console.log("PESO UTENTE item.user_id", weight_s)
                     if (!timeSlots[slotKey][item.acr_result]) {
-                        timeSlots[slotKey][item.acr_result] = 1*weight_s || 1;
+                        timeSlots[slotKey][item.acr_result] = 1*weight_s || 0;
                     } else {
-                        timeSlots[slotKey][item.acr_result] += 1*weight_s || 1;
+                        timeSlots[slotKey][item.acr_result] += 1*weight_s || 0;
                     }
                 }
             });
@@ -464,18 +464,18 @@ if (loading) {
             
                 <Card>
                 <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2}}>
-                Le 15 Trasmissioni con maggior ascolto
+                Palinsesto Giornaliero
                     
                 </Typography>
                     <CardContent>
                     <Scrollbar>
                     <Typography variant="p" gutterBottom>
-                    <p>Ora: Titolo Programma (Share - Contatti) </p>
-                    {top10ParsedEvents.map((event, index) => (
+                    <p>Ora: Titolo Programma (Contatti) </p>
+                    {parsedEvents.map((event, index) => (
                     <div key={index}>
                         {event.audience > 0 && ( // Check if audience > 0
                                     <p>
-                                        {event.timeInterval}: {event.title} (<strong>{event.share}% -  {event.contacts}</strong>)
+                                        {event.timeInterval}: {event.title} (<strong>{event.contacts}</strong>)
                                     </p>
                                 )}                    
                     </div>

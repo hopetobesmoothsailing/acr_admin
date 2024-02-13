@@ -1,5 +1,7 @@
-import axios from "axios";
+import 'dayjs/locale/it'; // Import the Italian locale
+import axios from "axios"; 
 import dayjs from "dayjs";
+import customParseFormat from 'dayjs/plugin/customParseFormat'; // For parsing custom formats
 import 'leaflet/dist/leaflet.css';
 import { Tooltip } from 'react-tooltip'
 import {useState, useEffect} from 'react';
@@ -26,6 +28,9 @@ import GraphChartArr from "../graph-chart-arr";
 import {SERVER_URL} from "../../../utils/consts";
 import GraphChartArrBars from "../graph-chart-arr-bars";
 import GraphChartArrBarsCh from "../graph-chart-arr-bars-ch";
+
+dayjs.extend(customParseFormat); // Extend dayjs with the customParseFormat plugin
+dayjs.locale('it'); // Set the locale to Italian
 
 // ----------------------------------------------------------------------
 
@@ -62,11 +67,36 @@ export default function SintesiView() {
     console.log("SEL_DATE",selectedDate);
     console.log("START_DATE",startDate);
     console.log("STOP_DATE",stopDate);
+    // Function to calculate the difference
+
     // Convert date from DD/MM/YYYY to YYYY-MM-DD for backend
     const formatDateForBackend = (date) => dayjs(date, 'DD/MM/YYYY').format('YYYY-MM-DD');
 
+    let tipoRadioTV = 'RADIO';
+    let ascoltatoriRadioLabel = '';
+    const searchParams = new URLSearchParams(location.search);
+    const tipo = searchParams.get('type');
+    if (tipo === null) {
+         ascoltatoriRadioLabel="ASCOLTATORI RADIO";
+         tipoRadioTV = 'RADIO';}
+    else { 
+        tipoRadioTV = 'TV';
+        ascoltatoriRadioLabel="SPETTATORI TV";
+    }
 
-    // Function to submit dates to backend
+    const calculateDifferenceInDays = () => {
+        const start = dayjs(startDate, 'DD/MM/YYYY');
+        const stop = dayjs(stopDate, 'DD/MM/YYYY');
+      
+        // Calculate the difference in days
+        const difference = stop.diff(start, 'day');
+        return difference;
+      };
+      
+      // Example usage
+    const differenceInDays = calculateDifferenceInDays(); // This will calculate and log the difference
+    console.log("DIFFINDAYS",differenceInDays);
+    // Funcation to submit dates to backend
     const handleSubmitDates = async () => {
         setSelectedDate(startDate);
         const formattedStartDate = formatDateForBackend(startDate);
@@ -88,11 +118,6 @@ export default function SintesiView() {
         }
     };
      
-    let tipoRadioTV = 'RADIO';
-    const searchParams = new URLSearchParams(location.search);
-    const tipo = searchParams.get('type');
-    if (tipo === null) { tipoRadioTV = 'RADIO';}
-    else { tipoRadioTV = 'TV';}
 
     useEffect(() => {
         // Function to fetch ACR details by date
@@ -188,6 +213,7 @@ export default function SintesiView() {
       };
       
       const timeSlots = generateTimeSlots(intervalValue);
+      const uniquetimeSlots = generateTimeSlots(intervalValue);
       console.log(timeSlots);
 
       // Filter out less important channels and group them under "ALTRERADIO"
@@ -218,7 +244,7 @@ export default function SintesiView() {
                 const startMinuteKey = startHour * 60 + startMinute;
                 const endMinuteKey = endHour * 60 + endMinute;
                 if (minuteKey >= startMinuteKey && minuteKey <= endMinuteKey) {
-                    let weight_s = 1
+                    let weight_s = 0
                     weight_s = idToWeightMap[item.user_id];
                     // console.log("PESO UTENTE item.user_id", weight_s)
                     if (!timeSlots[slotKey][item.acr_result]) {
@@ -226,28 +252,28 @@ export default function SintesiView() {
                     } else {
                         timeSlots[slotKey][item.acr_result] += 1*weight_s;
                     }
+                    if (!uniquetimeSlots[slotKey][item.user_id]) {
+                        uniquetimeSlots[slotKey][item.user_id] = 1*weight_s;
+                    }
                 }
             });
         }
     });
-
-    console.log("TIMESLOTS",timeSlots)
-    
-    // const timeSlotLabels = Object.keys(timeSlots);   
-    // const channelNames = Object.keys(timeSlotSeries);
     const channelNames = Array.from(
         new Set(Object.values(timeSlots).flatMap((data) => Object.keys(data)))
     );
-    channelNames.sort();
+    
+    console.log("TIMESLOTS",timeSlots)
+  
     const audienceSizes24 = Object.keys(timeSlots['00:00:00 - 23:59:59'] || {}).reduce((acc, channel) => {
         acc[channel] = timeSlots['00:00:00 - 23:59:59'][channel];
         return acc;
     }, {});
 
     // Sort channelNames based on audience size
-    const sortedChannelNames = channelNames.sort((a, b) => (audienceSizes24[b] || 0) - (audienceSizes24[a] || 0));
-      
 
+    const sortedChannelNames = channelNames.sort((a, b) => (audienceSizes24[b] || 0) - (audienceSizes24[a] || 0));
+   
     // Initialize userListeningMap
         const userListeningMap = {};
 
@@ -282,19 +308,24 @@ export default function SintesiView() {
                 });
             }
         });
-    // console.log("USER LISTENING MAP",userListeningMap);
-    // console.log(userListeningMapAudience);
-
+   
    
     const calculateAudienceByMinute = (channel, slot) => {
         // const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
         const minutoMedio = timeSlots[slot][channel] || 0 ;
         // console.log("MINUTO MEDIO:", minutoMedio);
-        const audienceByMinute = minutoMedio*pesoNum/intervalValue;
-        
-        // console.log("AUDIENCE BY MINUTE canale %s slot %s audiencexmin %s", channel,slot, audienceByMinute);
-        // Calculate the share percentage for the channel in the given time slot
-        return audienceByMinute.toFixed(1);
+        let audienceByMinute = 0;
+        if (slot === '00:00:00 - 23:59:59') {
+            const day_interval = 1440;
+            audienceByMinute = minutoMedio*pesoNum/(day_interval);
+        }
+        else if (slot === '06:00:00 - 23:59:00') {
+                const day_interval = 1440 - 360;
+                audienceByMinute = minutoMedio*pesoNum/(day_interval);
+        }
+        else
+            audienceByMinute = minutoMedio*pesoNum/intervalValue;
+            return audienceByMinute.toFixed(0)
     };
  
             
@@ -302,19 +333,77 @@ export default function SintesiView() {
         let audienceSlotCanali = 0
         channels.forEach(canalealtro => {
             if ((canalealtro !== "NULL")) {
-                // const uniqueUsersListeningch = userListeningMap[channel]?.[slot]?.size || 0;
-                // audienceSlotCanali += uniqueUsersListeningch*parseFloat(timeSlots[slot][canalealtro] || 0)
-                audienceSlotCanali += parseFloat(timeSlots[slot][canalealtro] || 0)
+                 audienceSlotCanali += parseFloat(timeSlots[slot][canalealtro] || 0)
             }
         });
         const minuto = timeSlots[slot][channel] || 0 ;
-        // come indicato da cristiano corrisponde ai minuti totali di ascolto nel periodo e non minuti * utenti
-        // const audienceByMinute = minuto*(uniqueUsersListening*pesoNum);
-        const audienceByMinute = minuto*pesoNum;
-        const shareSlotCanale = (((audienceByMinute/intervalValue) || 0)/ (audienceSlotCanali/intervalValue))*100 || 0 ;
+        let audienceByMinute = 0;
+        let day_interval = intervalValue;
+        if (slot === '00:00:00 - 23:59:59') {
+            day_interval = 1440;
+            audienceByMinute = minuto*pesoNum;
+        }
+        else if (slot === '06:00:00 - 23:59:00') {
+                day_interval = 1440 - 360;
+                audienceByMinute = minuto*pesoNum;
+        }
+        else
+            audienceByMinute = minuto*pesoNum;
+        const shareSlotCanale = (((audienceByMinute/day_interval) || 0)/ (audienceSlotCanali/day_interval))*100 || 0 ;
         return shareSlotCanale.toFixed(1);
 
     };
+    const calculateShareRadio = (slot) => {
+        // console.log("uniquetimeSlots",uniquetimeSlots[slot]);
+        const dati = uniquetimeSlots[slot];
+        let ar = 0;
+        dati.forEach((item) => {
+            // console.log("ar:item",item)
+            ar += item
+
+        });
+        const perc_ar = ((ar/52231073)*100).toFixed(1);
+        return perc_ar;
+    }
+    /* const calculateAscoltoRadio = (slot) => {
+        // console.log("uniquetimeSlots",uniquetimeSlots[slot]);
+        const dati = uniquetimeSlots[slot];
+        let ar = 0;
+        dati.forEach((item) => {
+            // console.log("ar:item",item)
+            ar += item
+
+        });
+        const perc_ar = ar.toFixed(0);
+        return perc_ar;
+    } */
+    const displayShareRadio = (slot) => {
+        // console.log("uniquetimeSlots",uniquetimeSlots[slot]);
+        const dati = uniquetimeSlots[slot];
+        let ar = 0;
+        dati.forEach((item) => {
+            // console.log("ar:item",item)
+            ar += item
+
+        });
+        const perc_ar = ((ar/52231073)*100).toFixed(1);
+           return `( ${perc_ar}% (popolazione italiana) )`;
+
+    }
+    /* const displayAscoltiRadio = (slot) => {
+        // console.log("uniquetimeSlots",uniquetimeSlots[slot]);
+        const dati = uniquetimeSlots[slot];
+        let ar = 0;
+        dati.forEach((item) => {
+            // console.log("ar:item",item)
+            ar += item
+
+        });
+           return `( ${ar.toFixed(0)}% (popolazione italiana) )`;
+
+    } */
+    
+       
 
     if (loading) {
         return <p>Caricamento dati raccolti in corso... </p>; // You can replace this with your loading indicator component
@@ -326,8 +415,8 @@ export default function SintesiView() {
                     <Typography variant="h4" sx={{mb: 5}}>
                        Sintesi degli ascolti per le date selezionate
                     </Typography>
-                    <LocalizationProvider dateAdapter={AdapterDayjs}>
-                        <DatePicker
+                    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="it">
+                         <DatePicker
                         label="Start Date"
                         value={dayjs(startDate, 'DD/MM/YYYY')}
                         onChange={(newValue) => setStartDate(newValue)}
@@ -341,7 +430,6 @@ export default function SintesiView() {
                         />
                          <Button onClick={handleSubmitDates}>Submit</Button>
                     </LocalizationProvider>
-                    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en-gb">
                         <DemoContainer components={['DatePicker']}>                             
                             <Button onClick={shareVisibility}>SHARE</Button>
                             <select id="intervalSelect" value={intervalValue} onChange={handleIntervalChange}>
@@ -350,35 +438,14 @@ export default function SintesiView() {
                                 ))}
                             </select>
                         </DemoContainer>
-                    </LocalizationProvider>
+             
                     <Card style={{ display: isVisible ? 'none' : 'block' }}>
                         <CardContent  sx={{ pl: 0  }} >
                         <h5>Sintesi Share Canali per fasce orarie nel periodo considerato</h5>
                         <GraphChartArr   data={timeSlots}  intervalValue={intervalValue} importantChannels={channels} tipoRadioTV={tipoRadioTV} /> {/* Render the GraphChart component */}
                         </CardContent>
                     </Card>
-                    <Card style={{ display: isVisible ? 'none' : 'block' }}>
-                    <h2>Sintesi 00:00 - 23:59</h2>
-                      <CardContent  sx={{ pl: 0 }} style={{width:'25%',float:'left'}}>
-                        <h5>Sintesi Gruppo 00:00 - 23:59</h5>
-                        <GraphChartArrBars data={timeSlots} channels={channels} importantChannels={importantChannels} tipoRadioTV={tipoRadioTV} timeSlots={timeSlots} slotSel="00:00:00 - 23:59:59" intervalValue={intervalValue} /> {/* Render the GraphChart component */}
-                        </CardContent>
-                        <CardContent  sx={{ pl: 0 }}  style={{width:'75%',float:'right'}}>
-                        <h5>Sintesi Canali 00:00 - 23:59</h5>
-                        <GraphChartArrBarsCh data={timeSlots} channels={channels} importantChannels={importantChannels} tipoRadioTV={tipoRadioTV} timeSlots={timeSlots}  slotSel="00:00:00 - 23:59:59" intervalValue={intervalValue} /> {/* Render the GraphChart component */}
-                        </CardContent>
-                    </Card>
-                    <Card style={{ display: isVisible ? 'none' : 'block' }}>
-                    <h2>Sintesi 06:00 - 23:59</h2>
-                        <CardContent  sx={{ pl: 0 }} style={{width:'25%',float:'left'}}>
-                        <h5>Sintesi Gruppo 06:00 - 23:59</h5>
-                        <GraphChartArrBars data={timeSlots} channels={channels} importantChannels={importantChannels} tipoRadioTV={tipoRadioTV} timeSlots={timeSlots} slotSel="06:00:00 - 23:59:59" intervalValue={intervalValue} /> {/* Render the GraphChart component */}
-                        </CardContent>
-                        <CardContent  sx={{ pl: 0 }}  style={{width:'75%',float:'right'}}>
-                        <h5>Sintesi Canali 06:00 - 23:59</h5>
-                        <GraphChartArrBarsCh data={timeSlots} channels={channels} importantChannels={importantChannels} tipoRadioTV={tipoRadioTV} timeSlots={timeSlots}  slotSel="06:00:00 - 23:59:59" intervalValue={intervalValue} /> {/* Render the GraphChart component */}
-                        </CardContent>
-                    </Card>                    
+                   
                     <Card style={{ display: isVisible ? 'block' : 'none' }}>
                         <CardContent>
                         <Typography variant="h5" sx={{ml: 2, mt: 3}}>
@@ -400,7 +467,7 @@ export default function SintesiView() {
                                     </TableHead>
 
                                     <TableBody>
-                                        {channelNames.sort().reverse().map((channel, index) => (
+                                        {sortedChannelNames.map((channel, index) => (
                                             <TableRow key={index}>
 
                                                 <TableCell>{channel}</TableCell>
@@ -458,7 +525,68 @@ export default function SintesiView() {
                     </TableContainer>
                 </CardContent>
                 </Card>
-           
+                <Card style={{ display: 'block', overflow:'auto' }}>
+                            <CardContent>
+                                <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>{ascoltatoriRadioLabel}</Typography>
+                                <Typography variant="p" sx={{ml: 2, mt: 2}}>
+                                (Percentuale di {ascoltatoriRadioLabel} sul totale popolazione 14+ nell’intervallo di riferimento | pop 52.231.073)
+                                </Typography>
+                                <ExportExcel fileName={`Export-SHARE-Globale-${tipoRadioTV}-${dayjs(selectedDate).format('MM-DD-YYYY')}`}  idelem={`Export-SHARE-Globale-${tipoRadioTV}-${dayjs(selectedDate).format('MM-DD-YYYY')}`}/>
+
+                                <br />
+                                <TableContainer id={`Export-SHARE-Globale-${tipoRadioTV}-${dayjs(selectedDate).format('MM-DD-YYYY')}`}  sx={{overflow: 'unset'}}>
+                                            <Table sx={{minWidth: 800}}>
+                                                <TableHead>
+                                                    <TableRow>
+                                                        <TableCell> </TableCell>
+                                                        {Object.keys(timeSlots).map((timeSlotKey) => (
+                                                            <TableCell key={timeSlotKey}>{timeSlotKey} </TableCell>
+                                                        ))}
+                                                    </TableRow>
+                                                </TableHead>
+
+                                                <TableBody>
+
+                                                        <TableRow >
+
+                                                            <TableCell>{ascoltatoriRadioLabel}</TableCell>
+                                                            {Object.keys(timeSlots).map((timeSlotKey) => (
+                                                                <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
+                                                                    <span data-tooltip-id="my-tooltip" data-tooltip-content={displayShareRadio(timeSlotKey)} >{calculateShareRadio(timeSlotKey)}</span>
+                                        
+                                                                </TableCell>
+
+                                                            ))}
+                                                        </TableRow>
+                                                    
+                                                </TableBody>
+                                            </Table>
+                                        </TableContainer>
+
+                            </CardContent>
+                            </Card>
+                            <Card style={{ display: isVisible ? 'none' : 'block' }}>
+                    <Typography variant="h4" sx={{ ml: 2, mt: 3, mb: 2 }}>Sintesi 00:00 - 23:59</Typography>
+                      <CardContent  sx={{ pl: 0 }} style={{width:'25%',float:'left'}}>
+                      <Typography variant="p" sx={{ ml: 2, mt: 3, mb: 2 }}>Sintesi Gruppo 00:00 - 23:59</Typography>
+                        <GraphChartArrBars data={timeSlots} channels={channels} importantChannels={importantChannels} tipoRadioTV={tipoRadioTV} timeSlots={timeSlots} slotSel="00:00:00 - 23:59:59" intervalValue="1440" /> {/* Render the GraphChart component */}
+                        </CardContent>
+                    <CardContent  sx={{ pl: 0 }}  style={{width:'75%',float:'right'}}>
+                    <Typography variant="p" sx={{ ml: 2, mt: 3, mb: 2 }}>Sintesi Canali 00:00 - 23:59</Typography>
+                        <GraphChartArrBarsCh data={timeSlots} channels={channels} importantChannels={importantChannels} tipoRadioTV={tipoRadioTV} timeSlots={timeSlots}  slotSel="00:00:00 - 23:59:59" intervalValue="1440" /> {/* Render the GraphChart component */}
+                        </CardContent>
+                    </Card>
+                    <Card style={{ display: isVisible ? 'none' : 'block' }}>
+                    <Typography variant="h4" sx={{ ml: 2, mt: 3, mb: 2 }}>Sintesi 06:00 - 23:59</Typography>
+                        <CardContent  sx={{ pl: 0 }} style={{width:'25%',float:'left'}}>
+                        <Typography variant="p" sx={{ ml: 2, mt: 3, mb: 2 }}>Sintesi Gruppo 06:00 - 23:59</Typography>
+                        <GraphChartArrBars data={timeSlots} channels={channels} importantChannels={importantChannels} tipoRadioTV={tipoRadioTV} timeSlots={timeSlots} slotSel="06:00:00 - 23:59:59" intervalValue="1080" /> {/* Render the GraphChart component */}
+                        </CardContent>
+                        <CardContent  sx={{ pl: 0 }}  style={{width:'75%',float:'right'}}>
+                        <Typography variant="p" sx={{ ml: 2, mt: 3, mb: 2 }}>Sintesi Canali 06:00 - 23:59</Typography>
+                        <GraphChartArrBarsCh data={timeSlots} channels={channels} importantChannels={importantChannels} tipoRadioTV={tipoRadioTV} timeSlots={timeSlots}  slotSel="06:00:00 - 23:59:59" intervalValue="1080" /> {/* Render the GraphChart component */}
+                        </CardContent>
+                    </Card> 
             </Scrollbar>
             <Tooltip id="my-tooltip" />
         </Container>
