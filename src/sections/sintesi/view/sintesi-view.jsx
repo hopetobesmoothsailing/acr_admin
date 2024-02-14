@@ -61,8 +61,8 @@ export default function SintesiView() {
     const formattedYesterday = `${yesterday.getDate().toString().padStart(2, '0')}/${(yesterday.getMonth() + 1).toString().padStart(2, '0')}/${yesterday.getFullYear()}`;  
     // Set yesterday's date as selectedDate
     const [selectedDate, setSelectedDate] = useState(dayjs(yesterday).format('DD/MM/YYYY'));
-    const [startDate, setStartDate] = useState(dayjs().subtract(7, 'day').format('DD/MM/YYYY'));
-    const [stopDate, setStopDate] = useState(dayjs().add(0, 'day').format('DD/MM/YYYY'));
+    const [startDate, ] = useState(dayjs().subtract(7, 'day').format('DD/MM/YYYY'));
+    const [stopDate, ] = useState(dayjs().add(0, 'day').format('DD/MM/YYYY'));
     const [users, setUsers] = useState([]);
     console.log("SEL_DATE",selectedDate);
     console.log("START_DATE",startDate);
@@ -419,16 +419,16 @@ export default function SintesiView() {
                          <DatePicker
                         label="Start Date"
                         value={dayjs(startDate, 'DD/MM/YYYY')}
-                        onChange={(newValue) => setStartDate(newValue)}
+                        // onChange={(newValue) => setStartDate(newValue)}
                         renderInput={(params) => <TextField {...params} />}
                         />
                         <DatePicker
                         label="Stop Date (optional)"
                         value={dayjs(stopDate, 'DD/MM/YYYY')}
-                        onChange={(newValue) => setStopDate(newValue)}
+                        // onChange={(newValue) => setStopDate(newValue)}
                         renderInput={(params) => <TextField {...params} />}
                         />
-                         <Button onClick={handleSubmitDates}>Submit</Button>
+                         <Button onClick={handleSubmitDates}>Invia</Button>
                     </LocalizationProvider>
                         <DemoContainer components={['DatePicker']}>                             
                             <Button onClick={shareVisibility}>SHARE</Button>

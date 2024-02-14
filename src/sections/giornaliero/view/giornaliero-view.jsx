@@ -47,7 +47,7 @@ export default function GiornalieroView() {
     // const [acrDetailsTimeslot, setACRDetailsTimeslot] = useState([])
     const today = new Date(); // Get today's date
     const yesterday = new Date(today); // Create a new date object with today's date
-    yesterday.setDate(today.getDate() - 1); // Set it to yesterday
+    yesterday.setDate(today.getDate() - 2); // Set it to 2 days ago
   
     // Format the date to DD/MM/YYYY
     // const formattedYesterday = `${yesterday.getDate().toString().padStart(2, '0')}/${(yesterday.getMonth() + 1).toString().padStart(2, '0')}/${yesterday.getFullYear()}`;
@@ -509,15 +509,15 @@ if (loading) {
                 <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2}}>
                 Palinsesto Giornaliero
                     
-                <ExportExcel   fileName="Export-Palinsesto-Giornaliero-{channel_name}" idelem="export-giornaliero-palinsesto-{channel_name}"/>
+                <ExportExcel   fileName={`Export-Palinsesto-${channel_name}-${dayjs(selectedDate).format('MM-DD-YYYY')}`} idelem={`Export-Palinsesto-${channel_name}-${dayjs(selectedDate).format('MM-DD-YYYY')}`}/>
                    </Typography>
                     <CardContent>
                     <Scrollbar>
-                    <TableContainer id="export-giornaliero-palinsesto-{channel_name}">
+                    <TableContainer id={`Export-Palinsesto-${channel_name}-${dayjs(selectedDate).format('MM-DD-YYYY')}`}>
                     <Table sx={{ minWidth: 400 }}>
                         <TableHead>
                             <TableRow >
-                                <TableCell style={{backgroundColor:"#fff",color:"#333"}}>Inizio-Fine</TableCell>
+                                <TableCell style={{backgroundColor:"#fff",color:"#333"}}>Ora-Inizio-Fine</TableCell>
                                 <TableCell style={{backgroundColor:"#fff",color:"#333"}}>Titolo </TableCell>
                                 <TableCell style={{backgroundColor:"#fff",color:"#333"}}>Contatti</TableCell>
                            </TableRow>
@@ -545,9 +545,9 @@ if (loading) {
                 <Scrollbar>
                     <Typography variant="h5" sx={{ml: 2, mt: 3,mb:3}}>
                     Dati del giorno {selectedDate} 
-                    <ExportExcel  exdata={channelNames} fileName="Excel-Export-Datigiornalieri_{channel_name}" idelem="export-table-daily_{channel_name}"/>
+                    <ExportExcel  exdata={channelNames} fileName={`Export-Giornaliero-${channel_name}-${dayjs(selectedDate).format('MM-DD-YYYY')}`} idelem={`Export-Giornaliero-${channel_name}-${dayjs(selectedDate).format('MM-DD-YYYY')}`} />
                     </Typography>
-                    <TableContainer id="export-table-share">
+                    <TableContainer id={`Export-Giornaliero-${channel_name}-${dayjs(selectedDate).format('MM-DD-YYYY')}`}>
                     <Table sx={{ minWidth: 800 }}>
                         <TableHead>
                             <TableRow >
