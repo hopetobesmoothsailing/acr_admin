@@ -548,7 +548,7 @@ if (loading) {
                     <ExportExcel  exdata={channelNames} fileName={`Export-Giornaliero-${channel_name}-${dayjs(selectedDate).format('MM-DD-YYYY')}`} idelem={`Export-Giornaliero-${channel_name}-${dayjs(selectedDate).format('MM-DD-YYYY')}`} />
                     </Typography>
                     <TableContainer id={`Export-Giornaliero-${channel_name}-${dayjs(selectedDate).format('MM-DD-YYYY')}`}>
-                    <Table sx={{ minWidth: 800 }}>
+                    <Table sx={{ minWidth: 400 }}>
                         <TableHead>
                             <TableRow >
                                 <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>Fasce Auditel</TableCell>

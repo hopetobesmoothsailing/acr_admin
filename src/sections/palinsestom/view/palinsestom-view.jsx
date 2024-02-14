@@ -222,9 +222,6 @@ export default function PalinsestomView() {
                 <TableRow>
                     <TableCell>Time Interval</TableCell>
                     <TableCell>Title</TableCell>
-                    <TableCell>Audience</TableCell>
-                    <TableCell>Share</TableCell>
-                    <TableCell>Contacts</TableCell>
                 </TableRow>
                 </TableHead>
                 <TableBody>
@@ -233,9 +230,7 @@ export default function PalinsestomView() {
                     <TableRow key={index}>
                         <TableCell>{event.timeInterval}</TableCell>
                         <TableCell>{event.title}</TableCell>
-                        <TableCell>{event.audience}</TableCell>
-                        <TableCell>{event.share}</TableCell>
-                        <TableCell>{event.contacts}</TableCell>
+                      
                     </TableRow>
                     )
                 ))}
