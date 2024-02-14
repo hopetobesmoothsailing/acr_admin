@@ -246,7 +246,10 @@ export default function GiornalieroView() {
     // console.log("palDetails",palDetails)
       
     const generateTimeSlots = (intervalValue) => {
-        const slots = {};
+        const slots = {
+            "00:00 - 23:59": [],
+            "06:00 - 23:59": [] // Add your custom slot as the first entry
+        };
         const minutesInDay = 24 * 60;
         let currentMinute = 0;
       
@@ -258,6 +261,19 @@ export default function GiornalieroView() {
             currentMinute += intervalValue;
         }
       
+        return slots;
+    };
+    const generateTimeSlotsNoDaily = (intervalValue) => {
+        const slots = {};
+        const minutesInDay = 24 * 60;
+        let currentMinute = 0;
+        while (currentMinute < minutesInDay) {
+            const startMinute = currentMinute;
+            const endMinute = Math.min(currentMinute + intervalValue - 1, minutesInDay - 1);
+            const slot = `${formatMinute(startMinute)} - ${formatMinute(endMinute)}`;
+            slots[slot] = [];
+            currentMinute += intervalValue;
+        }
         return slots;
     };
       
@@ -272,8 +288,8 @@ export default function GiornalieroView() {
         /* { label: '1 minuto', value: 1 },
         { label: '5 minuti', value: 5 },
         { label: '15 minuti', value: 15 },
-        { label: '30 minuti', value: 30 },
-        { label: '1 ora', value: 60 }, */
+        { label: '30 minuti', value: 30 }, */
+        { label: '1 ora', value: 60 }, 
         { label: '3 ore', value: 180 },
 /*        { label: '6 ore', value: 360 },
         { label: '12 ore', value: 720 },
@@ -298,8 +314,8 @@ export default function GiornalieroView() {
       };
       
       const timeSlots = generateTimeSlots(intervalValue);
-      // console.log(timeSlots);
-
+      const timeSlotsgfx = generateTimeSlotsNoDaily(intervalValue);
+      
     
     
 
@@ -332,54 +348,78 @@ export default function GiornalieroView() {
                     // console.log("PESO UTENTE item.user_id", weight_s)
                     if (!timeSlots[slotKey][item.acr_result]) {
                         timeSlots[slotKey][item.acr_result] = 1*weight_s || 0;
+                        
                     } else {
                         timeSlots[slotKey][item.acr_result] += 1*weight_s || 0;
+                      
+
+                    }
+                }
+            });
+            Object.keys(timeSlotsgfx).forEach(slotKey => {
+                const [start, end] = slotKey.split(' - ');
+                const [startHour, startMinute] = start.split(':').map(Number);
+                const [endHour, endMinute] = end.split(':').map(Number);
+                const startMinuteKey = startHour * 60 + startMinute;
+                const endMinuteKey = endHour * 60 + endMinute;
+                if (minuteKey >= startMinuteKey && minuteKey <= endMinuteKey) {
+                    let weight_s = 1
+                    weight_s = idToWeightMap[item.user_id];
+                    // console.log("PESO UTENTE item.user_id", weight_s)
+                    if (!timeSlotsgfx[slotKey][item.acr_result]) {
+                        timeSlotsgfx[slotKey][item.acr_result] = 1*weight_s || 0;
+                        
+                    } else {
+                        timeSlotsgfx[slotKey][item.acr_result] += 1*weight_s || 0;
+                        
                     }
                 }
             });
         }
     });
 
-
+   
     // const channelNames = Object.keys(timeSlotSeries);
     const channelNames = Array.from(
         new Set(Object.values(timeSlots).flatMap((data) => Object.keys(data)))
     );
     // Initialize userListeningMap
         const userListeningMap = {};
+        const userListeningMapWeight = {};
 
         acrDetails.forEach((item) => {
             const recordedDate = item.recorded_at;
             const [,time] = recordedDate.split(' ');
-            const [hours] = time.split(':');
-            const minuteKey = `${hours.padStart(2, '0')}`;
-        
-            const slot = (() => {
-                const hour = parseInt(minuteKey, 10);
-                if (hour >= 0 && hour <= 2) return '00:00 - 02:59';
-                if (hour >= 3 && hour <= 5) return '03:00 - 05:59';
-                if (hour >= 6 && hour <= 8) return '06:00 - 08:59';
-                if (hour >= 9 && hour <= 11) return '09:00 - 11:59';
-                if (hour >= 12 && hour <= 14) return '12:00 - 14:59';
-                if (hour >= 15 && hour <= 17) return '15:00 - 17:59';
-                if (hour >= 18 && hour <= 20) return '18:00 - 20:59';
-                if (hour >= 21 && hour <= 23) return '21:00 - 23:59';
-                return '';
-            })();
-            // console.log(date);
-            if (slot !== '') {
-                if (!userListeningMap[item.acr_result]) {
-                    userListeningMap[item.acr_result] = {}; // Initialize the channel object if it doesn't exist
-                }
+            const [hour,minute] = time.split(':');
+            const minuteKey = parseInt(hour,10) * 60 + parseInt(minute,10);
+            if (item.acr_result !== 'NULL') {
+                Object.keys(timeSlots).forEach(slotKey => {
+                    const [start, end] = slotKey.split(' - ');
+                    const [startHour, startMinute] = start.split(':').map(Number);
+                    const [endHour, endMinute] = end.split(':').map(Number);
+                    const startMinuteKey = startHour * 60 + startMinute;
+                    const endMinuteKey = endHour * 60 + endMinute;
+                    if (minuteKey >= startMinuteKey && minuteKey <= endMinuteKey) {
+                        if (slotKey !== '') {
+                            let weight_s = 1
+                            weight_s = idToWeightMap[item.user_id];
+                            if (!userListeningMap[item.acr_result]) {
+                                userListeningMap[item.acr_result] = {}; // Initialize the channel object if it doesn't exist
+                                userListeningMapWeight[item.acr_result] = {}; // Initialize the channel object if it doesn't exist
+                            }
 
-                if (!userListeningMap[item.acr_result][slot]) {
-                    userListeningMap[item.acr_result][slot] = new Set(); // Initialize the set for the slot if it doesn't exist
-                }
+                            if (!userListeningMap[item.acr_result][slotKey]) {
+                                userListeningMap[item.acr_result][slotKey] = new Set(); // Initialize the set for the slot if it doesn't exist
+                                userListeningMapWeight[item.acr_result][slotKey] = new Set(); // Initialize the set for the slot if it doesn't exist
+                            }
 
-                userListeningMap[item.acr_result][slot].add(item.user_id); // Add user to the set for the corresponding time slot and channel
+                            userListeningMap[item.acr_result][slotKey].add(weight_s); // Add user to the set for the corresponding time slot and channel
+                            userListeningMapWeight[item.acr_result][slotKey].add(item.user_id); // Add user to the set for the corresponding time slot and channel
+                        }
+                    }
+                });
             }
         });
-        // console.log(userListeningMap);
 
       // Now you can calculate the unique users listening to each channel
         
@@ -409,7 +449,7 @@ export default function GiornalieroView() {
             uniqueUsersListening.forEach(utente => {
                 if (utente) {
                     // console.log("Sommo singola audience utente", idToWeightMap[utente]);     
-                    somma +=  idToWeightMap[utente] || 0
+                    somma +=  utente || 0
                 }
             });
             }
@@ -450,7 +490,7 @@ if (loading) {
                     </DemoContainer>
                     
             </LocalizationProvider>
-            <GraphChartArr data={timeSlots}  intervalValue={intervalValue} channels={channels} channel_name={channel_name} userListeningMap={userListeningMap} idToWeightMap={idToWeightMap} /> {/* Render the GraphChart component */}
+            <GraphChartArr data={timeSlotsgfx}  intervalValue={intervalValue} channels={channels} channel_name={channel_name} userListeningMap={userListeningMap} idToWeightMap={idToWeightMap} /> {/* Render the GraphChart component */}
            
             
            
@@ -494,34 +534,34 @@ if (loading) {
                     Dati del giorno {selectedDate} 
                     <ExportExcel  exdata={channelNames} fileName="Excel-Export-Datigiornalieri_{channel_name}" idelem="export-table-daily_{channel_name}"/>
                     </Typography>
-                    <TableContainer id="export-table-daily_{channel_name}"  sx={{overflow: 'unset'}}>
-                    <Table sx={{minWidth: 500}}>
+                    <TableContainer id="export-table-share">
+                    <Table sx={{ minWidth: 800 }}>
                         <TableHead>
                             <TableRow >
-                                <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>Risultati Fasce Auditel</TableCell>
-                                <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>Ascolto Individui</TableCell>
-                                <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>Share Individui</TableCell>
+                                <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>Fasce Auditel</TableCell>
+                                <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>CL (Contatti Lordi)</TableCell>
+                                <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>SH (Share)</TableCell>
                                 <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>Durata Media</TableCell>
                                 
                                 
                                 
                             </TableRow>
                         </TableHead>
-
                         <TableBody>
-                                {Object.keys(timeSlots).map((timeSlotKey) => (
-                                    <TableRow key={timeSlotKey}>
-                                        <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>{timeSlotKey}</TableCell>
-                                        <TableCell style={{textAlign:"center"}}>{calculateAudience(channel_name, timeSlotKey)}</TableCell>
-                                        <TableCell style={{textAlign:"center"}}>{calculateShareSlotCanale(channel_name, timeSlotKey)}%</TableCell>
-                                        <TableCell style={{textAlign:"center"}}>{(timeSlots[timeSlotKey][channel_name]/intervalValue).toFixed(2) || 0}</TableCell>
-    
-                                    </TableRow>
-                                ))}
-
-                            </TableBody>
-                        </Table>
+                            {Object.keys(timeSlots).map((timeSlotKey) => (
+                             <TableRow key={timeSlotKey}>
+                                    <TableCell><strong>{timeSlotKey}</strong></TableCell>
+                                    <TableCell style={{textAlign:"center"}}>{calculateAudience(channel_name, timeSlotKey)}</TableCell>
+                                    <TableCell style={{textAlign:"center"}}>{calculateShareSlotCanale(channel_name, timeSlotKey)}%</TableCell>
+                                    <TableCell style={{textAlign:"center"}}>{(timeSlots[timeSlotKey][channel_name]/intervalValue).toFixed(2) || 0}</TableCell>
+           
+                             
+                            </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
                     </TableContainer>
+                    
                   </Scrollbar>
 
                 </Card>

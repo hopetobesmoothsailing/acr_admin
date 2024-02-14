@@ -2,6 +2,8 @@ import PropTypes from 'prop-types';
 import React, { useMemo } from 'react';
 import { Line, XAxis, YAxis, Legend, Tooltip, LineChart, CartesianGrid, ResponsiveContainer } from 'recharts';
 
+import CustomTooltip from './custom-tooltip';
+
 const GraphChartArr = ({ data,intervalValue,channels,channel_name,userListeningMap,idToWeightMap}) => {
   const chartData = useMemo(() => {
     if (!data || typeof data !== 'object') {
@@ -14,8 +16,8 @@ const GraphChartArr = ({ data,intervalValue,channels,channel_name,userListeningM
     const calculateAudience = (channel, slot) => {
       // Placeholder for audience calculation
       const minutoMedio = data[slot][channel] || 0 ;
-      console.log("MINUTO:", minutoMedio);
-      const audienceByMinute = (minutoMedio/intervalValue);
+      // console.log("MINUTO:", minutoMedio);
+      const audienceByMinute = (minutoMedio/intervalValue)/1000;
       return audienceByMinute.toFixed(1);  
     };
 
@@ -25,16 +27,12 @@ const GraphChartArr = ({ data,intervalValue,channels,channel_name,userListeningM
       // Check if there's data for the given channel
       if (userListeningMap[channel]) {
         const timeSlots = userListeningMap[channel];
+       // console.log("CONTATTITIMESLOTs",timeSlots);
       // Iterate through each time slot for the current radio station
         Object.keys(timeSlots).forEach(interval => {
-          // console.log("ULMAP",userListeningMap[channel][interval]);
-          userListeningMap[channel][interval].forEach(userId => {
-            if (interval.toString() === slot.toString()) {
-            // Iterate over each user ID in the time slot
-              const weight = idToWeightMap[userId] || 1; // Get the weight for the user, default to 1 if not found
+          userListeningMap[channel][slot]?.forEach(weight => {
               totalWeightedContacts += weight;
-            }
-          
+             
           });
           // Add or update data for the current radio station within the interval
 
@@ -43,7 +41,7 @@ const GraphChartArr = ({ data,intervalValue,channels,channel_name,userListeningM
 
       }
     
-      return totalWeightedContacts;
+      return (totalWeightedContacts/1000).toFixed(1);
     };
     
     
@@ -66,7 +64,7 @@ const GraphChartArr = ({ data,intervalValue,channels,channel_name,userListeningM
       const audienceByMinute = minuto;
       console.log("MINUTO",minuto)
       const shareSlotCanale = (((audienceByMinute/intervalValue) || 0)/ (audienceSlotCanali/intervalValue))*100 || 0 ;
-      return shareSlotCanale.toFixed(2);
+      return shareSlotCanale.toFixed(1);
 
     };
     // Iterate through each time slot
@@ -84,9 +82,8 @@ const GraphChartArr = ({ data,intervalValue,channels,channel_name,userListeningM
     });
 
     return formattedData;
-  }, [data,intervalValue,channels,channel_name,userListeningMap,idToWeightMap]);
+  }, [data,intervalValue,channels,channel_name,userListeningMap]);
 
-  
 
   
   
@@ -99,21 +96,23 @@ const GraphChartArr = ({ data,intervalValue,channels,channel_name,userListeningM
         
         <YAxis 
           yAxisId="left"
-          domain={[0, 'dataMax + 10']}
-          allowDataOverflow
+          domain={[0, 'auto']}
+          allowDataOverflow 
           orientation="left"
           stroke="green"
+          type="number"
         />
         <YAxis 
           yAxisId="right"
-          domain={[0, 'dataMax + 10']}
-          allowDataOverflow
+          domain={[0, 'dataMax+10000']}
+          allowDataOverflow 
           orientation="right"
-          stroke="red"
+          stroke="orange"
+          type="number"
         />
-        <Tooltip />
+          <Tooltip content={<CustomTooltip />} />
         <Legend />
-        <Line type="monotone" dataKey="audience" stroke="red" yAxisId="right"/>
+        <Line type="monotone"   dataKey="audience" stroke="red" yAxisId="right"/>
         <Line type="monotone" dataKey="share" stroke="green" yAxisId="left" />
         <Line type="monotone" dataKey="contacts" stroke="orange" yAxisId="right" />
       </LineChart>

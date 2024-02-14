@@ -39,8 +39,7 @@ const GraphChart = ({ userListeningMap }) => {
       data.push(rowData);
     });
 
-    console.log("data", data);
-
+     
     return data;
   }, [userListeningMap]);
 
