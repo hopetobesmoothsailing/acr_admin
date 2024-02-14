@@ -188,6 +188,9 @@ export default function GiornalieroView() {
             const durationstr =event.duration_in_minutes.split(" ");
             const durata = durationstr[0];
             const contatti = calculateContacts(channel_name,event.time_interval);
+            const hourPart = parseInt(event.hour.split(":")[0], 10); // Convert the hour part to an integer
+
+            if ((audienceprog > 0) && (hourPart >= 6) && (hourPart <= 23))
             parsedEvents.push({
                 title: event.title,
                 date: detail.day,
@@ -506,21 +509,31 @@ if (loading) {
                 <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2}}>
                 Palinsesto Giornaliero
                     
-                </Typography>
+                <ExportExcel   fileName="Export-Palinsesto-Giornaliero-{channel_name}" idelem="export-giornaliero-palinsesto-{channel_name}"/>
+                   </Typography>
                     <CardContent>
                     <Scrollbar>
-                    <Typography variant="p" gutterBottom>
-                    <p>Ora: Titolo Programma (Contatti) </p>
-                    {parsedEvents.map((event, index) => (
-                    <div key={index}>
-                        {event.audience > 0 && ( // Check if audience > 0
-                                    <p>
-                                        {event.timeInterval}: {event.title} (<strong>{event.contacts}</strong>)
-                                    </p>
-                                )}                    
-                    </div>
-                    ))}
-                    </Typography>
+                    <TableContainer id="export-giornaliero-palinsesto-{channel_name}">
+                    <Table sx={{ minWidth: 400 }}>
+                        <TableHead>
+                            <TableRow >
+                                <TableCell style={{backgroundColor:"#fff",color:"#333"}}>Inizio-Fine</TableCell>
+                                <TableCell style={{backgroundColor:"#fff",color:"#333"}}>Titolo </TableCell>
+                                <TableCell style={{backgroundColor:"#fff",color:"#333"}}>Contatti</TableCell>
+                           </TableRow>
+                        </TableHead>
+                        <TableBody>
+                        {parsedEvents.map((event, index) => (
+                                    <TableRow key={index}>
+                                        <TableCell>{event.timeInterval}</TableCell>
+                                        <TableCell>{event.title}</TableCell>
+                                        <TableCell>{event.contacts}</TableCell>
+                                    </TableRow>
+                                              
+                        ))}
+                        </TableBody>
+                    </Table>
+                    </TableContainer>
 
                     </Scrollbar>
                     </CardContent>

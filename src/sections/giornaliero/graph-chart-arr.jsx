@@ -92,29 +92,48 @@ const GraphChartArr = ({ data,intervalValue,channels,channel_name,userListeningM
     <ResponsiveContainer width="100%" height={400}>
       <LineChart data={chartData}>
         <CartesianGrid strokeDasharray="3 3" />
+        <Legend />
+        <Tooltip content={CustomTooltip} />
         <XAxis dataKey="name" />
         
-        <YAxis 
-          yAxisId="left"
-          domain={[0, 'auto']}
-          allowDataOverflow 
-          orientation="left"
+    {/* YAxis for Share */}
+    <YAxis 
+          yAxisId="left" 
+          orientation="left" 
           stroke="green"
-          type="number"
-        />
+          label={{ value: 'Share (%)', angle: -90, position: 'insideLeft' }}
+          domain={[0, 100]} // Assuming Share values are percentages
+        /> 
+
+        {/* YAxis for Contacts */}
         <YAxis 
-          yAxisId="right"
-          domain={[0, 'dataMax+10000']}
-          allowDataOverflow 
-          orientation="right"
+          yAxisId="middle" 
+          orientation="right" 
           stroke="orange"
-          type="number"
+          label={{ value: 'Contatti (M)', angle: -90, position: 'insideRight' }}
+          domain={[0, 'dataMax + 10000']}
+          scale="linear"
+          tickFormatter={(tick) => `${tick / 1000}M`}
         />
-          <Tooltip content={<CustomTooltip />} />
-        <Legend />
-        <Line type="monotone"   dataKey="audience" stroke="red" yAxisId="right"/>
+
+        {/* YAxis for Audience */}
+        <YAxis 
+          yAxisId="right" 
+          orientation="right" 
+          stroke="#ff0000"
+          label={{ value: 'Audience (K)', angle: -90, position: 'insideRight', offset: 10 }}
+          domain={[0, 'dataMax + 10000']}
+          scale="linear"
+          
+          tickFormatter={(tick) => `${tick}K`}
+          axisLine={{ stroke: '#ff0000' }}
+          tickLine={{ stroke: '#ff0000' }}
+        />
+
+        {/* Lines for each data type */}
         <Line type="monotone" dataKey="share" stroke="green" yAxisId="left" />
-        <Line type="monotone" dataKey="contacts" stroke="orange" yAxisId="right" />
+        <Line type="monotone" dataKey="contacts" stroke="orange" yAxisId="middle" />
+        <Line type="monotone" dataKey="audience" stroke="#ff0000" yAxisId="right" />      
       </LineChart>
     </ResponsiveContainer>
   );
