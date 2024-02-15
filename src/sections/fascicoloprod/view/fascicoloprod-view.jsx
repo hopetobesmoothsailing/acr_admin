@@ -355,16 +355,45 @@ export default function FascicoloprodView() {
     }
     const calculateAscoltoRadio = (slot) => {
         // console.log("uniquetimeSlots",uniquetimeSlots[slot]);
-        const dati = uniquetimeSlots[slot];
+        // const dati = uniquetimeSlots[slot];
         let ar = 0;
+        channels.forEach(canalealtro => {
+            if ((canalealtro !== "NULL")) {
+                const dati = userListeningMap[canalealtro]?.[slot];
+                if (dati) {
+                dati.forEach((item) => {
+                    // console.log("ar:item",item)
+                    ar += item
+
+                });
+                }
+                // const uniqueUsersListeningch = userListeningMap[channel]?.[slot]?.size || 0;
+                // audienceSlotCanali += uniqueUsersListeningch*parseFloat(timeSlots[slot][canalealtro] || 0)
+                // ar += parseFloat(timeSlots[slot][canalealtro] || 0)
+            }
+        });
+        console.log("AR Tot userlistmap dati",ar);
+
+        const perc_ar = ar.toFixed(0);
+        return perc_ar;
+    }
+    
+    /* const calculateAscoltoRadioCanale = (channel, slot) => {
+        // console.log("uniquetimeSlots",uniquetimeSlots[slot]);
+        let ar = 0;
+        const dati = userListeningMap[channel]?.[slot];
+        // console.log("userlistmap dati",dati);
+        if (dati) {
         dati.forEach((item) => {
             // console.log("ar:item",item)
             ar += item
 
         });
+        }
         const perc_ar = ar.toFixed(0);
-        return perc_ar;
+        return perc_ar; 
     }
+    */
     const displayShareRadio = (slot) => {
         // console.log("uniquetimeSlots",uniquetimeSlots[slot]);
         const dati = uniquetimeSlots[slot];
@@ -380,13 +409,24 @@ export default function FascicoloprodView() {
     }
     const displayAscoltiRadio = (slot) => {
         // console.log("uniquetimeSlots",uniquetimeSlots[slot]);
-        const dati = uniquetimeSlots[slot];
+        // const dati = uniquetimeSlots[slot];
         let ar = 0;
-        dati.forEach((item) => {
-            // console.log("ar:item",item)
-            ar += item
+        channels.forEach(canalealtro => {
+            if ((canalealtro !== "NULL")) {
+                const dati = userListeningMap[canalealtro]?.[slot];
+                if (dati) {
+                dati.forEach((item) => {
+                    // console.log("ar:item",item)
+                    ar += item
 
+                });
+                }
+                // const uniqueUsersListeningch = userListeningMap[channel]?.[slot]?.size || 0;
+                // audienceSlotCanali += uniqueUsersListeningch*parseFloat(timeSlots[slot][canalealtro] || 0)
+                // ar += parseFloat(timeSlots[slot][canalealtro] || 0)
+            }
         });
+        ar = (ar/52231073)*100;
            return `( ${ar.toFixed(0)}% (popolazione italiana) )`;
 
     }
@@ -473,7 +513,6 @@ export default function FascicoloprodView() {
     }, [selectedDate, navigate]);
     */
 
-console.log("ULM",userListeningMap);
     
         if (loading) {
         return <p>Caricamento dati raccolti in corso... </p>; // You can replace this with your loading indicator component
@@ -533,7 +572,7 @@ console.log("ULM",userListeningMap);
                                 )}
 
                                 {activeButton === 'ascolti'   && (
-                                <Card style={{ display: 'none' }}>
+                                <Card style={{ display: 'block' }}>
                                         <CardContent  sx={{ pl: 0 }}>
                                         <GraphChart activeButton={activeButton} userListeningMap={userListeningMap}  tipoRadioTV={tipoRadioTV}  /> {/* Render the GraphChart component */}
                                         </CardContent>
@@ -615,7 +654,7 @@ console.log("ULM",userListeningMap);
                                                     {sortedChannelNames.map((channel, index) => (
                                                         <TableRow key={index}>
 
-                                                            <TableCell>{channel} %</TableCell>
+                                                            <TableCell>{channel}%</TableCell>
                                                             {Object.keys(timeSlots).map((timeSlotKey) => (
                                                                 <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
                                                                     <span data-tooltip-id="my-tooltip" data-tooltip-content={calculateShareSlotCanale(channel, timeSlotKey)} >{calculateShareSlotCanale(channel, timeSlotKey)}</span>
@@ -679,7 +718,7 @@ console.log("ULM",userListeningMap);
                             <CardContent>
                                 <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>{ascoltatoriRadioLabel}</Typography>
                                 <Typography variant="p" sx={{ml: 2, mt: 2}}>
-                                (Percentuale di {ascoltatoriRadioLabel} sul totale popolazione 14+ nell’intervallo di riferimento | pop 52.231.073)
+                                (Numero di {ascoltatoriRadioLabel} sul totale popolazione 14+ nell’intervallo di riferimento | pop 52.231.073)
                                 </Typography>
 
 
@@ -689,7 +728,7 @@ console.log("ULM",userListeningMap);
                                             <Table sx={{minWidth: 800}}>
                                                 <TableHead>
                                                     <TableRow>
-                                                        <TableCell> </TableCell>
+                                                        <TableCell> EMITTENTE </TableCell>
                                                         {Object.keys(timeSlots).map((timeSlotKey) => (
                                                             <TableCell key={timeSlotKey}><strong>{timeSlotKey}</strong></TableCell>
                                                         ))}
@@ -697,13 +736,25 @@ console.log("ULM",userListeningMap);
                                                 </TableHead>
 
                                                 <TableBody>
+                                                    { /* sortedChannelNames.map((channel, index) => (
+                                                         <TableRow key={index}>
 
+                                                            <TableCell>{channel}</TableCell>
+                                                            {Object.keys(timeSlots).map((timeSlotKey) => (
+                                                                <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
+                                                                    <span data-tooltip-id="my-tooltip"  >{calculateAscoltoRadioCanale(channel, timeSlotKey)}</span>
+                                        
+                                                                </TableCell>
+
+                                                            ))}
+                                                        </TableRow> 
+                                                    )) */ }
                                                         <TableRow >
 
                                                             <TableCell>{ascoltatoriRadioLabel}</TableCell>
                                                             {Object.keys(timeSlots).map((timeSlotKey) => (
                                                                 <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
-                                                                    <span data-tooltip-id="my-tooltip" data-tooltip-content={displayAscoltiRadio(timeSlotKey)} >{calculateAscoltoRadio(timeSlotKey)}</span>
+                                                                    <strong><span data-tooltip-id="my-tooltip" data-tooltip-content={displayAscoltiRadio(timeSlotKey)} >{calculateAscoltoRadio(timeSlotKey)}</span></strong>
                                         
                                                                 </TableCell>
 

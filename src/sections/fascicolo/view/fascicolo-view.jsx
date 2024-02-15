@@ -357,6 +357,45 @@ export default function FascicoloprodView() {
     }
     const calculateAscoltoRadio = (slot) => {
         // console.log("uniquetimeSlots",uniquetimeSlots[slot]);
+        // const dati = uniquetimeSlots[slot];
+        let ar = 0;
+        channels.forEach(canalealtro => {
+            if ((canalealtro !== "NULL")) {
+                const dati = userListeningMap[canalealtro]?.[slot];
+                if (dati) {
+                dati.forEach((item) => {
+                    // console.log("ar:item",item)
+                    ar += item
+
+                });
+                }
+                // const uniqueUsersListeningch = userListeningMap[channel]?.[slot]?.size || 0;
+                // audienceSlotCanali += uniqueUsersListeningch*parseFloat(timeSlots[slot][canalealtro] || 0)
+                // ar += parseFloat(timeSlots[slot][canalealtro] || 0)
+            }
+        });
+        console.log("AR Tot userlistmap dati",ar);
+
+        const perc_ar = ar.toFixed(0);
+        return perc_ar;
+    }
+    const calculateAscoltoRadioCanale = (channel, slot) => {
+        // console.log("uniquetimeSlots",uniquetimeSlots[slot]);
+        let ar = 0;
+        const dati = userListeningMap[channel]?.[slot];
+        // console.log("userlistmap dati",dati);
+        if (dati) {
+        dati.forEach((item) => {
+            // console.log("ar:item",item)
+            ar += item
+
+        });
+        }
+        const perc_ar = ar.toFixed(0);
+        return perc_ar; 
+    }
+    const displayShareRadio = (slot) => {
+        // console.log("uniquetimeSlots",uniquetimeSlots[slot]);
         const dati = uniquetimeSlots[slot];
         let ar = 0;
         dati.forEach((item) => {
@@ -364,11 +403,58 @@ export default function FascicoloprodView() {
             ar += item
 
         });
-        const perc_ar = ar.toFixed(0);
-        return perc_ar;
+        const perc_ar = ((ar/52231073)*100).toFixed(1);
+           return `( ${perc_ar}% (popolazione italiana) )`;
+
+    }
+    const displayAscoltiRadio = (slot) => {
+        // console.log("uniquetimeSlots",uniquetimeSlots[slot]);
+        // const dati = uniquetimeSlots[slot];
+        let ar = 0;
+        channels.forEach(canalealtro => {
+            if ((canalealtro !== "NULL")) {
+                const dati = userListeningMap[canalealtro]?.[slot];
+                if (dati) {
+                dati.forEach((item) => {
+                    // console.log("ar:item",item)
+                    ar += item
+
+                });
+                }
+                // const uniqueUsersListeningch = userListeningMap[channel]?.[slot]?.size || 0;
+                // audienceSlotCanali += uniqueUsersListeningch*parseFloat(timeSlots[slot][canalealtro] || 0)
+                // ar += parseFloat(timeSlots[slot][canalealtro] || 0)
+            }
+        });
+        ar = (ar/52231073)*100;
+           return `( ${ar.toFixed(0)}% (popolazione italiana) )`;
+
     }
     
-     
+    /* const calculateContattidup = (slot) => {
+        let contattiCanaliFasciaOraria= 0
+        channels.forEach(canalealtro => {
+            if ((canalealtro !== "NULL")) {
+                const uniqueUsersListeningch = userListeningMap[canalealtro]?.[slot]?.size || 0;
+                contattiCanaliFasciaOraria += uniqueUsersListeningch; 
+               // audienceSlotCanali += parseFloat(timeSlots[slot][canalealtro] || 0)
+            }
+        });
+
+        // come indicato da cristiano corrisponde ai minuti totali di ascolto nel periodo e non minuti * utenti
+        // const audienceByMinute = minuto*(uniqueUsersListening*pesoNum);
+        
+        const contattidup_perc = contattiCanaliFasciaOraria ;
+        return contattidup_perc;
+
+    };
+    */
+
+    /* const audienceSizes = Object.keys(timeSlots['06:00 - 23:59'] || {}).reduce((acc, channel) => {
+        acc[channel] = timeSlots['06:00 - 23:59'][channel];
+        return acc;
+    }, {});
+    */
     const audienceSizes24 = Object.keys(timeSlots['00:00 - 23:59'] || {}).reduce((acc, channel) => {
         acc[channel] = timeSlots['00:00 - 23:59'][channel];
         return acc;
@@ -427,7 +513,6 @@ export default function FascicoloprodView() {
     }, [selectedDate, navigate]);
     */
 
-console.log("ULM",userListeningMap);
     
         if (loading) {
         return <p>Caricamento dati raccolti in corso... </p>; // You can replace this with your loading indicator component
@@ -462,13 +547,13 @@ console.log("ULM",userListeningMap);
                             SHARE
                             </Button>
                             <Button
-                           
+                            disabled= {tipo === 'TV' ? 'disabled': ''}
                             variant={activeButton === 'ascolti' ? 'contained' : 'outlined'}
                             onClick={handleAscoltiClick}
                             >
                             ASCOLTI
                             </Button>
-                            <Button onClick={handlePrint}>STAMPA</Button>
+                            <Button disabled onClick={handlePrint}>STAMPA</Button>
                             <select id="intervalSelect" value={intervalValue} onChange={handleIntervalChange}>
                                 {intervalOptions.map((option) => (
                                 <option key={option.value} value={option.value}>{option.label}</option>
@@ -487,7 +572,7 @@ console.log("ULM",userListeningMap);
                                 )}
 
                                 {activeButton === 'ascolti'   && (
-                                <Card style={{ display: 'block' }}>
+                                <Card style={{ display: 'none' }}>
                                         <CardContent  sx={{ pl: 0 }}>
                                         <GraphChart activeButton={activeButton} userListeningMap={userListeningMap}  tipoRadioTV={tipoRadioTV}  /> {/* Render the GraphChart component */}
                                         </CardContent>
@@ -569,10 +654,10 @@ console.log("ULM",userListeningMap);
                                                     {sortedChannelNames.map((channel, index) => (
                                                         <TableRow key={index}>
 
-                                                            <TableCell>{channel} %</TableCell>
+                                                            <TableCell>{channel}%</TableCell>
                                                             {Object.keys(timeSlots).map((timeSlotKey) => (
                                                                 <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
-                                                                    <span data-tooltip-id="my-tooltip"  >{calculateShareSlotCanale(channel, timeSlotKey)}</span>
+                                                                    <span data-tooltip-id="my-tooltip" data-tooltip-content={calculateShareSlotCanale(channel, timeSlotKey)} >{calculateShareSlotCanale(channel, timeSlotKey)}</span>
                                         
                                                                 </TableCell>
 
@@ -614,7 +699,7 @@ console.log("ULM",userListeningMap);
                                                             <TableCell>{ascoltatoriRadioLabel}</TableCell>
                                                             {Object.keys(timeSlots).map((timeSlotKey) => (
                                                                 <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
-                                                                    <span data-tooltip-id="my-tooltip"  >{calculateShareRadio(timeSlotKey)}</span>
+                                                                    <span data-tooltip-id="my-tooltip" data-tooltip-content={displayShareRadio(timeSlotKey)} >{calculateShareRadio(timeSlotKey)}</span>
                                         
                                                                 </TableCell>
 
@@ -651,13 +736,25 @@ console.log("ULM",userListeningMap);
                                                 </TableHead>
 
                                                 <TableBody>
+                                                    {sortedChannelNames.map((channel, index) => (
+                                                        <TableRow key={index}>
 
-                                                        <TableRow >
-
-                                                            <TableCell>{ascoltatoriRadioLabel}</TableCell>
+                                                            <TableCell>{channel}</TableCell>
                                                             {Object.keys(timeSlots).map((timeSlotKey) => (
                                                                 <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
-                                                                    <span data-tooltip-id="my-tooltip"  >{calculateAscoltoRadio(timeSlotKey)}</span>
+                                                                    <span data-tooltip-id="my-tooltip"  >{calculateAscoltoRadioCanale(channel, timeSlotKey)}</span>
+                                        
+                                                                </TableCell>
+
+                                                            ))}
+                                                        </TableRow>
+                                                    ))}
+                                                        <TableRow >
+
+                                                            <TableCell><strong>{ascoltatoriRadioLabel}</strong></TableCell>
+                                                            {Object.keys(timeSlots).map((timeSlotKey) => (
+                                                                <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
+                                                                   <strong> <span data-tooltip-id="my-tooltip" data-tooltip-content={displayAscoltiRadio(timeSlotKey)} >{calculateAscoltoRadio(timeSlotKey)}</span></strong>
                                         
                                                                 </TableCell>
 

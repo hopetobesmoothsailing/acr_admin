@@ -31,19 +31,32 @@ export default function PalinsestomView() {
     const channels = [];
     const tipoRadioTV = "RADIO";
     const channel_name = "RAIRadio1";
-    const canale_pal = "RAIRadio1";
-
+    
+    const [canale_pal, setChannelValue] = useState(getChannelFromURL() || channel_name); // Initialize with default interval or from URL
+    
     const handleFileChange = (event) => {
       setFile(event.target.files[0]);
     };
-  
+    // Function to handle interval change
+    const handleChannelChange = (event) => {
+      const selectedValue =  event.target.value;
+      console.log("selectedValue",selectedValue);
+      setChannelValue(selectedValue);
+      // Update the URL with the new interval value as a query parameter
+      window.history.replaceState({}, '', `?channel_name=${selectedValue}`);
+    };
+    function getChannelFromURL() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('channel_name');
+    }
     const handleUpload = async () => {
       if (!file) {
         alert('Please select a file to upload.');
         return;
       }
     
- 
+
+
       const formData = new FormData();
       formData.append('file', file);
   
@@ -60,6 +73,11 @@ export default function PalinsestomView() {
         alert('Error uploading file.');
       }
     };
+    const channelOptions = [
+      { label: 'RAI Radio 1', value: 'RAIRadio1' },
+      { label: 'RAI Radio 2', value: 'RAIRadio2' },
+      { label: 'RAI Radio 3', value: 'RAIRadio3' },
+    ];
     useEffect(() => {
         // Function to fetch ACR details by date
         const fetchResultsByDateAndChannel = async () => {
@@ -207,7 +225,11 @@ export default function PalinsestomView() {
                         onChange={handleDateChange}
                         value={dayjs(selectedDate, 'DD/MM/YYYY')}
                     />
-                 
+                    <select id="channelSelect" value={canale_pal} onChange={handleChannelChange}>
+                                {channelOptions.map((option) => (
+                                <option key={option.value} value={option.value}>{option.label}</option>
+                                ))}
+                    </select>
                     </DemoContainer>
                     
             </LocalizationProvider>
