@@ -222,6 +222,7 @@ export default function UserPage() {
                                     {id: 'appVersion', label: 'appVersion'},
                                     {id: 'role', label: 'ID'},
                                     {id: 'status', label: 'APP-ATTIVATA'},
+                                    {id: 'device', label: 'DEVICE'},
                                     {id: ''},
                                 ]}
                             />
@@ -239,6 +240,7 @@ export default function UserPage() {
                                             appVersion = {row.appVersion}
                                             age={getUserActivated(row._id, details24User)}
                                             selected={selected.indexOf(row.name) !== -1}
+                                            device={row.device}
                                             handleClick={(event) => handleClick(event, row.name)}
                                         />
                                     ))}

@@ -25,6 +25,7 @@ export default function UserTableRow({
   role,
   age,
   status,
+  device,
   handleClick,
 }) {
   const [open, setOpen] = useState(null);
@@ -73,6 +74,7 @@ export default function UserTableRow({
         <TableCell>
           <Label color={(status === 'no' && 'error') || 'success'}>{status}</Label>
         </TableCell>
+        <TableCell>{device} </TableCell>
 
         <TableCell align="right">
           <IconButton onClick={handleOpenMenu}>
@@ -117,6 +119,7 @@ UserTableRow.propTypes = {
   name: PropTypes.any,
   appVersion: PropTypes.any,
   role: PropTypes.any,
+  device:PropTypes.any,
   selected: PropTypes.any,
   status: PropTypes.string,
 };
