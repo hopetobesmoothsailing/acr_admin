@@ -126,8 +126,10 @@ export default function SintesiView() {
             try {
                 setLoading(true);
                 // const formattedDate = selectedDate; // Encode the date for URL
-
-                const response = (await axios.post(`${SERVER_URL}/getACRDetailsByRangeRTV`, {'startDate': startDate,'stopDate':stopDate,'type':tipoRadioTV,'notnull':'yes'})).data; // Adjust the endpoint to match your server route
+                const formattedStartDate = formatDateForBackend(startDate);
+                const formattedStopDate = formatDateForBackend(stopDate);
+             
+                const response = (await axios.post(`${SERVER_URL}/getACRDetailsByRangeRTV`, {'startDate': formattedStartDate,'stopDate':formattedStopDate,'type':tipoRadioTV,'notnull':'yes'})).data; // Adjust the endpoint to match your server route
                 setACRDetails(response.acrDetails);
             } catch (error) {
                 console.error('Error fetching ACR details:', error);
@@ -143,7 +145,6 @@ export default function SintesiView() {
 
     }, [selectedDate,tipoRadioTV,formattedYesterday,stopDate,startDate]);
 
-    console.log(acrDetails);
     const fetchUsers = async () => {
         const result = (await axios.post(`${SERVER_URL}/getUsers`)).data;
         setUsers(result.users);

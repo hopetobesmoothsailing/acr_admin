@@ -5,18 +5,20 @@ import { Line, XAxis, YAxis, Legend, Tooltip, LineChart, CartesianGrid, Responsi
 import {RADIOSTATIONCOLORS} from "../../utils/consts";
 
 const GraphChartArr = ({ data,intervalValue,importantChannels,tipoRadioTV,activeButton }) => {
-    let initiallyVisibleChannels = ['RAIRadio1', 'RAIRadio2', 'RAIRadio3'];
-    if (tipoRadioTV === "TV") {
-      initiallyVisibleChannels = ['RAI1', 'RAI2', 'RAI3','CANALE5','ITALIA1','RETE4','LA7'];
-    }
-    const [visibleLines, setVisibleLines] = useState(() => {
-      const initialVisibility = {};
-      Object.keys(data[Object.keys(data)[0]] || {}).forEach(channel => {
-          // Set the channel to visible only if it's in the initiallyVisibleChannels list
-          initialVisibility[channel] = initiallyVisibleChannels.includes(channel);
-      });
-      return initialVisibility;
+  const initiallyVisibleChannels = tipoRadioTV === "TV"
+  ? ['RAI1', 'RAI2', 'RAI3', 'CANALE5', 'ITALIA1', 'RETE4', 'LA7']
+  : ['RAIRadio1', 'RAIRadio2', 'RAIRadio3'];
+
+// Initialize visibility state for all channels
+const [visibleLines, setVisibleLines] = useState(() => {
+  const visibility = {};
+  Object.keys(data).forEach(slot => {
+    Object.keys(data[slot]).forEach(channel => {
+      visibility[channel] = initiallyVisibleChannels.includes(channel);
     });
+  });
+  return visibility;
+});
 
   // Function to toggle visibility of lines
     const toggleLineVisibility = (radioStation) => {

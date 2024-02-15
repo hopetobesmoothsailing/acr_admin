@@ -13,12 +13,18 @@ const navConfig = [
     icon: icon('ic_analytics'),
     role:3
   },
-  
+ 
   {
     title: 'Utenti & status  ',
     path: '/user',
     icon: icon('ic_user'),
     role:2
+  },
+  {
+    title: 'Sintesi',
+    path: '/sintesi',
+    icon: icon('ic_analytics'),
+    role:1
   },
   {
     title: 'Risultati Radio',
