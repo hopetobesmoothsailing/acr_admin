@@ -132,18 +132,24 @@ export default function FascicoloprodView() {
         setUsers(result.users);
     }
         const [idToWeightMap, setIdToWeightMap] = useState({});
-
+        const [idToGenderMap, setIdToGenderMap] = useState({});
+       
         // Create the mapping of _id to email
         useEffect(() => {
         const idToWeight = {};
-        users.forEach(user => {
-            if (user.weight_s > 0)
+        const idToGender = {};
+        users.forEach(user => { 
+            if (user.weight_s > 0) {
             idToWeight[user._id] = user.weight_s;
+            idToGender[user._id] = user.Gen_cod;
+            }
+             
         });
         setIdToWeightMap(idToWeight);
+        setIdToGenderMap(idToGender);
         }, [users]);
 
-    
+    console.log("UTENTI",idToGenderMap);
     const generateTimeSlots = (intervalValue) => {
         const slots = {
             "00:00 - 23:59": [],
@@ -171,8 +177,6 @@ export default function FascicoloprodView() {
       
       // Usage example:
       const intervalOptions = [
-        { label: '15 min', value: 15 },
-        { label: '30 min', value: 30 },
         { label: '1 ora', value: 60 },
         { label: '3 ore', value: 180 },
         { label: '24 ore', value: 1440 },
@@ -195,6 +199,7 @@ export default function FascicoloprodView() {
       };
       
       const timeSlots = generateTimeSlots(intervalValue);
+      const timeSlotsGender = generateTimeSlots(intervalValue);
       // console.log(timeSlots);
       const uniquetimeSlots = generateTimeSlots(intervalValue);
 
@@ -236,14 +241,29 @@ export default function FascicoloprodView() {
                 const startMinuteKey = startHour * 60 + startMinute;
                 const endMinuteKey = endHour * 60 + endMinute;
                 if (minuteKey >= startMinuteKey && minuteKey <= endMinuteKey) {
-                    let weight_s = 1
+                    let weight_s = 0;
                     weight_s = parseInt(idToWeightMap[item.user_id],10);
+                    
+                    // const gender = parseInt(idToGenderMap[item.user_id],10);
+                    // let genderx = '';
+                    // if (gender === 1) genderx = 'male';
+                    // if (gender === 2) genderx = 'female';
                     // console.log("PESO UTENTE item.user_id", weight_s)
                     if (weight_s > 0 ){  
                     if (!timeSlots[slotKey][item.acr_result]) {
                         timeSlots[slotKey][item.acr_result] = 1*weight_s;
+                        /* if (gender > 0 && genderx === "male")
+                        timeSlotsGender[slotKey][item.acr_result][genderx] = 1*weight_s;
+                        if (gender > 0 && genderx === "female")
+                        timeSlotsGender[slotKey][item.acr_result][genderx] = 1*weight_s;
+                        */ 
                     } else {
                         timeSlots[slotKey][item.acr_result] += 1*weight_s;
+                        /* if (gender > 0 && genderx === "male")
+                        timeSlotsGender[slotKey][item.acr_result][genderx] += 1*weight_s;
+                        if (gender > 0 && genderx === "female")
+                        timeSlotsGender[slotKey][item.acr_result][genderx] += 1*weight_s;
+                        */
                     }
                     if (!uniquetimeSlots[slotKey][item.user_id]) {
                         uniquetimeSlots[slotKey][item.user_id]=weight_s;
@@ -253,7 +273,7 @@ export default function FascicoloprodView() {
             });
         }
     });
-
+    console.log("TSGENDER",timeSlotsGender);
     // const timeSlotLabels = Object.keys(timeSlots);   
     // const channelNames = Object.keys(timeSlotSeries);
     const channelNames = Array.from(
@@ -355,7 +375,7 @@ export default function FascicoloprodView() {
         const perc_ar = ((ar/52231073)*100).toFixed(1);
         return perc_ar;
     }
-    const calculateAscoltoRadio = (slot) => {
+    /* const calculateAscoltoRadio = (slot) => {
         // console.log("uniquetimeSlots",uniquetimeSlots[slot]);
         // const dati = uniquetimeSlots[slot];
         let ar = 0;
@@ -378,6 +398,18 @@ export default function FascicoloprodView() {
 
         const perc_ar = ar.toFixed(0);
         return perc_ar;
+    } */
+    const calculateAscoltoRadio = (slot) => {
+        // console.log("uniquetimeSlots",uniquetimeSlots[slot]);
+        const dati = uniquetimeSlots[slot];
+        let ar = 0;
+        dati.forEach((item) => {
+            // console.log("ar:item",item)
+            ar += item
+
+        });
+        const perc_ar = ar.toFixed(0);
+        return perc_ar;
     }
     const calculateAscoltoRadioCanale = (channel, slot) => {
         // console.log("uniquetimeSlots",uniquetimeSlots[slot]);
@@ -394,6 +426,7 @@ export default function FascicoloprodView() {
         const perc_ar = ar.toFixed(0);
         return perc_ar; 
     }
+   
     const displayShareRadio = (slot) => {
         // console.log("uniquetimeSlots",uniquetimeSlots[slot]);
         const dati = uniquetimeSlots[slot];
@@ -572,7 +605,7 @@ export default function FascicoloprodView() {
                                 )}
 
                                 {activeButton === 'ascolti'   && (
-                                <Card style={{ display: 'none' }}>
+                                <Card style={{ display: 'block' }}>
                                         <CardContent  sx={{ pl: 0 }}>
                                         <GraphChart activeButton={activeButton} userListeningMap={userListeningMap}  tipoRadioTV={tipoRadioTV}  /> {/* Render the GraphChart component */}
                                         </CardContent>
@@ -718,7 +751,7 @@ export default function FascicoloprodView() {
                             <CardContent>
                                 <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>{ascoltatoriRadioLabel}</Typography>
                                 <Typography variant="p" sx={{ml: 2, mt: 2}}>
-                                (Percentuale di {ascoltatoriRadioLabel} sul totale popolazione 14+ nell’intervallo di riferimento | pop 52.231.073)
+                                (Numero di {ascoltatoriRadioLabel} sul totale popolazione 14+ nell’intervallo di riferimento | pop 52.231.073)
                                 </Typography>
 
 
@@ -728,7 +761,7 @@ export default function FascicoloprodView() {
                                             <Table sx={{minWidth: 800}}>
                                                 <TableHead>
                                                     <TableRow>
-                                                        <TableCell> </TableCell>
+                                                        <TableCell> EMITTENTE </TableCell>
                                                         {Object.keys(timeSlots).map((timeSlotKey) => (
                                                             <TableCell key={timeSlotKey}><strong>{timeSlotKey}</strong></TableCell>
                                                         ))}
@@ -736,8 +769,8 @@ export default function FascicoloprodView() {
                                                 </TableHead>
 
                                                 <TableBody>
-                                                    {sortedChannelNames.map((channel, index) => (
-                                                        <TableRow key={index}>
+                                                    {   sortedChannelNames.map((channel, index) => (
+                                                         <TableRow key={index}>
 
                                                             <TableCell>{channel}</TableCell>
                                                             {Object.keys(timeSlots).map((timeSlotKey) => (
@@ -747,14 +780,14 @@ export default function FascicoloprodView() {
                                                                 </TableCell>
 
                                                             ))}
-                                                        </TableRow>
-                                                    ))}
+                                                        </TableRow> 
+                                                    ))   }
                                                         <TableRow >
 
-                                                            <TableCell><strong>{ascoltatoriRadioLabel}</strong></TableCell>
+                                                            <TableCell>{ascoltatoriRadioLabel}</TableCell>
                                                             {Object.keys(timeSlots).map((timeSlotKey) => (
                                                                 <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
-                                                                   <strong> <span data-tooltip-id="my-tooltip" data-tooltip-content={displayAscoltiRadio(timeSlotKey)} >{calculateAscoltoRadio(timeSlotKey)}</span></strong>
+                                                                    <strong><span data-tooltip-id="my-tooltip" data-tooltip-content={displayAscoltiRadio(timeSlotKey)} >{calculateAscoltoRadio(timeSlotKey)}</span></strong>
                                         
                                                                 </TableCell>
 
