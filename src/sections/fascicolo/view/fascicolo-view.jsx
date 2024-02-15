@@ -80,9 +80,10 @@ export default function FascicoloprodView() {
     
     // Function to handle button click to change the displayed table
     
-    const handlePrint = () => {
+    /* const handlePrint = () => {
       window.print();
-    };
+    }; 
+    */
 
     const handleDateChange = (date) => {
         setSelectedDate(date.format('DD/MM/YYYY'));
@@ -596,7 +597,6 @@ export default function FascicoloprodView() {
                             >
                             CONTATTI
                             </Button>
-                            <Button disabled onClick={handlePrint}>STAMPA</Button>
                             <select id="intervalSelect" value={intervalValue} onChange={handleIntervalChange}>
                                 {intervalOptions.map((option) => (
                                 <option key={option.value} value={option.value}>{option.label}</option>
