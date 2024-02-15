@@ -1,11 +1,27 @@
+/* eslint-disable dot-notation */
 import PropTypes from 'prop-types';
-import React, { useMemo } from 'react';
+import React, { useMemo,useState } from 'react';
 import { Line, XAxis, YAxis, Legend, Tooltip, LineChart, CartesianGrid, ResponsiveContainer } from 'recharts';
 
 import CustomTooltip from './custom-tooltip';
 
 const GraphChartArr = ({ data,intervalValue,channels,channel_name,userListeningMap,idToWeightMap}) => {
+  // Initially set "share" to true and others to false
+  const [visibleLines, setVisibleLines] = useState({
+    share: true,
+    contatti: false,
+    amr: false,
+  });
+
+  // Function to toggle visibility of lines
+  const toggleLineVisibility = (dataKey) => {
+    setVisibleLines((prevVisibleLines) => ({
+      ...prevVisibleLines,
+      [dataKey]: !prevVisibleLines[dataKey],
+    }));
+  };
   const chartData = useMemo(() => {
+   
     if (!data || typeof data !== 'object') {
       console.log('Invalid data for CustomGraphChart');
       return [];
@@ -87,21 +103,31 @@ const GraphChartArr = ({ data,intervalValue,channels,channel_name,userListeningM
     // Iterate through each time slot
     const formattedData = Object.keys(data).map(timeSlot => {
       const share = calculateShareSlotCanale(channel_name, timeSlot);
-      const audience = calculateAudience(channel_name, timeSlot);
-      const contacts = calculateContatti(channel_name, timeSlot);
+      const amr = calculateAudience(channel_name, timeSlot);
+      const contatti = calculateContatti(channel_name, timeSlot);
 
       return {
         name: timeSlot,
         share: parseFloat(share),
-        audience,
-        contacts
+        amr,
+        contatti
       };
     });
 
     return formattedData;
   }, [data,intervalValue,channels,channel_name,userListeningMap]);
 
+  // Assuming 'chartData' is your dataset array and you want to calculate for 'audience'
+  const maxAudience = chartData.reduce((max,dati) => {
+    const maxma = Math.max(max, dati.amr);
+    console.log("MAXMA",maxma);
+    // Assuming 'audience' values are stored under the key 'audience' in your data objects
+    return maxma;
+  }, 0);
 
+  // Add a buffer to the max value, adjust the buffer size based on your needs
+  const buffer = 50; // Or any other logic to determine an appropriate buffer
+  const maxDomainValue = maxAudience + buffer;
   
   
 
@@ -109,7 +135,8 @@ const GraphChartArr = ({ data,intervalValue,channels,channel_name,userListeningM
     <ResponsiveContainer width="100%" height={400}>
       <LineChart data={chartData}>
         <CartesianGrid strokeDasharray="3 3" />
-        <Legend />
+        <Legend onClick={(e) => toggleLineVisibility(e.value)} />
+    
         <Tooltip content={CustomTooltip} />
         <XAxis dataKey="name" />
         
@@ -128,7 +155,7 @@ const GraphChartArr = ({ data,intervalValue,channels,channel_name,userListeningM
           orientation="right" 
           stroke="orange"
           label={{ value: 'Contatti (M)', angle: -90, position: 'insideRight' }}
-          domain={[0, 'dataMax + 10000']}
+          domain={[0, 'dataMax + 1000']}
           scale="linear"
           tickFormatter={(tick) => `${tick / 1000}M`}
         />
@@ -138,8 +165,8 @@ const GraphChartArr = ({ data,intervalValue,channels,channel_name,userListeningM
           yAxisId="right" 
           orientation="right" 
           stroke="#ff0000"
-          label={{ value: 'Audience (K)', angle: -90, position: 'insideRight', offset: 10 }}
-          domain={[0, 'dataMax + 10000']}
+          label={{ value: 'AMR (K)', angle: -90, position: 'insideRight', offset: 10 }}
+          domain={[0, maxDomainValue]}
           scale="linear"
           
           tickFormatter={(tick) => `${tick}K`}
@@ -148,9 +175,9 @@ const GraphChartArr = ({ data,intervalValue,channels,channel_name,userListeningM
         />
 
         {/* Lines for each data type */}
-        <Line type="monotone" dataKey="share" stroke="green" yAxisId="left" />
-        <Line type="monotone" dataKey="contacts" stroke="orange" yAxisId="middle" />
-        <Line type="monotone" dataKey="audience" stroke="#ff0000" yAxisId="right" />      
+        <Line type="monotone" dataKey="share" hide={!visibleLines['share']} stroke="green" yAxisId="left" />
+        <Line type="monotone" dataKey="contatti" hide={!visibleLines['contatti']} stroke="orange" yAxisId="middle" />
+        <Line type="monotone" dataKey="amr" hide={!visibleLines['amr']} stroke="#ff0000" yAxisId="right" />      
       </LineChart>
     </ResponsiveContainer>
   );

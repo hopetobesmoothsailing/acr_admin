@@ -8,7 +8,7 @@ const CustomTooltip = ({ active, payload, label }) => {
           <p className="label">{`${label}`}</p>
           {payload.map((entry, index) => {
             // Check if the payload entry name is 'contacts' to apply transformation
-            const valueDisplay = (entry.name === 'contacts' ) 
+            const valueDisplay = (entry.name === 'contatti' ) 
               ? `${(entry.value / 1000).toLocaleString()} Milioni` // Apply x1000 transformation and append 'K'
               : entry.value.toLocaleString(); // Display as is for other data lines
             

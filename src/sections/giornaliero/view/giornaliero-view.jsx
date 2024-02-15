@@ -60,6 +60,7 @@ export default function GiornalieroView() {
     const [idToWeightMap, setIdToWeightMap] = useState({});
     const [users, setUsers] = useState([]);
     const handleDateChange = (date) => {
+        setLoading(true);
         setSelectedDate(date.format('DD/MM/YYYY'));
     };
     // Get the URL search parameters from the current URL
