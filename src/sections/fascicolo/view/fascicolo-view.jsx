@@ -54,6 +54,9 @@ export default function FascicoloprodView() {
      const handleAscoltiClick = () => {
        setActiveButton('ascolti');
      };
+     const handleContattiClick = () => {
+        setActiveButton('contatti');
+      };
 
     let importantChannels = [];
     
@@ -586,6 +589,13 @@ export default function FascicoloprodView() {
                             >
                             ASCOLTI
                             </Button>
+                            <Button
+                            disabled= {tipo === 'TV' ? 'disabled': ''}
+                            variant={activeButton === 'contatti' ? 'contained' : 'outlined'}
+                            onClick={handleContattiClick}
+                            >
+                            CONTATTI
+                            </Button>
                             <Button disabled onClick={handlePrint}>STAMPA</Button>
                             <select id="intervalSelect" value={intervalValue} onChange={handleIntervalChange}>
                                 {intervalOptions.map((option) => (
@@ -605,6 +615,14 @@ export default function FascicoloprodView() {
                                 )}
 
                                 {activeButton === 'ascolti'   && (
+                                <Card style={{ display: 'block' }}>
+                                        <CardContent  sx={{ pl: 0 }}>
+                                        <GraphChart activeButton={activeButton} userListeningMap={userListeningMap}  tipoRadioTV={tipoRadioTV}  /> {/* Render the GraphChart component */}
+                                        </CardContent>
+                                    </Card>
+                                )}
+
+                                {activeButton === 'contatti'   && (
                                 <Card style={{ display: 'block' }}>
                                         <CardContent  sx={{ pl: 0 }}>
                                         <GraphChart activeButton={activeButton} userListeningMap={userListeningMap}  tipoRadioTV={tipoRadioTV}  /> {/* Render the GraphChart component */}
@@ -746,7 +764,7 @@ export default function FascicoloprodView() {
                             </CardContent>
                             </Card>
                             )}
-                            {activeButton === 'ascolti'  && (
+                            {activeButton === 'contatti'  && (
                             <Card style={{ display: 'block', overflow:'auto' }}>
                             <CardContent>
                                 <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>{ascoltatoriRadioLabel}</Typography>
