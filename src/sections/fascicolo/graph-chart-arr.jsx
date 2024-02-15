@@ -71,7 +71,7 @@ const GraphChartArr = ({ data,intervalValue,importantChannels,tipoRadioTV,active
         // const numericValue = parseInt(value, 10);
         // Add the radio station and its numeric value to the data object
         const shareslotcanale = calculateShareSlotCanale(radioStation,timeSlot);
-        timeSlotData[radioStation] = shareslotcanale;
+        timeSlotData[radioStation] = parseFloat(shareslotcanale).toFixed(0);
       });
 
       // Push the data object to the formattedData array

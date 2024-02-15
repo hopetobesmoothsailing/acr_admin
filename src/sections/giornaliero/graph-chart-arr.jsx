@@ -12,7 +12,24 @@ const GraphChartArr = ({ data,intervalValue,channels,channel_name,userListeningM
     }
   
     
-   
+  const calculateContatti= (channel, slot) => {
+      // const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
+      const uniqueUsersListening = userListeningMap[channel]?.[slot]||'';
+      let somma = 0;
+      // console.log("UNIQUE:",uniqueUsersListening);
+      if (uniqueUsersListening){
+      uniqueUsersListening.forEach(utente => {
+          if (utente) {
+              // console.log("Sommo singola audience utente", idToWeightMap[utente]);     
+              somma +=  utente || 0
+          }
+      });
+      }
+      somma /= 1000;
+      // Calculate the share percentage for the channel in the given time slot
+      return somma.toFixed(0);
+  };
+
     const calculateAudience = (channel, slot) => {
       // Placeholder for audience calculation
       const minutoMedio = data[slot][channel] || 0 ;
@@ -21,7 +38,7 @@ const GraphChartArr = ({ data,intervalValue,channels,channel_name,userListeningM
       return audienceByMinute.toFixed(1);  
     };
 
-    const calculateContacts = (channel,slot) => {
+    /* const calculateContacts = (channel,slot) => {
       let totalWeightedContacts = 0;
     
       // Check if there's data for the given channel
@@ -44,7 +61,7 @@ const GraphChartArr = ({ data,intervalValue,channels,channel_name,userListeningM
       return (totalWeightedContacts/1000).toFixed(1);
     };
     
-    
+    */
     
 
     const calculateShareSlotCanale = (channel, slot) => {
@@ -71,7 +88,7 @@ const GraphChartArr = ({ data,intervalValue,channels,channel_name,userListeningM
     const formattedData = Object.keys(data).map(timeSlot => {
       const share = calculateShareSlotCanale(channel_name, timeSlot);
       const audience = calculateAudience(channel_name, timeSlot);
-      const contacts = calculateContacts(channel_name, timeSlot);
+      const contacts = calculateContatti(channel_name, timeSlot);
 
       return {
         name: timeSlot,

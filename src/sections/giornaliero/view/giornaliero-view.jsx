@@ -552,7 +552,7 @@ if (loading) {
                         <TableHead>
                             <TableRow >
                                 <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>Fasce Auditel</TableCell>
-                                <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>CL (Contatti Lordi)</TableCell>
+                                <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>CL (Contatti Netti)</TableCell>
                                 <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>SH (Share)</TableCell>
                                 <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>Durata Media</TableCell>
                                 
