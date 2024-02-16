@@ -391,62 +391,14 @@ export default function RisultatiView() {
             uniqueUsersListening.forEach(utente => {
                 if (utente) {
                     console.log("Sommo singola audience utenet", idToWeightMap[utente]);     
-                    somma +=  idToWeightMap[utente]
+                    somma +=  1
                 }
             });
             }
             // Calculate the share percentage for the channel in the given time slot
             return parseInt(somma.toFixed(0),10);
         };
-        const calculateAudienceByMinute = (channel, slot) => {
-            // const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
-            const minutoMedio = timeSlots[slot][channel] || 0 ;
-            // console.log("MINUTO MEDIO %s", minutoMedio);
-            const audienceByMinute = (minutoMedio*pesoNum)/180;
-            // console.log("AUDIENCE BY MINUTE canale %s slot %s audiencexmin %s", channel,slot, audienceByMinute);
-            // Calculate the share percentage for the channel in the given time slot
-            return audienceByMinute.toFixed(2);
-        };
-        const calculateShareSlotCanale = (channel, slot) => {
-            let audienceSlotCanali = 0
-            channels.forEach(canalealtro => {
-                if ((canalealtro !== "NULL")) {
-                    const uniqueUsersListeningch = userListeningMap[channel]?.[slot]?.size || 0;    
 
-                    audienceSlotCanali += uniqueUsersListeningch*parseFloat(timeSlots[slot][canalealtro] || 0)
-                }
-            });
-            const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
-            const minuto = timeSlots[slot][channel] || 0 ;
-            const audienceByMinute = minuto*(uniqueUsersListening*pesoNum);
-            const minutes_slot = 180;
-            const shareSlotCanale = (((audienceByMinute/minutes_slot) || 0)/ (audienceSlotCanali/minutes_slot))*100 || 0 ;
-            return shareSlotCanale.toFixed(2);
-       
-        };
-    
-        const displayTitle = (channel,slot) => {
-            // const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
-            const minutoMedio = timeSlots[slot][channel] || 0 ;
-            // console.log("MINUTO MEDIO %s", minutoMedio);
-            const audienceByMinute = minutoMedio/180;
-            // console.log("AUDIENCE BY MINUTE canale %s slot %s audiencexmin %s", channel,slot, audienceByMinute);
-            // Calculate the share percentage for the channel in the given time slot
-            return `#Canale: ${channel}, #Audience =  ${minutoMedio} Totale Minuti Canale  / 180 intervallo =  ${audienceByMinute}`;
-    
-        } 
-        const displayTitleShare = (channel,slot) =>  {
-            let audienceSlotCanali = 0
-            channels.forEach(canalealtro => {
-                if ((canalealtro !== "NULL")) {
-                    audienceSlotCanali += parseFloat(timeSlots[slot][canalealtro] || 0)
-                }
-            });
-            // const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
-            const minuto = timeSlots[slot][channel] || 0 ;
-            const audienceByMinute = minuto;
-            return `(SHARE = (#AMR = ${(audienceByMinute).toFixed(2)} minuti ) / #Audience canali :${audienceSlotCanali} minuti periodo considerato )`;
-        }
 
         const counts = {};
         acrDetails.forEach((detail) => {
@@ -496,90 +448,7 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
             </LocalizationProvider>
            
             
-            <Card >
-                    <CardContent>
-
- 
-           <Typography variant="h5" sx={{ml: 2, mt: 3}}>
-                AUDIENCE 
-                <ExportExcel  exdata={channelNames} fileName="Excel-Export-Ascolti" idelem="export-table"/>
-           </Typography>
-            <Typography variant="p" sx={{ml: 2, mt: 3,mb:2}}>
-                AUDIENCE AGGIORNATA: (somma min. tot di ascolto di ogni canale di ogni utente * il suo relativo peso) su intervallo considerato.
-            </Typography>           
-            <TableContainer id="export-table"  sx={{overflow: 'unset'}}>
-                <Table sx={{minWidth: 800}}>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>Channel Name</TableCell>
-                            {Object.keys(timeSlots).map((timeSlotKey) => (
-                                <TableCell key={timeSlotKey}>{timeSlotKey} </TableCell>
-                            ))}
-                        </TableRow>
-                    </TableHead>
-
-                    <TableBody>
-                        {channelNames.sort().reverse().map((channel, index) => (
-                            <TableRow key={index}>
-
-                                <TableCell>{channel}</TableCell>
-                                {Object.keys(timeSlots).map((timeSlotKey) => (
-                                    <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
-                                           <span data-tooltip-id="my-tooltip" data-tooltip-content={displayTitle(channel,timeSlotKey)} >{calculateAudienceByMinute(channel, timeSlotKey)}</span>
-
-                                       
-                                    </TableCell>
-                                    
-                                ))}
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-            </CardContent>
-            </Card>
-             
-                <Card >
-                    <CardContent>
-                    <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2}}>
-                    SHARE 
-                     
-                    </Typography>
-                    <Typography variant="p" sx={{ml: 2, mt: 3,mb:2}}>
-                    Data da rapporto tra AMR e AUDIENCE nell&apos;intervallo considerato di 180 minuti. 
-                    </Typography>
-                    <br/>
-                     
-                    {/* Remaining pagination logic */}
-                        <Scrollbar>
-                            <TableContainer id="export-table-share" sx={{ overflow: 'unset' }}>
-                                <Table sx={{ minWidth: 800 }}>
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell>Channel Name</TableCell>
-                                            {timeSlotLabels.map((timeSlotKey) => (
-                                                <TableCell key={timeSlotKey}>{timeSlotKey}</TableCell>
-                                            ))}
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {Object.keys(userListeningMap).sort().reverse().map((channel, index) => (
-                                            <TableRow key={index}>
-                                                <TableCell>{channel}</TableCell>
-                                                {timeSlotLabels.map((timeSlotKey) => (
-                                                    <TableCell style={{ textAlign: 'center' }} key={timeSlotKey}>
-                                                        {/* Use calculateAudienceShare to retrieve data */}
-                                                        <span data-tooltip-id="my-tooltip" data-tooltip-content={displayTitleShare(channel,timeSlotKey)} >{calculateShareSlotCanale(channel, timeSlotKey)}%</span>
-                                                    </TableCell>
-                                                ))}
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-                        </Scrollbar>
-                        </CardContent>
-                    </Card>
+           
                 <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2}}>
                 CONTATTI
                 <ExportExcel  exdata={channelNames} fileName="Excel-Export-Contatti" idelem="export-table-contatti"/>
@@ -591,6 +460,7 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
                 {/* Remaining pagination logic */}
             
                 <Card>
+                    <CardContent>
                     <Scrollbar>
                         <TableContainer id="export-table-contatti" sx={{ overflow: 'unset' }}>
                             <Table sx={{ minWidth: 800 }}>
@@ -618,6 +488,7 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
                             </Table>
                         </TableContainer>
                     </Scrollbar>
+                </CardContent>
                 </Card>                
             <Card>
                 {/* Existing table components and logic */}

@@ -8,7 +8,7 @@ export default function FascicoloPage() {
   return (
     <>
       <Helmet>
-        <title> My Result | ACR Admin </title>
+      <title> Fascicolo Dev - RadioMonitor </title>
       </Helmet>
 
       <FascicoloView />
