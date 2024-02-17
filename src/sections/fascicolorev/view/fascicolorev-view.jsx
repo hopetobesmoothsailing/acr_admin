@@ -111,8 +111,13 @@ export default function FascicolorevView() {
     }
     
     useEffect(() => {
-       
-    
+        let importantChannelsx=[];
+        if ((tipoRadioTV === 'RADIO')) { 
+             importantChannelsx = ['Radio105'];
+        }
+        else { 
+            importantChannelsx = ['RAI1', 'RAI2','RAI3','RETE4','CANALE5','ITALIA1','LA7'];
+        }
         const parseDateTime = (dateTimeStr) => {
             const [datePart, timePart] = dateTimeStr.split(' ');
             const [day, month, year] = datePart.split('/').map(Number);
@@ -134,11 +139,29 @@ export default function FascicolorevView() {
             });
     
             const results = [];
-    
+            
             Object.values(segments).forEach((segmentRecords) => {
+                // Calculate the dominant ACR result for each segment
+                const acrResultCounts = {};
+                segmentRecords.forEach(record => {
+                    acrResultCounts[record.acr_result] = (acrResultCounts[record.acr_result] || 0) + 1;
+                });
+    
+                let dominantAcrResult = null;
+                let maxCount = 0;
+                // eslint-disable-next-line no-restricted-syntax
+                for (const [acr_result, count] of Object.entries(acrResultCounts)) {
+                    if (importantChannelsx.includes(acr_result) || count > maxCount) {
+                        dominantAcrResult = acr_result;
+                        maxCount = count;
+                    }
+                }
+    
+                // Fill in missing records within each segment
                 const minDateTime = parseDateTime(segmentRecords[0].recorded_at); // Assuming records are sorted, first record's time
                 const maxDateTime = parseDateTime(segmentRecords[segmentRecords.length - 1].recorded_at); // Last record's time
     
+                // eslint-disable-next-line no-restricted-syntax
                 for (let dt = new Date(minDateTime); dt <= maxDateTime; dt.setMinutes(dt.getMinutes() + 1)) {
                     const formattedDate = formatDateTime(dt);
                     const existingRecord = segmentRecords.find(r => formatDateTime(parseDateTime(r.recorded_at)) === formattedDate);
@@ -146,7 +169,7 @@ export default function FascicolorevView() {
                         results.push(existingRecord);
                     } else {
                         // Fill gap with the first record's structure, but update recorded_at and possibly acr_result
-                        const filledRecord = { ...segmentRecords[0], recorded_at: formattedDate, acr_result: "NULL" }; // Or use dominant result if calculated
+                        const filledRecord = { ...segmentRecords[0], recorded_at: formattedDate, acr_result: dominantAcrResult || "NULL" }; // Or use dominant result if calculated
                         results.push(filledRecord);
                     }
                 }
