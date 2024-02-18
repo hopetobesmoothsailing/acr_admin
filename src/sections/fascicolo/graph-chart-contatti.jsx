@@ -2,11 +2,11 @@ import PropTypes from 'prop-types';
 import React, { useMemo,useState,useEffect } from 'react';
 import { Line, XAxis, YAxis, Legend, Tooltip, LineChart, CartesianGrid, ResponsiveContainer } from 'recharts';
 
+import CustomTooltip from './custom-tooltip';
 import {RADIOSTATIONCOLORS} from "../../utils/consts";
-
 // import Button  from '@mui/material/Button';
 
-const GraphChart = ({ userListeningMap,tipoRadioTV,activeButton}) => {
+const GraphChartContatti = ({ userListeningMapWeight,tipoRadioTV,activeButton,idToWeightMap}) => {
    
   let initiallyVisibleChannels = ['RAIRadio1', 'RAIRadio2', 'RAIRadio3'];
   if (tipoRadioTV === "TV") {
@@ -16,7 +16,7 @@ const GraphChart = ({ userListeningMap,tipoRadioTV,activeButton}) => {
   const [visibleLines, setVisibleLines] = useState(() => {
     const initialVisibility = {};
     // Assuming userListeningMap keys directly correspond to the channels
-    Object.keys(userListeningMap).forEach(channel => {
+    Object.keys(userListeningMapWeight).forEach(channel => {
         // Channels in initiallyVisibleChannels are set to true, others to false
         initialVisibility[channel] = initiallyVisibleChannels.includes(channel);
     });
@@ -34,13 +34,24 @@ const GraphChart = ({ userListeningMap,tipoRadioTV,activeButton}) => {
 
   const chartData = useMemo(() => {
     const data = [];
-    Object.keys(userListeningMap).forEach(channel => {
-      Object.keys(userListeningMap[channel]).forEach(slot => {
+    Object.keys(userListeningMapWeight).forEach(channel => {
+      Object.keys(userListeningMapWeight[channel]).forEach(slot => {
         if (!['00:00 - 23:59', '06:00 - 23:59'].includes(slot)) {
-          const slotSum = Array.from(userListeningMap[channel][slot]).reduce((sum, value) => sum + value || 0, 0);
+          const dati = userListeningMapWeight[channel][slot];
+          let ar = 0;
+          if (dati) {
+            dati.forEach((item) => {
+                const pesoitem = idToWeightMap[item]; // Corrected access to idToWeightMap
+                /* if ((channel === "RTL")&&(slot === '06:00 - 08:59')) {
+                    console.log("ar:item", item);
+                    console.log("ar:item_weight", pesoitem);
+                } */
+                ar += pesoitem || 0; // Added a fallback to 0 if pesoitem is undefined
+            });
+          }
           data.push({
             name: slot,
-            [channel]: slotSum,
+            [channel]: ar,
           });
         }
       });
@@ -70,10 +81,10 @@ const GraphChart = ({ userListeningMap,tipoRadioTV,activeButton}) => {
     });
 
     return deduplicatedData;
-  }, [userListeningMap]);
+  }, [userListeningMapWeight,idToWeightMap]);
 
   // Generate lines for each radio station
-  const lines = Object.keys(userListeningMap).map((radioStation, index) => (
+  const lines = Object.keys(userListeningMapWeight).map((radioStation, index) => (
     <Line key={radioStation} type="monotone" dataKey={radioStation}        hide={!visibleLines[radioStation]} stroke={RADIOSTATIONCOLORS[radioStation]}/>
   ));
   useEffect(() => {
@@ -82,13 +93,26 @@ const GraphChart = ({ userListeningMap,tipoRadioTV,activeButton}) => {
     window.dispatchEvent(resizeEvent);
   }, [activeButton]); // Dependency on the state that toggles visibility
 
+  // Assuming 'chartData' is your dataset array and you want to calculate for 'audience'
+  const maxAudience = chartData.reduce((max,dati) => {
+    const maxma = Math.max(max, dati.amr);
+    console.log("MAXC",maxma);
+    // Assuming 'audience' values are stored under the key 'audience' in your data objects
+    return maxma;
+  }, 0);
+
+  // Add a buffer to the max value, adjust the buffer size based on your needs
+  const buffer = 50; // Or any other logic to determine an appropriate buffer
+  const maxDomainValue = maxAudience + buffer;
+  console.log(maxDomainValue);
   return (
       <ResponsiveContainer key={activeButton} width="100%" height={400}>
       <LineChart data={chartData}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="name"   />
-        <YAxis label={{ value: 'AMR', angle: -90, position: 'outsideLeft' }}  domain={[0, 'dataMax + 2000000']} orientation="right" />
-        <Tooltip />
+        <YAxis   label={{ value: 'Contatti Netti', angle: -90, position: 'outsideLeft' }}  domain={[0, 'dataMax + 2000000']} orientation="right" />
+        <Tooltip content={CustomTooltip} />
+       
         <Legend onClick={(e) => toggleLineVisibility(e.value)} />
         {lines}
       </LineChart>
@@ -97,10 +121,11 @@ const GraphChart = ({ userListeningMap,tipoRadioTV,activeButton}) => {
 };
 
 // PropTypes validation
-GraphChart.propTypes = {
-  userListeningMap: PropTypes.object.isRequired, // Validate userListeningMap as an object and is required
+GraphChartContatti.propTypes = {
+  userListeningMapWeight: PropTypes.object.isRequired, // Validate userListeningMap as an object and is required
   tipoRadioTV: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
   activeButton: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
+  idToWeightMap: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
 };
 
-export default GraphChart;
+export default GraphChartContatti;

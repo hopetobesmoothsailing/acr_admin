@@ -446,19 +446,21 @@ export default function GiornalieroView() {
         };
         const calculateAudience = (channel, slot) => {
             // const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
-            const uniqueUsersListening = userListeningMap[channel]?.[slot]||'';
-            let somma = 0;
-            // console.log("UNIQUE:",uniqueUsersListening);
-            if (uniqueUsersListening){
-            uniqueUsersListening.forEach(utente => {
-                if (utente) {
-                    // console.log("Sommo singola audience utente", idToWeightMap[utente]);     
-                    somma +=  utente || 0
-                }
-            });
+            let ar = 0;
+            const dati = userListeningMapWeight[channel]?.[slot];
+            if (dati) {
+                dati.forEach((item) => {
+                    const pesoitem = idToWeightMap[item]; // Corrected access to idToWeightMap
+                    /* if ((channel === "RTL")&&(slot === '06:00 - 08:59')) {
+                        console.log("ar:item", item);
+                        console.log("ar:item_weight", pesoitem);
+                    } */
+                    ar += pesoitem || 0; // Added a fallback to 0 if pesoitem is undefined
+                });
             }
-            // Calculate the share percentage for the channel in the given time slot
-            return somma.toFixed(0);
+            const perc_ar = ar.toFixed(0);
+            return perc_ar;
+    
         };
 
 
