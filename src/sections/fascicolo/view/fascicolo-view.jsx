@@ -111,7 +111,7 @@ export default function FascicoloprodView() {
     if ((tipo === null)||(tipo === 'RADIO')) { 
         tipoRadioTV = 'RADIO';
         
-        importantChannels = ['RadioDeejay', 'RAIRadio1','RAIRadio2','RAIRadio3','RDS','RTL','Radio24','RadioM2O','RADIOSUBASIO','RADIOKISSKISS','RadioFRECCIA','RadioCapital','R101','VIRGINRadio','RADIOMONTECARLO','Radio105','RadioZETA','RadioItaliaSMI','RadioNORBA'];
+        importantChannels = ['RadioDeejay', 'RAIRadio1','RAIRadio2','RAIRadio3','RDS','RTL','Radio24','RadioM2O','RADIOKISSKISS','RadioFRECCIA','RadioCapital','R101','VIRGINRadio','RADIOMONTECARLO','Radio105','RadioItaliaSMI'];
         ascoltatoriRadioLabel = 'ASCOLTATORI RADIO';
 
     }
@@ -211,7 +211,7 @@ export default function FascicoloprodView() {
       };
       
       const timeSlots = generateTimeSlots(intervalValue);
-      const timeSlotsGender = generateTimeSlots(intervalValue);
+      // const timeSlotsGender = generateTimeSlots(intervalValue);
       // console.log(timeSlots);
       const uniquetimeSlots = generateTimeSlots(intervalValue);
 
@@ -288,7 +288,7 @@ export default function FascicoloprodView() {
             });
         }
     });
-    console.log("TSGENDER",timeSlotsGender);
+    // console.log("TSGENDER",timeSlotsGender);
     // const timeSlotLabels = Object.keys(timeSlots);   
     // const channelNames = Object.keys(timeSlotSeries);
     const channelNames = Array.from(
@@ -332,7 +332,7 @@ export default function FascicoloprodView() {
             
             }
         });
-        console.log("ORDERED",orderedACRDetails);
+        // console.log("ORDERED",orderedACRDetails);
         const userRecognitionCounts = {}; // Format: { [slotKey]: { [userId]: count } }
 
         orderedACRDetails.forEach(item => {
@@ -366,15 +366,13 @@ export default function FascicoloprodView() {
             });
         });
         
-        console.log("userRecog:",userRecognitionCounts);
+        // console.log("userRecog:",userRecognitionCounts);
        
         // Iterate through each time slot
         Object.entries(userRecognitionCounts).forEach(([slotKey]) => {
             // Iterate through each channel within the slot
             Object.entries(userRecognitionCounts[slotKey]).forEach(([channel, userIds]) => {
                 // Iterate through each user within the channel
-                console.log("CH",channel);
-                console.log("user_id",userIds);
                 Object.entries(userIds).forEach(([userId, count]) => {
                     // Check if the user has 5 or more recognitions
                     if (count >= 5) {
@@ -396,8 +394,8 @@ export default function FascicoloprodView() {
             
             
  
-    console.log("USER LISTENING MAP WEIGHT",userListeningMapWeight);
-    console.log("USER LISTENING MAP WEIGHT 5 min",userListening5minMapWeight);
+    // console.log("USER LISTENING MAP WEIGHT",userListeningMapWeight);
+    // console.log("USER LISTENING MAP WEIGHT 5 min",userListening5minMapWeight);
     // console.log("USER LISTENING MAP ",userListeningMap);
     // console.log("USER WEIGHT ",idToWeightMap);
 
@@ -416,7 +414,12 @@ export default function FascicoloprodView() {
         }
         else
         audienceByMinute = minutoMedio*pesoNum/intervalValue;
-        return audienceByMinute.toFixed(0).toString().replace(".", ",");
+        let audienceByMinutestr = "*";
+        if (audienceByMinute > 0) {
+            audienceByMinutestr = audienceByMinute.toFixed(0).toString().replace(".", ",");
+        }
+        
+        return audienceByMinutestr;
     };
  
             
@@ -440,7 +443,9 @@ export default function FascicoloprodView() {
             console.log("F_ASC:",audienceSlotCanali);
         } */
         const shareSlotCanale = (((audienceByMinute/intervalValue) || 0)/ (audienceSlotCanali/intervalValue))*100 || 0 ;
-        return shareSlotCanale.toFixed(1).toString();
+        let retSh = "*";
+        if (shareSlotCanale > 0) retSh = shareSlotCanale.toFixed(1).toString()
+        return retSh;
 
     };
     
@@ -507,7 +512,11 @@ export default function FascicoloprodView() {
                 ar += pesoitem || 0; // Added a fallback to 0 if pesoitem is undefined
             });
         }
-        const perc_ar = ar.toFixed(0);
+        let perc_ar = 0;
+        if (ar > 0)
+            perc_ar = ar.toFixed(0);
+        else 
+            perc_ar = "*";
         return perc_ar;
     };
     const calculateAscoltoRadioCanale5min = (channel, slot) => {
@@ -527,7 +536,11 @@ export default function FascicoloprodView() {
                 ar += pesoitem || 0; // Added a fallback to 0 if pesoitem is undefined
             });
         }
-        const perc_ar = ar.toFixed(0);
+        let perc_ar = 0;
+        if (ar > 0)
+            perc_ar = ar.toFixed(0);
+        else 
+            perc_ar = "*";
         return perc_ar;
     };
    
@@ -747,7 +760,7 @@ export default function FascicoloprodView() {
                                         </Typography>
                                             
                                     <Typography variant="p" sx={{ml: 2, mt: 3}}>
-                                    (Rapporto tra la somma degli {ascoltatoriRadioLabel} per minuto e la durata in minuti dell’intervallo di riferimento)
+                                    (Rapporto tra Ascolto Medio (AMR) e il totale {ascoltatoriRadioLabel} nell’intervallo di riferimento | almeno 1 minuto di ascolto)
                                     </Typography>
                                     <ExportExcel   fileName={`Export-Ascolti-${tipoRadioTV}-${dayjs(selectedDate).format('MM-DD-YYYY')}`} idelem={`Export-Ascolti-${tipoRadioTV}-${dayjs(selectedDate).format('MM-DD-YYYY')}`}/>
                             
@@ -786,7 +799,9 @@ export default function FascicoloprodView() {
                                                 </TableBody>
                                             </Table>
                                         </TableContainer>
-                                        
+                                        <Typography variant="small" sx={{ml:2, mt:8, mb:10, color:"#999"}}>
+                                        (*) Il dato non è statisticamente significativo per la bassa numerosità dei casi
+                                        </Typography>
                                     </CardContent>
                                 </Card>
                                 )}
@@ -827,6 +842,9 @@ export default function FascicoloprodView() {
                                                 </TableBody>
                                             </Table>
                                         </TableContainer>
+                                        <Typography variant="small" sx={{ml:2, mt:8, mb:10, color:"#999"}}>
+                                        (*) Il dato non è statisticamente significativo per la bassa numerosità dei casi
+                                        </Typography>
 
                             </CardContent>
                             </Card>
@@ -836,7 +854,7 @@ export default function FascicoloprodView() {
                             <CardContent>
                                 <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>{ascoltatoriRadioLabel}</Typography>
                                 <Typography variant="p" sx={{ml: 2, mt: 2}}>
-                                (Percentuale di {ascoltatoriRadioLabel} sul totale popolazione 14+ nell’intervallo di riferimento | pop 52.231.073)
+                                (Percentuale di individui che hanno ascoltato almeno 1 minuto la radio nell&apos;intervallo di riferimento | pop 52.231.0733)
                                 </Typography>
                                 <ExportExcel fileName={`Export-SHARE-Globale-${tipoRadioTV}-${dayjs(selectedDate).format('MM-DD-YYYY')}`}  idelem={`Export-SHARE-Globale-${tipoRadioTV}-${dayjs(selectedDate).format('MM-DD-YYYY')}`}/>
 
@@ -869,6 +887,9 @@ export default function FascicoloprodView() {
                                                 </TableBody>
                                             </Table>
                                         </TableContainer>
+                                        <Typography variant="small" sx={{ml:2, mt:8, mb:10, color:"#999"}}>
+                                        (*) Il dato non è statisticamente significativo per la bassa numerosità dei casi
+                                        </Typography>
 
                             </CardContent>
                             </Card>
@@ -876,9 +897,9 @@ export default function FascicoloprodView() {
                             {activeButton === 'contatti'  && (
                             <Card style={{ display: 'block', overflow:'auto' }}>
                             <CardContent>
-                                <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>{ascoltatoriRadioLabel}</Typography>
+                                <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>CONTATTI NETTI</Typography>
                                 <Typography variant="p" sx={{ml: 2, mt: 2}}>
-                                (Numero di {ascoltatoriRadioLabel} sul totale popolazione 14+ nell’intervallo di riferimento | pop 52.231.073)
+                                (Numero di ASCOLTATORI che hanno ascoltato almeno 1 minuto della specifica emittente nell’intervallo di riferimento | pop 52.231.073)
                                 </Typography>
 
 
@@ -924,6 +945,10 @@ export default function FascicoloprodView() {
                                                 </TableBody>
                                             </Table>
                                         </TableContainer>
+                                        <Typography variant="small" sx={{ml:2, mt:8, mb:10, color:"#999"}}>
+                                        (*) Il dato non è statisticamente significativo per la bassa numerosità dei casi
+                                        </Typography>
+
                                         <Card style={{ display: 'block' }}>
                                         <Typography variant="h6" sx={{ml: 2, pt: 5}}>
                                         GRAFICO CONTATTI IPOTESI 5 MINUTI
@@ -969,6 +994,10 @@ export default function FascicoloprodView() {
                                                 </TableBody>
                                             </Table>
                                         </TableContainer>
+                                        <Typography variant="small" sx={{ml:2, mt:8, mb:10, color:"#999"}}>
+                                        (*) Il dato non è statisticamente significativo per la bassa numerosità dei casi
+                                        </Typography>
+
                             </CardContent>
                             </Card>
                             
