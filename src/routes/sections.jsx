@@ -44,7 +44,7 @@ export default function Router() {
                 {path: 'risultatinull', element: <ProtectedRoute roles={['admin', 'operator']} children={<RisultatinullPage/>}/>},
                 {path: 'palinsestom', element: <ProtectedRoute roles={['admin', 'operator']} children={<PalinsestomPage/>}/>},
                 {path: 'risdettagli', element: <ProtectedRoute roles={['admin', 'operator', 'customer']} children={<RisdettagliPage/>}/>},
-                {path: 'giornaliero', element: <ProtectedRoute roles={['admin', 'operator']} children={<GiornalieroPage/>}/>},
+                {path: 'giornaliero', element: <ProtectedRoute roles={['admin', 'operator','customer']} children={<GiornalieroPage/>}/>},
                 {path: 'fascicolo', element: <ProtectedRoute roles={['admin', 'operator']} children={<FascicoloPage/>}/>},
                 {path: 'fascicolorev', element: <ProtectedRoute roles={['admin', 'operator']} children={<FascicolorevPage/>}/>},
                 {path: 'fascicoloprod', element: <ProtectedRoute roles={['admin', 'operator', 'customer']} children={<FascicoloprodPage/>}/>},
