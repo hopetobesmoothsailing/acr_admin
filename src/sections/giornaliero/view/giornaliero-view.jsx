@@ -441,9 +441,31 @@ export default function GiornalieroView() {
             // const audienceByMinute = minuto*(uniqueUsersListening*pesoNum);
             const audienceByMinute = minuto;
             const shareSlotCanale = (((audienceByMinute/intervalValue) || 0)/ (audienceSlotCanali/intervalValue))*100 || 0 ;
-            return shareSlotCanale.toFixed(1).toString().replace(".", ",");
+            let retSh = "*";
+            if (shareSlotCanale > 0) retSh = shareSlotCanale.toFixed(1).toString();
+            return retSh;
     
         };
+        function convertMinutesToTimeString(minutesDecimal) {
+            const minutes = Math.floor(minutesDecimal); // Get the integer part
+            const seconds = Math.round((minutesDecimal - minutes) * 60); // Calculate the seconds from the remainder
+            
+            // Format the time string
+            const formattedMinutes = minutes.toString().padStart(2, '0');
+            const formattedSeconds = seconds.toString().padStart(2, '0');
+            
+            return `${formattedMinutes}:${formattedSeconds}`;
+        }
+        const calculateDurataMediaCanale = (channel,slot) => {
+            const minuto = timeSlots[slot][channel] || 0 ;
+            const audienceChannel = calculateAudience(channel,slot);
+            const audienceByMinute = minuto;
+            console.log("AMR",audienceByMinute);
+            console.log("AMR-CANALE",audienceChannel);
+            const durmedia = ((audienceByMinute/audienceChannel) || 0) ;
+            
+            return convertMinutesToTimeString(durmedia);
+        }
         const calculateAudience = (channel, slot) => {
             // const uniqueUsersListening = userListeningMap[channel]?.[slot]?.size || 0;    
             let ar = 0;
@@ -458,12 +480,16 @@ export default function GiornalieroView() {
                     ar += pesoitem || 0; // Added a fallback to 0 if pesoitem is undefined
                 });
             }
-            const perc_ar = ar.toFixed(0);
+
+            let perc_ar = "*";
+            if (ar > 0)
+                perc_ar = ar.toFixed(0);
+            
             return perc_ar;
     
         };
 
-
+        const expdate = selectedDate || yesterday;
 
         //    console.log(fiveMinuteBasedData);
 if (loading) {
@@ -512,11 +538,11 @@ if (loading) {
                 <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2}}>
                 Palinsesto Giornaliero
                     
-                <ExportExcel   fileName={`Export-Palinsesto-${channel_name}-${dayjs(selectedDate).format('MM-DD-YYYY')}`} idelem={`Export-Palinsesto-${channel_name}-${dayjs(selectedDate).format('MM-DD-YYYY')}`}/>
+                <ExportExcel   fileName={`Export-Palinsesto-${channel_name}-${dayjs(expdate).format('MM-DD-YYYY')}`} idelem={`Export-Palinsesto-${channel_name}-${dayjs(expdate).format('MM-DD-YYYY')}`}/>
                    </Typography>
                     <CardContent>
                     <Scrollbar>
-                    <TableContainer id={`Export-Palinsesto-${channel_name}-${dayjs(selectedDate).format('MM-DD-YYYY')}`}>
+                    <TableContainer id={`Export-Palinsesto-${channel_name}-${dayjs(expdate).format('MM-DD-YYYY')}`}>
                     <Table sx={{ minWidth: 400 }}>
                         <TableHead>
                             <TableRow >
@@ -550,6 +576,10 @@ if (loading) {
                     Dati del giorno {selectedDate} 
                     <ExportExcel  exdata={channelNames} fileName={`Export-Giornaliero-${channel_name}-${dayjs(selectedDate).format('MM-DD-YYYY')}`} idelem={`Export-Giornaliero-${channel_name}-${dayjs(selectedDate).format('MM-DD-YYYY')}`} />
                     </Typography>
+                    <Typography variant="p" sx={{ml: 2, mt: 3}}>
+                    (Almeno 1 minuto di ascolto)
+                    </Typography>
+
                     <TableContainer id={`Export-Giornaliero-${channel_name}-${dayjs(selectedDate).format('MM-DD-YYYY')}`}>
                     <Table sx={{ minWidth: 400 }}>
                         <TableHead>
@@ -569,7 +599,7 @@ if (loading) {
                                     <TableCell><strong>{timeSlotKey}</strong></TableCell>
                                     <TableCell style={{textAlign:"center"}}>{calculateAudience(channel_name, timeSlotKey)}</TableCell>
                                     <TableCell style={{textAlign:"center"}}>{calculateShareSlotCanale(channel_name, timeSlotKey)}%</TableCell>
-                                    <TableCell style={{textAlign:"center"}}>{(timeSlots[timeSlotKey][channel_name]/intervalValue).toFixed(2) || 0}</TableCell>
+                                    <TableCell style={{textAlign:"center"}}>{calculateDurataMediaCanale(channel_name, timeSlotKey)}</TableCell>
            
                              
                             </TableRow>
@@ -577,7 +607,9 @@ if (loading) {
                         </TableBody>
                     </Table>
                     </TableContainer>
-                    
+                    <Typography variant="small" sx={{ml:2, mt:8, mb:10, color:"#999"}}>
+                                        (*) Il dato non è statisticamente significativo per bassa numerosità dei casi
+                                        </Typography>
                   </Scrollbar>
 
                 </Card>

@@ -36,7 +36,7 @@ dayjs.locale('it'); // Set the locale to Italian
 
 // ----------------------------------------------------------------------
 
-export default function FascicoloprodView() {
+export default function FascicoloView() {
 
     const channels = [];
     const pesoNum = 1
