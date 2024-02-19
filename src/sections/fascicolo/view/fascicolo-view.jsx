@@ -340,43 +340,59 @@ export default function FascicoloprodView() {
             const [, time] = recordedAt.split(' ');
             const [hours, minutes] = time.split(':').map(Number);
             const minuteOfDay = hours * 60 + minutes;
-
+        
             Object.entries(timeSlots).forEach(([slotKey, slotRange]) => {
                 const [start, end] = slotKey.split(' - ').map(timex => {
                     const [hour, minute] = timex.split(':').map(Number);
                     return hour * 60 + minute;
                 });
-
+        
                 if (minuteOfDay >= start && minuteOfDay <= end) {
+                    // Initialize the slot if not already done
                     if (!userRecognitionCounts[slotKey]) {
                         userRecognitionCounts[slotKey] = {};
                     }
-                    if (!userRecognitionCounts[slotKey][item.user_id]) {
-                        userRecognitionCounts[slotKey][item.user_id] = 1;
+                    // Initialize the channel within the slot if not already done
+                    if (!userRecognitionCounts[slotKey][item.acr_result]) {
+                        userRecognitionCounts[slotKey][item.acr_result] = {};
+                    }
+                    // Initialize the user within the channel of a slot if not already done, then increment
+                    if (!userRecognitionCounts[slotKey][item.acr_result][item.user_id]) {
+                        userRecognitionCounts[slotKey][item.acr_result][item.user_id] = 1;
                     } else {
-                        userRecognitionCounts[slotKey][item.user_id] += 1;
+                        userRecognitionCounts[slotKey][item.acr_result][item.user_id] += 1;
                     }
                 }
             });
         });
+        
+        console.log("userRecog:",userRecognitionCounts);
        
-        Object.entries(userRecognitionCounts).forEach(([slotKey, userCounts]) => {
-            Object.entries(userCounts).forEach(([userId, count]) => {
-                if (count >= 5) {
-                    orderedACRDetails.forEach(item => {
-                        if (item.user_id.toString() === userId) {
-                            if (!userListening5minMapWeight[item.acr_result]) {
-                                userListening5minMapWeight[item.acr_result] = {};
-                            }
-                            if (!userListening5minMapWeight[item.acr_result][slotKey]) {
-                                userListening5minMapWeight[item.acr_result][slotKey] = new Set();
-                            }
-                            userListening5minMapWeight[item.acr_result][slotKey].add(userId);
+        // Iterate through each time slot
+        Object.entries(userRecognitionCounts).forEach(([slotKey]) => {
+            // Iterate through each channel within the slot
+            Object.entries(userRecognitionCounts[slotKey]).forEach(([channel, userIds]) => {
+                // Iterate through each user within the channel
+                console.log("CH",channel);
+                console.log("user_id",userIds);
+                Object.entries(userIds).forEach(([userId, count]) => {
+                    // Check if the user has 5 or more recognitions
+                    if (count >= 5) {
+                        // Initialize the channel if not already done
+                        if (!userListening5minMapWeight[channel]) {
+                            userListening5minMapWeight[channel] = {};
                         }
-                    });
-                }
+                        // Initialize the slot within the channel if not already done
+                        if (!userListening5minMapWeight[channel][slotKey]) {
+                            userListening5minMapWeight[channel][slotKey] = new Set();
+                        }
+                        // Add the user to the set for this channel and time slot
+                        userListening5minMapWeight[channel][slotKey].add(userId);
+                    }
+                });
             });
         });
+
             
             
  
@@ -484,10 +500,10 @@ export default function FascicoloprodView() {
         if (dati) {
             dati.forEach((item) => {
                 const pesoitem = idToWeightMap[item]; // Corrected access to idToWeightMap
-                 /* if ((channel === "RTL")&&(slot === '06:00 - 08:59')) {
+                  if ((channel === "RDS")&&(slot === '00:00 - 02:59')) {
                     console.log("ar:item", item);
                     console.log("ar:item_weight", pesoitem);
-                } */
+                } 
                 ar += pesoitem || 0; // Added a fallback to 0 if pesoitem is undefined
             });
         }
@@ -499,14 +515,15 @@ export default function FascicoloprodView() {
         let ar = 0;
         
         const dati = userListening5minMapWeight[channel]?.[slot];
-        console.log("DATIARC5m",dati);
+        // console.log("DATIARC5m",dati);
         if (dati) {
             dati.forEach((item) => {
                 const pesoitem = idToWeightMap[item]; // Corrected access to idToWeightMap
-                 /* if ((channel === "RTL")&&(slot === '06:00 - 08:59')) {
-                    console.log("ar:item", item);
-                    console.log("ar:item_weight", pesoitem);
-                } */
+                if ((channel === "RDS")&&(slot === '00:00 - 02:59')) {
+                    console.log("ar5:slot", slot);
+                    console.log("ar5:item", item);
+                    console.log("ar5:item_weight", pesoitem);
+                } 
                 ar += pesoitem || 0; // Added a fallback to 0 if pesoitem is undefined
             });
         }
