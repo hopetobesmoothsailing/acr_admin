@@ -537,7 +537,7 @@ if (loading) {
             <Grid container spacing={3}>
 
 
-                <Grid xs={12} sm={6} md={6}>
+                <Grid xs={12} sm={12} md={5}>
                
                 {/* Remaining pagination logic */}
             
@@ -576,7 +576,7 @@ if (loading) {
                 </Card>
 
                 </Grid>
-                <Grid xs={12} sm={6} md={6}>
+                <Grid xs={12} sm={12} md={7}>
                 <Card>
                 <Scrollbar>
                     <Typography variant="h5" sx={{ml: 2, mt: 3,mb:3}}>
