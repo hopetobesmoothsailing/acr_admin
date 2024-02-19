@@ -574,13 +574,13 @@ if (loading) {
                 <Scrollbar>
                     <Typography variant="h5" sx={{ml: 2, mt: 3,mb:3}}>
                     Dati del giorno {selectedDate} 
-                    <ExportExcel  exdata={channelNames} fileName={`Export-Giornaliero-${channel_name}-${dayjs(selectedDate).format('MM-DD-YYYY')}`} idelem={`Export-Giornaliero-${channel_name}-${dayjs(selectedDate).format('MM-DD-YYYY')}`} />
+                    <ExportExcel  exdata={channelNames} fileName={`Export-Giornaliero-${channel_name}-${dayjs(selectedDate).format('YYYY-MM-DD')}`} idelem={`Export-Giornaliero-${channel_name}-${dayjs(selectedDate).format('YYYY-MM-DD')}`} />
                     </Typography>
                     <Typography variant="p" sx={{ml: 2, mt: 3}}>
                     (Almeno 1 minuto di ascolto)
                     </Typography>
 
-                    <TableContainer id={`Export-Giornaliero-${channel_name}-${dayjs(selectedDate).format('MM-DD-YYYY')}`}>
+                    <TableContainer id={`Export-Giornaliero-${channel_name}-${dayjs(selectedDate).format('YYYY-MM-DD')}`}>
                     <Table sx={{ minWidth: 400 }}>
                         <TableHead>
                             <TableRow >
