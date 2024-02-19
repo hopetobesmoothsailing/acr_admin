@@ -48,13 +48,14 @@ export default function GiornalieroView() {
     const today = new Date(); // Get today's date
     const yesterday = new Date(today); // Create a new date object with today's date
     yesterday.setDate(today.getDate() - 2); // Set it to 2 days ago
-  
+        
     // Format the date to DD/MM/YYYY
     // const formattedYesterday = `${yesterday.getDate().toString().padStart(2, '0')}/${(yesterday.getMonth() + 1).toString().padStart(2, '0')}/${yesterday.getFullYear()}`;
   
     // Set yesterday's date as selectedDate
     const [selectedDate, setSelectedDate] = useState(dayjs(yesterday).format('DD/MM/YYYY'));
-  
+    const formattedDateExp = selectedDate.replace(/\//g, '-');
+   
     // const [selectedDate, setSelectedDate] = useState('04/12/2023');
       
     const [idToWeightMap, setIdToWeightMap] = useState({});
@@ -493,8 +494,7 @@ export default function GiornalieroView() {
     
         };
 
-        const expdate = selectedDate || yesterday;
-
+       
         //    console.log(fiveMinuteBasedData);
 if (loading) {
     return <p>Caricamento dati raccolti in corso... </p>; // You can replace this with your loading indicator component
@@ -542,11 +542,11 @@ if (loading) {
                 <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2}}>
                 Palinsesto Giornaliero
                     
-                <ExportExcel   fileName={`Export-Palinsesto-${channel_name}-${dayjs(expdate).format('MM-DD-YYYY')}`} idelem={`Export-Palinsesto-${channel_name}-${dayjs(expdate).format('MM-DD-YYYY')}`}/>
+                <ExportExcel   fileName={`Export-Palinsesto-${channel_name}-${dayjs(formattedDateExp,'DD-MM-YYYY').format('DD-MM-YYYY')}`} idelem={`Export-Palinsesto-${channel_name}-${dayjs(formattedDateExp,'DD-MM-YYYY').format('DD-MM-YYYY')}`}/>
                    </Typography>
                     <CardContent>
                     <Scrollbar>
-                    <TableContainer id={`Export-Palinsesto-${channel_name}-${dayjs(expdate).format('MM-DD-YYYY')}`}>
+                    <TableContainer id={`Export-Palinsesto-${channel_name}-${dayjs(formattedDateExp,'DD-MM-YYYY').format('DD-MM-YYYY')}`}>
                     <Table sx={{ minWidth: 400 }}>
                         <TableHead>
                             <TableRow >
@@ -578,13 +578,13 @@ if (loading) {
                 <Scrollbar>
                     <Typography variant="h5" sx={{ml: 2, mt: 3,mb:3}}>
                     Dati del giorno {selectedDate} 
-                    <ExportExcel  exdata={channelNames} fileName={`Export-Giornaliero-${channel_name}-${dayjs(selectedDate).format('YYYY-MM-DD')}`} idelem={`Export-Giornaliero-${channel_name}-${dayjs(selectedDate).format('YYYY-MM-DD')}`} />
+                    <ExportExcel  exdata={channelNames} fileName={`Export-Giornaliero-${channel_name}-${dayjs(formattedDateExp,'DD-MM-YYYY').format('DD-MM-YYYY')}`} idelem={`Export-Giornaliero-${channel_name}-${dayjs(formattedDateExp,'DD-MM-YYYY').format('DD-MM-YYYY')}`} />
                     </Typography>
                     <Typography variant="p" sx={{ml: 2, mt: 3}}>
                     (Almeno 1 minuto di ascolto)
                     </Typography>
 
-                    <TableContainer id={`Export-Giornaliero-${channel_name}-${dayjs(selectedDate).format('YYYY-MM-DD')}`}>
+                    <TableContainer id={`Export-Giornaliero-${channel_name}-${dayjs(formattedDateExp,'DD-MM-YYYY').format('DD-MM-YYYY')}`}>
                     <Table sx={{ minWidth: 400 }}>
                         <TableHead>
                             <TableRow >
