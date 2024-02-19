@@ -450,14 +450,17 @@ export default function GiornalieroView() {
         function convertMinutesToTimeString(minutesDecimal) {
             let str = "*";
             if (minutesDecimal > 0) {
-            const minutes = Math.floor(minutesDecimal); // Get the integer part
+            const totalMinutes = Math.floor(minutesDecimal); // Total minutes
+            const hours = Math.floor(totalMinutes / 60); // Calculate hours
+            const minutes = totalMinutes % 60; // Remaining minutes after converting to hours
             const seconds = Math.round((minutesDecimal - minutes) * 60); // Calculate the seconds from the remainder
             
             // Format the time string
+            const formattedHours = hours.toString().padStart(2, '0');
             const formattedMinutes = minutes.toString().padStart(2, '0');
             const formattedSeconds = seconds.toString().padStart(2, '0');
             
-            str = `${formattedMinutes}:${formattedSeconds}`;
+            str = `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
             }
             return str;
         }
@@ -591,7 +594,7 @@ if (loading) {
                                 <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>Fasce Orarie</TableCell>
                                 <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>CL (Contatti Netti)</TableCell>
                                 <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>SH (Share)</TableCell>
-                                <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>Durata Media</TableCell>
+                                <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>Durata Media (hh:mm:ss)</TableCell>
                                 
                                 
                                 
