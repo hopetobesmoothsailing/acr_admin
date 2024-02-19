@@ -447,6 +447,8 @@ export default function GiornalieroView() {
     
         };
         function convertMinutesToTimeString(minutesDecimal) {
+            let str = "*";
+            if (minutesDecimal > 0) {
             const minutes = Math.floor(minutesDecimal); // Get the integer part
             const seconds = Math.round((minutesDecimal - minutes) * 60); // Calculate the seconds from the remainder
             
@@ -454,7 +456,9 @@ export default function GiornalieroView() {
             const formattedMinutes = minutes.toString().padStart(2, '0');
             const formattedSeconds = seconds.toString().padStart(2, '0');
             
-            return `${formattedMinutes}:${formattedSeconds}`;
+            str = `${formattedMinutes}:${formattedSeconds}`;
+            }
+            return str;
         }
         const calculateDurataMediaCanale = (channel,slot) => {
             const minuto = timeSlots[slot][channel] || 0 ;
