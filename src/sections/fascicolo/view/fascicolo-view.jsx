@@ -367,7 +367,7 @@ export default function FascicoloView() {
         });
         
         // console.log("userRecog:",userRecognitionCounts);
-       
+        const userListening15minMapWeight = {};
         // Iterate through each time slot
         Object.entries(userRecognitionCounts).forEach(([slotKey]) => {
             // Iterate through each channel within the slot
@@ -387,9 +387,22 @@ export default function FascicoloView() {
                         // Add the user to the set for this channel and time slot
                         userListening5minMapWeight[channel][slotKey].add(userId);
                     }
+                    if (count >= 15) {
+                        // Initialize the channel if not already done
+                        if (!userListening15minMapWeight[channel]) {
+                            userListening15minMapWeight[channel] = {};
+                        }
+                        // Initialize the slot within the channel if not already done
+                        if (!userListening15minMapWeight[channel][slotKey]) {
+                            userListening15minMapWeight[channel][slotKey] = new Set();
+                        }
+                        // Add the user to the set for this channel and time slot
+                        userListening15minMapWeight[channel][slotKey].add(userId);
+                    }
                 });
             });
         });
+        
 
             
             
@@ -532,6 +545,30 @@ export default function FascicoloView() {
                     console.log("ar5:slot", slot);
                     console.log("ar5:item", item);
                     console.log("ar5:item_weight", pesoitem);
+                } 
+                ar += pesoitem || 0; // Added a fallback to 0 if pesoitem is undefined
+            });
+        }
+        let perc_ar = 0;
+        if (ar > 0)
+            perc_ar = ar.toFixed(0);
+        else 
+            perc_ar = "*";
+        return perc_ar;
+    };
+    const calculateAscoltoRadioCanale15min = (channel, slot) => {
+        // console.log("idToWM", idToWeightMap);
+        let ar = 0;
+        
+        const dati = userListening15minMapWeight[channel]?.[slot];
+        // console.log("DATIARC5m",dati);
+        if (dati) {
+            dati.forEach((item) => {
+                const pesoitem = idToWeightMap[item]; // Corrected access to idToWeightMap
+                if ((channel === "RDS")&&(slot === '00:00 - 02:59')) {
+                    console.log("ar15:slot", slot);
+                    console.log("ar15:item", item);
+                    console.log("ar15:item_weight", pesoitem);
                 } 
                 ar += pesoitem || 0; // Added a fallback to 0 if pesoitem is undefined
             });
@@ -997,7 +1034,54 @@ export default function FascicoloView() {
                                         <Typography variant="small" sx={{ml:2, mt:8, mb:10, color:"#999"}}>
                                         (*) Il dato non è statisticamente significativo per la bassa numerosità dei casi
                                         </Typography>
+                                        <Card style={{ display: 'block' }}>
+                                        <Typography variant="h6" sx={{ml: 2, pt: 5}}>
+                                        GRAFICO CONTATTI IPOTESI 15 MINUTI
+                                        </Typography>
+                                            <CardContent  sx={{ pl: 0 }}>
+                                            <GraphChartContatti activeButton={activeButton} userListeningMapWeight={userListening15minMapWeight}  tipoRadioTV={tipoRadioTV} idToWeightMap={idToWeightMap} /> {/* Render the GraphChart component */}
+                                            </CardContent>
+                                        </Card>
+                                        <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>IPOTESI {ascoltatoriRadioLabel} - almeno 15 minuti </Typography>
+                                        <Typography variant="p" sx={{ml: 2, mt: 2}}>
+                                        (Numero di {ascoltatoriRadioLabel} sul totale popolazione 14+ nell’intervallo di riferimento passo 15min | pop 52.231.073)
+                                        </Typography>
+                                        
 
+                                <ExportExcel fileName="Excel-Export-Contatti5-Global" idelem={`export-table-contatti5-global_${tipoRadioTV}`}/>
+                                
+                                <TableContainer id={`export-table-contatti5-global_${tipoRadioTV}`}  sx={{overflow: 'unset'}}>
+                                            <Table sx={{minWidth: 800}}>
+                                                <TableHead>
+                                                    <TableRow>
+                                                        <TableCell> EMITTENTE </TableCell>
+                                                        {Object.keys(timeSlots).map((timeSlotKey) => (
+                                                            <TableCell key={timeSlotKey}><strong>{timeSlotKey}</strong></TableCell>
+                                                        ))}
+                                                    </TableRow>
+                                                </TableHead>
+
+                                                <TableBody>
+                                                    {   sortedChannelNames.map((channel, index) => (
+                                                         <TableRow key={index}>
+
+                                                            <TableCell>{channel}</TableCell>
+                                                            {Object.keys(timeSlots).map((timeSlotKey) => (
+                                                                <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
+                                                                    <span data-tooltip-id="my-tooltip"  >{calculateAscoltoRadioCanale15min(channel, timeSlotKey)}</span>
+                                        
+                                                                </TableCell>
+
+                                                            ))}
+                                                        </TableRow> 
+                                                    ))   }
+                                                        
+                                                </TableBody>
+                                            </Table>
+                                        </TableContainer>
+                                        <Typography variant="small" sx={{ml:2, mt:8, mb:10, color:"#999"}}>
+                                        (*) Il dato non è statisticamente significativo per la bassa numerosità dei casi
+                                        </Typography>
                             </CardContent>
                             </Card>
                             
