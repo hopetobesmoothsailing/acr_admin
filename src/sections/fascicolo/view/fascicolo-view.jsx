@@ -61,12 +61,15 @@ export default function FascicoloView() {
        setActiveButton('share');
      };
      
-     const handleAscoltiClick = () => {
-       setActiveButton('ascolti');
-     };
-     const handleContattiClick = () => {
+    const handleAscoltiClick = () => {
+    setActiveButton('ascolti');
+    };
+    const handleContattiClick = () => {
         setActiveButton('contatti');
-      };
+    };
+    const handleMinutiClick = () => {
+        setActiveButton('minuti');
+    };
 
     let importantChannels = [];
     const userListeningMap = {};
@@ -193,21 +196,42 @@ export default function FascicoloView() {
         { label: '3 ore', value: 180 },
         { label: '24 ore', value: 1440 },
       ];
+      const intervalStepOptions = [
+        { label: 'Almeno 1 minuto', value: 1 },
+        { label: 'Almeno 5 minuti', value: 5 },
+        { label: 'Almeno 15 minuti', value: 15 },
+      ];
       const defaultInterval = 180; // Default interval value
+      const defaultStepInterval = 1; // Default interval value
       const [intervalValue, setIntervalValue] = useState(getIntervalFromURL() || defaultInterval); // Initialize with default interval or from URL
+      const [intervalStepValue, setIntervalStepValue] = useState(getIntervalStepFromURL() || defaultStepInterval); // Initialize with default interval or from URL
     
       // Function to get the interval value from the URL query parameter
       function getIntervalFromURL() {
         const params = new URLSearchParams(window.location.search);
         return parseInt(params.get('interval'), 10);
       }
+      function getIntervalStepFromURL() {
+        const params = new URLSearchParams(window.location.search);
+        return parseInt(params.get('intervalStep'), 10);
+      }
     
       // Function to handle interval change
-      const handleIntervalChange = (event) => {
+      const handleChangeInterval = (event) => {
         const selectedValue = parseInt(event.target.value,10);
         setIntervalValue(selectedValue);
         // Update the URL with the new interval value as a query parameter
-        window.history.replaceState({}, '', `?interval=${selectedValue}`);
+        };
+      const handleChangeStepInterval = (event) => {
+        const selectedValue = parseInt(event.target.value,10);
+        setIntervalStepValue(selectedValue);
+        // Update the URL with the new interval value as a query parameter
+       };
+      
+      // Function to handle interval change
+      const handleSubmit = async () => {
+         // Update the URL with the new interval value as a query parameter
+        window.history.replaceState({}, '', `?interval=${intervalValue}&intervalStep=${intervalStepValue}`);
       };
       
       const timeSlots = generateTimeSlots(intervalValue);
@@ -375,7 +399,7 @@ export default function FascicoloView() {
                 // Iterate through each user within the channel
                 Object.entries(userIds).forEach(([userId, count]) => {
                     // Check if the user has 5 or more recognitions
-                    if (count >= 5) {
+                    if (count >= 15) {
                         // Initialize the channel if not already done
                         if (!userListening5minMapWeight[channel]) {
                             userListening5minMapWeight[channel] = {};
@@ -511,6 +535,7 @@ export default function FascicoloView() {
         return perc_ar;
     }
 
+
     const calculateAscoltoRadioCanale = (channel, slot) => {
         // console.log("idToWM", idToWeightMap);
         let ar = 0;
@@ -617,7 +642,50 @@ export default function FascicoloView() {
            return `( ${ar.toFixed(0)}% (popolazione italiana) )`;
 
     }
-    
+    function convertMinutesToTimeString(minutesDecimal) {
+        let str = "*";
+        if (minutesDecimal > 0) {
+        const totalMinutes = Math.floor(minutesDecimal); // Total minutes
+        const hours = Math.floor(totalMinutes / 60); // Calculate hours
+        const minutes = totalMinutes % 60; // Remaining minutes after converting to hours
+        const seconds = Math.round((minutesDecimal - minutes) * 60); // Calculate the seconds from the remainder
+        
+        // Format the time string
+        const formattedHours = hours.toString().padStart(2, '0');
+        const formattedMinutes = minutes.toString().padStart(2, '0');
+        const formattedSeconds = seconds.toString().padStart(2, '0');
+        
+        str = `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+        }
+        return str;
+    }
+
+    const calculateDurataMediaCanale = (channel,slot) => {
+        const minuto = timeSlots[slot][channel] || 0 ;
+        const audienceChannel = calculateAscoltoRadioCanale(channel,slot);
+        const audienceByMinute = minuto;
+        // console.log("AMR",audienceByMinute);
+        // console.log("AMR-CANALE",audienceChannel);
+        const durmedia = ((audienceByMinute/audienceChannel) || 0) ;
+        
+        return convertMinutesToTimeString(durmedia);
+    }
+/*  
+    const calculateDurataMediaSlot = (slot) => {
+        let ar = 0;
+        channels.forEach(canalealtro => {
+            if ((canalealtro !== "NULL")) {
+                ar += parseFloat(timeSlots[slot][canalealtro] || 0)
+            }
+        });
+        const audienceSlot = calculateAscoltoRadio(slot);
+        const audienceByMinute = ar;
+        const durmedia = ((audienceByMinute/audienceSlot) || 0) ;
+        
+        return convertMinutesToTimeString(durmedia);
+    }
+    */
+   
     /* const calculateContattidup = (slot) => {
         let contattiCanaliFasciaOraria= 0
         channels.forEach(canalealtro => {
@@ -673,32 +741,7 @@ export default function FascicoloView() {
         return false;
       };
   
-    // Function to determine if the selected date should disable content
-    /* const checkContentVisibility = (date) => {
-        const minDate = dayjs('29/01/2024', 'DD/MM/YYYY');
-        const now = dayjs();
-        const dayjsDate = dayjs(date, 'DD/MM/YYYY');
-        
-        // Ensure dayjsDate is valid
-        if (!dayjsDate.isValid()) {
-          console.log('Selected date is invalid.');
-          return false;
-        }
-      
-        return dayjsDate.isBefore(minDate, 'day')  || (dayjsDate.isSame(now, 'day') && now.hour() < 23);
-      };
-    */
-    // Update content visibility based on selected date
-    /* useEffect(() => {
-        const dateIsValid = checkContentVisibility(selectedDate);
-        console.log("INVALID",selectedDate);
-        console.log("INVALID",dateIsValid);
-        if (dateIsValid) {
-            enqueueSnackbar(`Non hai accesso a questa pagina!`, {variant: 'error'});
-            navigate('/'); // Assuming '/404' is your path to the 404 page
-        }
-    }, [selectedDate, navigate]);
-    */
+    
 
     
         if (loading) {
@@ -742,17 +785,34 @@ export default function FascicoloView() {
                             </Button>
                             <Button
                             disabled= {tipo === 'TV' ? 'disabled': ''}
+                            variant={activeButton === 'minuti' ? 'contained' : 'outlined'}
+                            onClick={handleMinutiClick}
+                            >
+                            MINUTI
+                            </Button>
+                            <Button
+                            disabled= {tipo === 'TV' ? 'disabled': ''}
                             variant={activeButton === 'contatti' ? 'contained' : 'outlined'}
                             onClick={handleContattiClick}
                             >
                             CONTATTI
                             </Button>
-                            <select id="intervalSelect" value={intervalValue} onChange={handleIntervalChange}>
+                            {activeButton !== 'minuti'   && (
+                            <select id="intervalSelect" value={intervalValue} onChange={handleChangeInterval}  >
                                 {intervalOptions.map((option) => (
                                 <option key={option.value} value={option.value}>{option.label}</option>
                                 ))}
                             </select>
-
+                            )}
+                            {activeButton === 'contatti'   && (
+                                <select id="intervalStepSelect"  onChange={handleChangeStepInterval} value={intervalStepValue} >
+                                {intervalStepOptions.map((option) => (
+                                <option key={option.value} value={option.value}>{option.label}</option>
+                                ))}
+                            </select>
+                            )}
+                            <Button onClick={handleSubmit}>APPLICA</Button>
+            
                         </DemoContainer>
                     </LocalizationProvider>
                      
@@ -779,7 +839,7 @@ export default function FascicoloView() {
                                 )}
 
                                 {activeButton === 'contatti'   && (
-                                <Card style={{ display: 'block' }}>
+                                    <Card style={{ display:intervalStepValue === 1 ? 'block':'none'}}>
                                     <Typography variant="h6" sx={{ml: 2, pt: 5}}>
                                     GRAFICO CONTATTI
                                     </Typography>
@@ -931,9 +991,66 @@ export default function FascicoloView() {
                             </CardContent>
                             </Card>
                             )}
-                            {activeButton === 'contatti'  && (
-                            <Card style={{ display: 'block', overflow:'auto' }}>
+                            {activeButton === 'minuti'  && (
+                                <Card style={{ display: 'block' }}>
                             <CardContent>
+                                <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>DURATA MEDIA(AVG DURATION)</Typography>
+                                <Typography variant="p" sx={{ml: 2, mt: 2}}>
+                                Durata media intervallo di riferimento
+                                </Typography>
+                                    <ExportExcel  fileName={`Export-minuti-${tipoRadioTV}-${dayjs(selectedDate).format('MM-DD-YYYY')}`} idelem={`Export-minuti-${tipoRadioTV}-${dayjs(selectedDate).format('MM-DD-YYYY')}`}/>
+                                <br />
+                                <TableContainer id={`Export-minuti-${tipoRadioTV}-${dayjs(selectedDate).format('MM-DD-YYYY')}`}  sx={{maxHeight: '500px',overflow: 'auto'}}>
+                                            <Table sx={{minWidth: 800}}>
+                                                <TableHead>
+                                                    <TableRow>
+                                                        <TableCell style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 1000 }}>EMITTENTE</TableCell>
+                                                        {Object.keys(timeSlots).map((timeSlotKey) => (
+                                                            <TableCell key={timeSlotKey} style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 1000 }}>{timeSlotKey} </TableCell>
+                                                        ))}
+                                                    </TableRow>
+                                                </TableHead>
+
+                                                <TableBody>
+                                                    {sortedChannelNames.map((channel, index) => (
+                                                        <TableRow key={index}>
+
+                                                            <TableCell>{channel}%</TableCell>
+                                                            {Object.keys(timeSlots).map((timeSlotKey) => (
+                                                                <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
+                                                                    <span data-tooltip-id="my-tooltip" data-tooltip-content="HH:MM:SS" >{calculateDurataMediaCanale(channel, timeSlotKey)}</span>
+                                        
+                                                                </TableCell>
+
+                                                            ))}
+                                                        </TableRow>
+                                                    ))}
+                                                        { /* <TableRow >
+
+                                                          <TableCell>DURATA MEDIA</TableCell>
+                                                            {Object.keys(timeSlots).map((timeSlotKey) => (
+                                                                <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
+                                                                    <strong><span data-tooltip-id="my-tooltip" data-tooltip-content="HH:MM:SS" >{calculateDurataMediaSlot(timeSlotKey)} </span></strong>
+
+                                                                </TableCell>
+
+                                                            ))}
+                                                            </TableRow>
+                                                            */ }
+                                                </TableBody>
+                                            </Table>
+                                        </TableContainer>
+                                        <Typography variant="small" sx={{ml:2, mt:8, mb:10, color:"#999"}}>
+                                        (*) Il dato non è statisticamente significativo per la bassa numerosità dei casi
+                                        </Typography>
+
+                            </CardContent>
+                            </Card>
+                            )}
+                            {activeButton === 'contatti' && (
+                            <Card style={{ display: 'block', overflow:'auto' }}>
+                            
+                            <CardContent style={{ display:intervalStepValue === 1 ? 'block':'none'}}>
                                 <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>CONTATTI NETTI</Typography>
                                 <Typography variant="p" sx={{ml: 2, mt: 2}}>
                                 (Numero di ASCOLTATORI che hanno ascoltato almeno 1 minuto della specifica emittente nell’intervallo di riferimento | pop 52.231.073)
@@ -985,7 +1102,8 @@ export default function FascicoloView() {
                                         <Typography variant="small" sx={{ml:2, mt:8, mb:10, color:"#999"}}>
                                         (*) Il dato non è statisticamente significativo per la bassa numerosità dei casi
                                         </Typography>
-
+                                    </CardContent>
+                                    <CardContent style={{ display:intervalStepValue === 5 ? 'block':'none'}}>
                                         <Card style={{ display: 'block' }}>
                                         <Typography variant="h6" sx={{ml: 2, pt: 5}}>
                                         GRAFICO CONTATTI IPOTESI 5 MINUTI
@@ -1034,7 +1152,10 @@ export default function FascicoloView() {
                                         <Typography variant="small" sx={{ml:2, mt:8, mb:10, color:"#999"}}>
                                         (*) Il dato non è statisticamente significativo per la bassa numerosità dei casi
                                         </Typography>
-                                        <Card style={{ display: 'block' }}>
+                                        </CardContent>
+                                        <CardContent style={{ display:intervalStepValue === 15 ? 'block':'none'}}>
+
+                                        <Card >
                                         <Typography variant="h6" sx={{ml: 2, pt: 5}}>
                                         GRAFICO CONTATTI IPOTESI 15 MINUTI
                                         </Typography>

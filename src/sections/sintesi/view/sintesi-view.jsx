@@ -213,6 +213,7 @@ export default function SintesiView() {
         window.history.replaceState({}, '', `?interval=${selectedValue}`);
       };
       
+      
       const timeSlots = generateTimeSlots(intervalValue);
       const uniquetimeSlots = generateTimeSlots(intervalValue);
       console.log(timeSlots);
