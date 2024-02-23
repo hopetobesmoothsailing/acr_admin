@@ -399,7 +399,7 @@ export default function FascicoloView() {
                 // Iterate through each user within the channel
                 Object.entries(userIds).forEach(([userId, count]) => {
                     // Check if the user has 5 or more recognitions
-                    if (count >= 15) {
+                    if (count >= 5) {
                         // Initialize the channel if not already done
                         if (!userListening5minMapWeight[channel]) {
                             userListening5minMapWeight[channel] = {};
