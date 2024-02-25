@@ -530,7 +530,7 @@ export default function GiornalieroView() {
         };
 
        
-        //    console.log(fiveMinuteBasedData);
+    console.log(recordsm);
 if (loading) {
     return <p>Caricamento dati raccolti in corso... </p>; // You can replace this with your loading indicator component
   }
@@ -655,23 +655,7 @@ if (loading) {
 
                 </Grid>
             </Grid>
-             {recordsm.map((record, index) => (
-                <div key={index}>
-                    {record.map((entry, entryIndex) => (
-                        <div key={entryIndex}>
-                            <h4>Custom Files:</h4>
-                            {entry.customFiles.map((cf, cfIndex) => (
-                                <p key={cfIndex}>{cf.title}</p>
-                            ))}
-                            <h4>Music:</h4>
-                            {entry.music.map((m, mIndex) => (
-                                <p key={mIndex}>{m.title}</p>
-                            ))}
-                        </div>
-                    ))}
-                </div>
-            ))}
-
+             
              
             
                
