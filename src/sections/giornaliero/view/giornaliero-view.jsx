@@ -41,7 +41,7 @@ export default function GiornalieroView() {
     // const location = useLocation();
     const location = useLocation();
     const [loading, setLoading] = useState(true);
-
+   
     const [acrDetails, setACRDetails] = useState([]);
     const [palDetails, setPALDetails] = useState([]);
     // const [acrDetailsTimeslot, setACRDetailsTimeslot] = useState([])
@@ -214,6 +214,9 @@ export default function GiornalieroView() {
     // const top10ParsedEvents = parsedEvents.slice(0, 15);
     // console.log("TOP 10 EVENTS", top10ParsedEvents);
    
+   
+    // const [channelm, setChannelm] = useState('');
+    const [recordsm, setRecordsm] = useState([]);
 
      useEffect(() => {
         // Function to fetch ACR details by date
@@ -232,9 +235,37 @@ export default function GiornalieroView() {
               }
             try {
                 const formattedDate = selectedDate.replace(/\//g, '-');
-        
+                // Rearrange the parts
                 const response = (await axios.post(`${SERVER_URL}/getPalinsestomByDateAndChannel`, {'date': formattedDate,'channel_name':canale_pal})).data; // Adjust the endpoint to match your server route
                 setPALDetails(response.palDetails);
+            } catch (error) {
+                console.error('Error fetching ACR details:', error);
+                // Handle error
+            }
+        };
+        const fetchBmonitorByDateAndChannel = async () => {
+        
+            try {
+                const canali_bmon = ['RTCH_RAI1','RTCH_RAI2','RTCH_RAI3','RTCH_DEEJ','RTCH_CAPITAL','RTCH_M2O','RTCH_RTL','RTCH_FRECCIA','RTCH_R101','RTCH_105','RTCH_VIRGIN','RTCH_MCARLO','RDCH_RDS','RDCH_KISS','RDCH_24','RDCH_ITALIA'];
+                const canali = ['RAIRadio1','RAIRadio2','RAIRadio3','RadioDeejay','RadioCapital','RadioM2O','RadioRTL','RADIOFRECCIA','R101','Radio105','VIRGINRadio','RADIOMONTECARLO','RADIOKISSKISS','Radio24','RDCH_24','RadioItaliaSMI'];
+                  
+                const formattedDate = selectedDate.replace(/\//g, '-');
+                const parts = formattedDate.split("-"); // Splits the date into [31, 01, 2024]
+                const reFormattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+                // Create a mapping from canali to canali_bmon
+                const canaliMapping = canali.reduce((acc, val, index) => {
+                    acc[val] = canali_bmon[index];
+                    return acc;
+                }, {});
+                
+                // Function to replace canali names with canali_bmon names
+                const replaceCanaliWithBmon = (channel) => canaliMapping[channel] || channel;
+                
+                // Example usage:
+                const originalChannel = channel_name; // This would be dynamically based on your application's logic
+                const backendChannel = replaceCanaliWithBmon(originalChannel);
+                const response = (await axios.post(`${SERVER_URL}/getBmonitorByDateAndChannel`, {'date': reFormattedDate,'channel_name':backendChannel})).data; // Adjust the endpoint to match your server route
+                setRecordsm(response.records);
             } catch (error) {
                 console.error('Error fetching ACR details:', error);
                 // Handle error
@@ -243,6 +274,7 @@ export default function GiornalieroView() {
 
 
         fetchResultsByDateAndChannel(); // Call the function to fetch ACR details by date
+        fetchBmonitorByDateAndChannel();
         fetchUsers(); 
         
 
@@ -623,7 +655,22 @@ if (loading) {
 
                 </Grid>
             </Grid>
-            
+             {recordsm.map((record, index) => (
+                <div key={index}>
+                    {record.map((entry, entryIndex) => (
+                        <div key={entryIndex}>
+                            <h4>Custom Files:</h4>
+                            {entry.customFiles.map((cf, cfIndex) => (
+                                <p key={cfIndex}>{cf.title}</p>
+                            ))}
+                            <h4>Music:</h4>
+                            {entry.music.map((m, mIndex) => (
+                                <p key={mIndex}>{m.title}</p>
+                            ))}
+                        </div>
+                    ))}
+                </div>
+            ))}
 
              
             

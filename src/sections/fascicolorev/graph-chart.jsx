@@ -6,7 +6,7 @@ import {RADIOSTATIONCOLORS} from "../../utils/consts";
 
 // import Button  from '@mui/material/Button';
 
-const GraphChart = ({ userListeningMap,tipoRadioTV,activeButton}) => {
+const GraphChart = ({ userListeningMap,tipoRadioTV,activeButton,importantChannels,userListeningMapWeight,intervalValue,nonImportantChannels,timeSlots}) => {
    
   let initiallyVisibleChannels = ['RAIRadio1', 'RAIRadio2', 'RAIRadio3'];
   if (tipoRadioTV === "TV") {
@@ -33,21 +33,69 @@ const GraphChart = ({ userListeningMap,tipoRadioTV,activeButton}) => {
 
 
   const chartData = useMemo(() => {
-    const data = [];
+    // const data = [];
+    const slotData = {};
+
+    const calculateAudienceByMinuteAltre = (slot) => {
+        let minutoMedio = 0 ;
+        nonImportantChannels.forEach(canalealtre => {
+            if ((canalealtre !== "NULL")) {
+                  minutoMedio += parseFloat(timeSlots[slot][canalealtre] || 0);
+            }
+        });
+        let audienceByMinute = 0;
+        audienceByMinute = minutoMedio/intervalValue;
+        let audienceByMinutestr = "*";
+        if (audienceByMinute > 0) {
+            audienceByMinutestr = audienceByMinute.toFixed(0).toString().replace(".", ",");
+        }
+        return audienceByMinutestr;
+    };   
     Object.keys(userListeningMap).forEach(channel => {
       Object.keys(userListeningMap[channel]).forEach(slot => {
         if (!['00:00 - 23:59', '06:00 - 23:59'].includes(slot)) {
+          const isImportantChannel = importantChannels.includes(channel);
+          const channelKey = isImportantChannel ? channel : 'ALTRERADIO';
+          if (isImportantChannel) {
+          // Initialize slot in slotData if not already done
+          slotData[slot] = slotData[slot] || { name: slot };
+
+          // Initialize channel data in the slot if not already done
+          slotData[slot][channelKey] = slotData[slot][channelKey] || 0;        
           const slotSum = Array.from(userListeningMap[channel][slot]).reduce((sum, value) => sum + value || 0, 0);
-          data.push({
-            name: slot,
-            [channel]: slotSum,
-          });
+          slotData[slot][channelKey] += slotSum;
+          }
+     
+        }
+      });
+      Object.keys(userListeningMap[channel]).forEach(slot => {
+        if (!['00:00 - 23:59', '06:00 - 23:59'].includes(slot)) {
+          const isImportantChannel = importantChannels.includes(channel);
+          const channelKey = isImportantChannel ? channel : 'ALTRERADIO';
+          if (!isImportantChannel) {
+            // Initialize slot in slotData if not already done
+            slotData[slot] = slotData[slot] || { name: slot };
+  
+            // Initialize channel data in the slot if not already done
+            slotData[slot][channelKey] = slotData[slot][channelKey] || 0;        
+            const slotSum = calculateAudienceByMinuteAltre(slot); 
+            slotData[slot][channelKey] = slotSum;
+          }
         }
       });
     });
-
+    // Convert slotData object to array format expected by the chart
+    const aggregatedData = Object.values(slotData).map(slot => {
+      // Ensure all data values are integers
+      Object.keys(slot).forEach(key => {
+        if (key !== 'name') {
+          slot[key] = Math.round(slot[key]);
+        }
+      });
+      return slot;
+    });
     // Sort data based on the start time of each slot
-    data.sort((a, b) => {
+    aggregatedData.sort((a, b) => {
       const getMinutes = time => parseInt(time.split(':')[0], 10) * 60 + parseInt(time.split(':')[1], 10);
       const minutesA = getMinutes(a.name.split(' - ')[0]);
       const minutesB = getMinutes(b.name.split(' - ')[0]);
@@ -56,12 +104,12 @@ const GraphChart = ({ userListeningMap,tipoRadioTV,activeButton}) => {
 
     // Deduplicate entries by combining data with the same time slot
     const deduplicatedData = [];
-    data.forEach(item => {
+    aggregatedData.forEach(item => {
       const existingEntry = deduplicatedData.find(entry => entry.name === item.name);
       if (existingEntry) {
         Object.keys(item).forEach(key => {
           if (key !== 'name') {
-            existingEntry[key] = ((existingEntry[key] || 0) + item[key]).toFixed(0);
+            existingEntry[key] = ((existingEntry[key] || 0) + item[key]);
           }
         });
       } else {
@@ -70,12 +118,36 @@ const GraphChart = ({ userListeningMap,tipoRadioTV,activeButton}) => {
     });
 
     return deduplicatedData;
-  }, [userListeningMap]);
+  }, [userListeningMap,importantChannels,nonImportantChannels,intervalValue,timeSlots]);
+  
+  const importantLines = importantChannels.map(radioStation => {
+    if (userListeningMapWeight[radioStation]) { // Check if data exists for the station
+      return (
+        <Line
+          key={radioStation}
+          type="monotone"
+          dataKey={radioStation}
+          hide={!visibleLines[radioStation]}
+          stroke={RADIOSTATIONCOLORS[radioStation]}
+        />
+      );
+    }
+    return null; // Return null for channels without data (these will be filtered out)
+  }).filter(line => line !== null); // Remove null entries (no data channels)
+
+  const altreradioLine = (
+    <Line
+      key="ALTRERADIO"
+      type="monotone"
+      dataKey="ALTRERADIO"
+      hide={!visibleLines.ALTRERADIO}
+      stroke={RADIOSTATIONCOLORS.ALTRERADIO || "#333"} // Fallback color if not defined
+    />
+  );
 
   // Generate lines for each radio station
-  const lines = Object.keys(userListeningMap).map((radioStation, index) => (
-    <Line key={radioStation} type="monotone" dataKey={radioStation}        hide={!visibleLines[radioStation]} stroke={RADIOSTATIONCOLORS[radioStation]}/>
-  ));
+  const lines = [...importantLines, altreradioLine];
+
   useEffect(() => {
     const resizeEvent = window.document.createEvent('UIEvents'); 
     resizeEvent.initUIEvent('resize', true, false, window, 0);
@@ -101,6 +173,11 @@ GraphChart.propTypes = {
   userListeningMap: PropTypes.object.isRequired, // Validate userListeningMap as an object and is required
   tipoRadioTV: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
   activeButton: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
+  importantChannels: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
+  nonImportantChannels: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
+  userListeningMapWeight: PropTypes.any.isRequired,
+  timeSlots: PropTypes.any.isRequired,
+  intervalValue: PropTypes.any.isRequired,
 };
 
 export default GraphChart;
