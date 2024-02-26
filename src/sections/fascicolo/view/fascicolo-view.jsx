@@ -337,14 +337,27 @@ export default function FascicoloView() {
                     userRecognitionCounts[slotKey] = {};
                 }
                 // Initialize the channel within the slot if not already done
-                if (!userRecognitionCounts[slotKey][item.acr_result]) {
-                    userRecognitionCounts[slotKey][item.acr_result] = {};
+                
+                if (!importantChannels.includes(item.acr_result) && (item.acr_result !== 'NULL')) {
+                    if (!userRecognitionCounts[slotKey].ALTRERADIO) {
+                        userRecognitionCounts[slotKey].ALTRERADIO = {};
+                    }
+                    if (!userRecognitionCounts[slotKey].ALTRERADIO[item.user_id]) {
+                        userRecognitionCounts[slotKey].ALTRERADIO[item.user_id] = 1;
+                    } else {
+                        userRecognitionCounts[slotKey].ALTRERADIO[item.user_id] += 1;
+                    }
                 }
-                // Initialize the user within the channel of a slot if not already done, then increment
-                if (!userRecognitionCounts[slotKey][item.acr_result][item.user_id]) {
-                    userRecognitionCounts[slotKey][item.acr_result][item.user_id] = 1;
-                } else {
-                    userRecognitionCounts[slotKey][item.acr_result][item.user_id] += 1;
+                else {
+                    if (!userRecognitionCounts[slotKey][item.acr_result]) {
+                        userRecognitionCounts[slotKey][item.acr_result] = {};
+                    }
+                     // Initialize the user within the channel of a slot if not already done, then increment
+                    if (!userRecognitionCounts[slotKey][item.acr_result][item.user_id]) {
+                        userRecognitionCounts[slotKey][item.acr_result][item.user_id] = 1;
+                    } else {
+                        userRecognitionCounts[slotKey][item.acr_result][item.user_id] += 1;
+                    }
                 }
             }
         });
@@ -703,6 +716,7 @@ export default function FascicoloView() {
                 minuto += parseFloat(timeSlots[slot][canalealtre] || 0)
             }
         });
+        
         let audienceChannel=0;
         if (intstep === 1)
             audienceChannel = calculateAscoltoRadioCanale1minAltre(slot);
@@ -802,6 +816,15 @@ export default function FascicoloView() {
                 }
             }
         });
+        ar = 0;
+        const dati2 = userListening1minMapWeight.ALTRERADIO?.[slot];
+        if (dati2) {
+            dati2.forEach((item) => {
+                const pesoitem = idToWeightMap[item]; // Corrected access to idToWeightMap
+                
+                ar += pesoitem || 0; // Added a fallback to 0 if pesoitem is undefined
+            });
+        }
         let perc_ar = 0;
         if (ar > 0)
             perc_ar = ar.toFixed(0);
@@ -824,6 +847,15 @@ export default function FascicoloView() {
                 }
             }
         });
+        ar = 0;
+        const dati2 = userListening5minMapWeight.ALTRERADIO?.[slot];
+        if (dati2) {
+            dati2.forEach((item) => {
+                const pesoitem = idToWeightMap[item]; // Corrected access to idToWeightMap
+                
+                ar += pesoitem || 0; // Added a fallback to 0 if pesoitem is undefined
+            });
+        }
         let perc_ar = 0;
         if (ar > 0)
             perc_ar = ar.toFixed(0);
@@ -846,6 +878,16 @@ export default function FascicoloView() {
                 }
             }
         });
+        // resetto di nuovo con ALTRERADIO
+        ar = 0;
+        const dati2 = userListening15minMapWeight.ALTRERADIO?.[slot];
+        if (dati2) {
+            dati2.forEach((item) => {
+                const pesoitem = idToWeightMap[item]; // Corrected access to idToWeightMap
+                
+                ar += pesoitem || 0; // Added a fallback to 0 if pesoitem is undefined
+            });
+        }
         let perc_ar = 0;
         if (ar > 0)
             perc_ar = ar.toFixed(0);
@@ -954,7 +996,7 @@ export default function FascicoloView() {
                                     GRAFICO CONTATTI
                                     </Typography>
                                         <CardContent  sx={{ pl: 0 }}>
-                                        <GraphChartContatti activeButton={activeButton} userListeningMapWeight={userListeningMapWeight}  tipoRadioTV={tipoRadioTV} idToWeightMap={idToWeightMap} channels={channels} importantChannels={importantChannels} /> {/* Render the GraphChart component */}
+                                        <GraphChartContatti activeButton={activeButton} userListeningMapWeight={userListening1minMapWeight}  tipoRadioTV={tipoRadioTV} idToWeightMap={idToWeightMap} channels={channels} importantChannels={importantChannels} /> {/* Render the GraphChart component */}
                                         </CardContent>
                                     </Card>
                                 )}
@@ -1288,12 +1330,19 @@ export default function FascicoloView() {
 
 
                                     <CardContent style={{ display:intervalStepValue === 5 ? 'block':'none'}}>
-                                        
+                                        <Card style={{ display: 'hide' }}>
+                                        <Typography variant="h6" sx={{ml: 2, pt: 5}}>
+                                        GRAFICO CONTATTI IPOTESI 5 MINUTI
+                                        </Typography>
+                                            <CardContent  sx={{ pl: 0 }}>
+                                            <GraphChartContatti activeButton={activeButton} userListeningMapWeight={userListening5minMapWeight}  tipoRadioTV={tipoRadioTV} importantChannels={channels} idToWeightMap={idToWeightMap} /> 
+                                            </CardContent>
+                                        </Card>
                                         <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>IPOTESI {ascoltatoriRadioLabel} - almeno 5 minuti </Typography>
                                         <Typography variant="p" sx={{ml: 2, mt: 2}}>
                                         (Numero di {ascoltatoriRadioLabel} sul totale popolazione 14+ nell’intervallo di riferimento passo 5min | pop 52.231.073)
                                         </Typography>
-                                        
+
 
                                 <ExportExcel fileName="Excel-Export-Contatti5-Global" idelem={`export-table-contatti5-global_${tipoRadioTV}`}/>
                                 
@@ -1350,7 +1399,14 @@ export default function FascicoloView() {
                                         </Typography>
                                         </CardContent>
                                         <CardContent style={{ display:intervalStepValue === 15 ? 'block':'none'}}>
-
+                                        <Card style={{ display: 'hide' }}>
+                                        <Typography variant="h6" sx={{ml: 2, pt: 5}}>
+                                        GRAFICO CONTATTI IPOTESI 15 MINUTI
+                                        </Typography>
+                                            <CardContent  sx={{ pl: 0 }}>
+                                            <GraphChartContatti activeButton={activeButton} userListeningMapWeight={userListening15minMapWeight}  tipoRadioTV={tipoRadioTV} importantChannels={channels} idToWeightMap={idToWeightMap} /> 
+                                            </CardContent>
+                                        </Card>
                                         
                                         <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>IPOTESI {ascoltatoriRadioLabel} - almeno 15 minuti </Typography>
                                         <Typography variant="p" sx={{ml: 2, mt: 2}}>
@@ -1358,9 +1414,9 @@ export default function FascicoloView() {
                                         </Typography>
                                         
 
-                                <ExportExcel fileName="Excel-Export-Contatti5-Global" idelem={`export-table-contatti5-global_${tipoRadioTV}`}/>
+                                <ExportExcel fileName="Excel-Export-Contatti15-Global" idelem={`export-table-contatti15-global_${tipoRadioTV}`}/>
                                 
-                                <TableContainer id={`export-table-contatti5-global_${tipoRadioTV}`}  sx={{overflow: 'unset'}}>
+                                <TableContainer id={`export-table-contatti15-global_${tipoRadioTV}`}  sx={{overflow: 'unset'}}>
                                             <Table sx={{minWidth: 800}}>
                                                 <TableHead>
                                                     <TableRow>

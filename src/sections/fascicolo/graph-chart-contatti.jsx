@@ -37,14 +37,14 @@ const GraphChartContatti = ({ userListeningMapWeight,tipoRadioTV,activeButton,id
     Object.keys(userListeningMapWeight).forEach(channel => {
       Object.keys(userListeningMapWeight[channel]).forEach(slot => {
         if (!['00:00 - 23:59', '06:00 - 23:59'].includes(slot)) {
-          const isImportantChannel = importantChannels.includes(channel);
-          const channelKey = isImportantChannel ? channel : 'ALTRERADIO';
+          // const isImportantChannel = importantChannels.includes(channel);
+          // const channelKey = isImportantChannel ? channel : 'ALTRERADIO';
           
           // Initialize slot in slotData if not already done
           slotData[slot] = slotData[slot] || { name: slot };
 
           // Initialize channel data in the slot if not already done
-          slotData[slot][channelKey] = slotData[slot][channelKey] || 0;
+          slotData[slot][channel] = slotData[slot][channel] || 0;
 
           const dati = userListeningMapWeight[channel][slot];
           // let ar = 0;
@@ -56,12 +56,12 @@ const GraphChartContatti = ({ userListeningMapWeight,tipoRadioTV,activeButton,id
                     console.log("ar:item_weight", pesoitem);
                 } */
                 // ar += pesoitem || 0; // Added a fallback to 0 if pesoitem is undefined
-                slotData[slot][channelKey] += pesoitem;
+                slotData[slot][channel] += pesoitem;
             });
           }
           data.push({
             name: slot,
-            [channelKey]: slotData[slot][channelKey],
+            [channel]: slotData[slot][channel],
           });
         }
       });
@@ -91,7 +91,7 @@ const GraphChartContatti = ({ userListeningMapWeight,tipoRadioTV,activeButton,id
     });
 
     return deduplicatedData;
-  }, [userListeningMapWeight,idToWeightMap,importantChannels]);
+  }, [userListeningMapWeight,idToWeightMap]);
 
 
   const importantLines = importantChannels.map(radioStation => {

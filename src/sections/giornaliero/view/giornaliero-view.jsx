@@ -21,10 +21,10 @@ import {Table, TableRow, TextField,TableHead, TableBody, TableCell, TableContain
 
 import Scrollbar from 'src/components/scrollbar';
 
+import ResultsTable from "../results-table";
 import ExportExcel from "../export-to-excel"; 
 import GraphChartArr from "../graph-chart-arr";
 import {SERVER_URL} from "../../../utils/consts";
-// import AppWebsiteAudience from "../app-website-audience";
 
 dayjs.extend(customParseFormat); // Extend dayjs with the customParseFormat plugin
 dayjs.locale('it'); // Set the locale to Italian
@@ -265,7 +265,7 @@ export default function GiornalieroView() {
                 const originalChannel = channel_name; // This would be dynamically based on your application's logic
                 const backendChannel = replaceCanaliWithBmon(originalChannel);
                 const response = (await axios.post(`${SERVER_URL}/getBmonitorByDateAndChannel`, {'date': reFormattedDate,'channel_name':backendChannel})).data; // Adjust the endpoint to match your server route
-                setRecordsm(response.records);
+                setRecordsm(response.parsedRecords);
             } catch (error) {
                 console.error('Error fetching ACR details:', error);
                 // Handle error
@@ -281,7 +281,8 @@ export default function GiornalieroView() {
     }, [selectedDate,channel_name,canale_pal,tipoRadioTV]);
 
     // console.log("palDetails",palDetails)
-      
+ 
+    
     const generateTimeSlots = (intervalValue) => {
         const slots = {
             "00:00 - 23:59": [],
@@ -500,8 +501,8 @@ export default function GiornalieroView() {
             const minuto = timeSlots[slot][channel] || 0 ;
             const audienceChannel = calculateAudience(channel,slot);
             const audienceByMinute = minuto;
-            console.log("AMR",audienceByMinute);
-            console.log("AMR-CANALE",audienceChannel);
+            // console.log("AMR",audienceByMinute);
+            // console.log("AMR-CANALE",audienceChannel);
             const durmedia = ((audienceByMinute/audienceChannel) || 0) ;
             
             return convertMinutesToTimeString(durmedia);
@@ -582,7 +583,7 @@ if (loading) {
                     <CardContent>
                     <Scrollbar>
                     <TableContainer id={`Export-Palinsesto-${channel_name}-${dayjs(formattedDateExp,'DD-MM-YYYY').format('DD-MM-YYYY')}`}>
-                    <Table sx={{ minWidth: 400 }}>
+                    <Table sx={{ minWidth: 400,maxHeight: 700,overflow: 'auto' }}>
                         <TableHead>
                             <TableRow >
                                 <TableCell style={{backgroundColor:"#fff",color:"#333"}}>Ora-Inizio-Fine</TableCell>
@@ -610,7 +611,7 @@ if (loading) {
                 </Grid>
                 <Grid xs={12} sm={12} md={7}>
                 <Card>
-                <Scrollbar>
+                <Scrollbar >
                     <Typography variant="h5" sx={{ml: 2, mt: 3,mb:3}}>
                     Dati del giorno {selectedDate} 
                     <ExportExcel  exdata={channelNames} fileName={`Export-Giornaliero-${channel_name}-${dayjs(formattedDateExp,'DD-MM-YYYY').format('DD-MM-YYYY')}`} idelem={`Export-Giornaliero-${channel_name}-${dayjs(formattedDateExp,'DD-MM-YYYY').format('DD-MM-YYYY')}`} />
@@ -620,7 +621,7 @@ if (loading) {
                     </Typography>
 
                     <TableContainer id={`Export-Giornaliero-${channel_name}-${dayjs(formattedDateExp,'DD-MM-YYYY').format('DD-MM-YYYY')}`}>
-                    <Table sx={{ minWidth: 400 }}>
+                    <Table sx={{ minWidth: 400,maxHeight: '700px',overflow: 'auto' }}>
                         <TableHead>
                             <TableRow >
                                 <TableCell style={{backgroundColor:"#006097",color:"#FFF"}}>Fasce Orarie</TableCell>
@@ -650,6 +651,12 @@ if (loading) {
                                         (*) Il dato non è statisticamente significativo per bassa numerosità dei casi
                                         </Typography>
                   </Scrollbar>
+
+                </Card>
+                <Card style={{ display: 'none' }}>
+    
+                    <ResultsTable fileName={`Export-monitoraggio-${channel_name}-${dayjs(formattedDateExp,'DD-MM-YYYY').format('DD-MM-YYYY')}`} parsedRecords={recordsm} />;
+                    <ExportExcel    idelem={`Export-monitoraggio-${channel_name}-${dayjs(formattedDateExp,'DD-MM-YYYY').format('DD-MM-YYYY')}`}/>
 
                 </Card>
 

@@ -23,6 +23,7 @@ import {Table, TableRow, TableHead, TableBody, TableCell, TableContainer} from '
 
 import Scrollbar from 'src/components/scrollbar';
 
+import DataProcessor from '../acr-crox';
 import ExportExcel from "../export-to-excel"; 
 import GraphChartArr from "../graph-chart-arr";
 import {SERVER_URL} from "../../../utils/consts";
@@ -440,7 +441,10 @@ export default function SintesiView() {
                                 ))}
                             </select>
                         </DemoContainer>
-             
+                        <div style={{ display: 'none' }}>
+                        <h1>ACR Data Analysis</h1>
+                        <DataProcessor  acrDetails={acrDetails} />
+                        </div>
                     <Card style={{ display: isVisible ? 'none' : 'block' }}>
                         <CardContent  sx={{ pl: 0  }} >
                         <h5>Sintesi Share Canali per fasce orarie nel periodo considerato</h5>

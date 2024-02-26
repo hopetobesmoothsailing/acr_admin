@@ -39,11 +39,18 @@ const navConfig = [
     role:2
   },
   {
+    title: 'Monitoraggio',
+    path: '/monitoring',
+    icon: icon('ic_analytics'),
+    role:2
+  },
+  {
     title: 'Download',
     path: '/risultatinull',
     icon: icon('ic_blog'),
     role:2
   },
+  
   {
     title: 'Palinsesti RAI',
     path: '/palinsestom',

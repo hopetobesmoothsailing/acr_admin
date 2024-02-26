@@ -95,7 +95,7 @@ const GraphChartArr = ({ data,intervalValue,channels,channel_name,userListeningM
       // come indicato da cristiano corrisponde ai minuti totali di ascolto nel periodo e non minuti * utenti
       // const audienceByMinute = minuto*(uniqueUsersListening*pesoNum);
       const audienceByMinute = minuto;
-      console.log("MINUTO",minuto)
+      // console.log("MINUTO",minuto)
       const shareSlotCanale = (((audienceByMinute/intervalValue) || 0)/ (audienceSlotCanali/intervalValue))*100 || 0 ;
       return shareSlotCanale.toFixed(1);
 
