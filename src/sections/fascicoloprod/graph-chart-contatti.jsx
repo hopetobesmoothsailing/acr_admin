@@ -6,8 +6,7 @@ import CustomTooltip from './custom-tooltip';
 import {RADIOSTATIONCOLORS} from "../../utils/consts";
 // import Button  from '@mui/material/Button';
 
-const GraphChartContatti = ({ userListeningMapWeight,tipoRadioTV,activeButton,idToWeightMap}) => {
-   
+const GraphChartContatti = ({ userListeningMapWeight,tipoRadioTV,activeButton,idToWeightMap,importantChannels}) => {
   let initiallyVisibleChannels = ['RAIRadio1', 'RAIRadio2', 'RAIRadio3'];
   if (tipoRadioTV === "TV") {
     initiallyVisibleChannels = ['RAI1', 'RAI2', 'RAI3'];
@@ -34,11 +33,21 @@ const GraphChartContatti = ({ userListeningMapWeight,tipoRadioTV,activeButton,id
 
   const chartData = useMemo(() => {
     const data = [];
+    const slotData = {};
     Object.keys(userListeningMapWeight).forEach(channel => {
       Object.keys(userListeningMapWeight[channel]).forEach(slot => {
         if (!['00:00 - 23:59', '06:00 - 23:59'].includes(slot)) {
+          // const isImportantChannel = importantChannels.includes(channel);
+          // const channelKey = isImportantChannel ? channel : 'ALTRERADIO';
+          
+          // Initialize slot in slotData if not already done
+          slotData[slot] = slotData[slot] || { name: slot };
+
+          // Initialize channel data in the slot if not already done
+          slotData[slot][channel] = slotData[slot][channel] || 0;
+
           const dati = userListeningMapWeight[channel][slot];
-          let ar = 0;
+          // let ar = 0;
           if (dati) {
             dati.forEach((item) => {
                 const pesoitem = idToWeightMap[item]; // Corrected access to idToWeightMap
@@ -46,12 +55,13 @@ const GraphChartContatti = ({ userListeningMapWeight,tipoRadioTV,activeButton,id
                     console.log("ar:item", item);
                     console.log("ar:item_weight", pesoitem);
                 } */
-                ar += pesoitem || 0; // Added a fallback to 0 if pesoitem is undefined
+                // ar += pesoitem || 0; // Added a fallback to 0 if pesoitem is undefined
+                slotData[slot][channel] += pesoitem;
             });
           }
           data.push({
             name: slot,
-            [channel]: ar,
+            [channel]: slotData[slot][channel],
           });
         }
       });
@@ -72,7 +82,7 @@ const GraphChartContatti = ({ userListeningMapWeight,tipoRadioTV,activeButton,id
       if (existingEntry) {
         Object.keys(item).forEach(key => {
           if (key !== 'name') {
-            existingEntry[key] = ((existingEntry[key] || 0) + item[key]).toFixed(0);
+            existingEntry[key] = ((existingEntry[key] || 0) + item[key]);
           }
         });
       } else {
@@ -83,10 +93,35 @@ const GraphChartContatti = ({ userListeningMapWeight,tipoRadioTV,activeButton,id
     return deduplicatedData;
   }, [userListeningMapWeight,idToWeightMap]);
 
+
+  const importantLines = importantChannels.map(radioStation => {
+    if (userListeningMapWeight[radioStation]) { // Check if data exists for the station
+      return (
+        <Line
+          key={radioStation}
+          type="monotone"
+          dataKey={radioStation}
+          hide={!visibleLines[radioStation]}
+          stroke={RADIOSTATIONCOLORS[radioStation]}
+        />
+      );
+    }
+    return null; // Return null for channels without data (these will be filtered out)
+  }).filter(line => line !== null); // Remove null entries (no data channels)
+
+  const altreradioLine = (
+    <Line
+      key="ALTRERADIO"
+      type="monotone"
+      dataKey="ALTRERADIO"
+      hide={!visibleLines.ALTRERADIO}
+      stroke={RADIOSTATIONCOLORS.ALTRERADIO || "#333"} // Fallback color if not defined
+    />
+  );
+
   // Generate lines for each radio station
-  const lines = Object.keys(userListeningMapWeight).map((radioStation, index) => (
-    <Line key={radioStation} type="monotone" dataKey={radioStation}        hide={!visibleLines[radioStation]} stroke={RADIOSTATIONCOLORS[radioStation]}/>
-  ));
+  const lines = [...importantLines, altreradioLine];
+
   useEffect(() => {
     const resizeEvent = window.document.createEvent('UIEvents'); 
     resizeEvent.initUIEvent('resize', true, false, window, 0);
@@ -126,6 +161,7 @@ GraphChartContatti.propTypes = {
   tipoRadioTV: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
   activeButton: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
   idToWeightMap: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
+  importantChannels: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
 };
 
 export default GraphChartContatti;

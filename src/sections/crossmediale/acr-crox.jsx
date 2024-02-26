@@ -174,9 +174,8 @@ const processTransitions = (details) => {
 
   return (
     <Paper sx={{ overflow: 'hidden', pl:2, mt:2,mb:2 }} >
-      <h2>Analisi CrossMediale Radio/TV</h2>
-      <Typography>
-        Percentuale calcolata sulla base delle &quot;interazioni&quot; tra radio ascoltate dagli utenti dalle 6 alle 17 e le TV dagli stessi viste dalle 18 in poi.
+      <Typography sx={{mb:2}}>
+        <strong>Percentuale calcolata sulla base delle &quot;interazioni&quot; tra radio ascoltate dagli utenti dalle 6 alle 17 e le TV dagli stessi viste dalle 18 in poi.</strong><br />
       </Typography>
       { /* <TableContainer sx={{ maxHeight: 440 }}>
         <Table stickyHeader aria-label="sticky table">

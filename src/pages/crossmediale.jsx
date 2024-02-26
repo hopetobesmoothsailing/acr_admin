@@ -1,17 +1,17 @@
 import { Helmet } from 'react-helmet-async';
 
-import {SintesiView} from "../sections/sintesi/view";
+import {CrossmedialeView} from "../sections/crossmediale/view";
 
 // ----------------------------------------------------------------------
 
-export default function SintesiPage() {
+export default function CrossmedialePage() {
     return (
         <>
             <Helmet>
-                <title> Sintesi | ACR Admin </title>
+                <title> Analisi Crossmediale | Audiomonitor </title>
             </Helmet>
 
-            <SintesiView />
+            <CrossmedialeView />
         </>
     );
 }

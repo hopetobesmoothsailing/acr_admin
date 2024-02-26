@@ -4,19 +4,21 @@ import { Line, XAxis, YAxis, Legend, Tooltip, LineChart, CartesianGrid, Responsi
 
 import {RADIOSTATIONCOLORS} from "../../utils/consts";
 
-const GraphChartArr = ({ data,intervalValue,channels,importantChannels,nonImportantChannels,timeSlots,tipoRadioTV,activeButton }) => {
-    let initiallyVisibleChannels = ['RAIRadio1', 'RAIRadio2', 'RAIRadio3'];
-    if (tipoRadioTV === "TV") {
-      initiallyVisibleChannels = ['RAI1', 'RAI2', 'RAI3','CANALE5','ITALIA1','RETE4','LA7'];
-    }
-    const [visibleLines, setVisibleLines] = useState(() => {
-      const initialVisibility = {};
-      Object.keys(data[Object.keys(data)[0]] || {}).forEach(channel => {
-          // Set the channel to visible only if it's in the initiallyVisibleChannels list
-          initialVisibility[channel] = initiallyVisibleChannels.includes(channel);
-      });
-      return initialVisibility;
+const GraphChartArr = ({ data,intervalValue,importantChannels,tipoRadioTV,activeButton }) => {
+  const initiallyVisibleChannels = tipoRadioTV === "TV"
+  ? ['RAI1', 'RAI2', 'RAI3', 'CANALE5', 'ITALIA1', 'RETE4', 'LA7']
+  : ['RAIRadio1', 'RAIRadio2', 'RAIRadio3'];
+
+// Initialize visibility state for all channels
+const [visibleLines, setVisibleLines] = useState(() => {
+  const visibility = {};
+  Object.keys(data).forEach(slot => {
+    Object.keys(data[slot]).forEach(channel => {
+      visibility[channel] = initiallyVisibleChannels.includes(channel);
     });
+  });
+  return visibility;
+});
 
   // Function to toggle visibility of lines
     const toggleLineVisibility = (radioStation) => {
@@ -57,28 +59,7 @@ const GraphChartArr = ({ data,intervalValue,channels,importantChannels,nonImport
       return shareSlotCanale.toFixed(2);
 
     };
-    const calculateShareSlotCanaleAltre = (slot) => {
-      let audienceSlotCanali = 0;
-
-      channels.forEach(canalealtro => {
-          if ((canalealtro !== "NULL")) {
-               audienceSlotCanali += parseFloat(timeSlots[slot][canalealtro] || 0)
-          }
-      });
-      let minuto = 0;
-      nonImportantChannels.forEach(canalealtre => {
-          if ((canalealtre !== "NULL")) {
-              // const uniqueUsersListeningch = userListeningMap[channel]?.[slot]?.size || 0;
-              // audienceSlotCanali += uniqueUsersListeningch*parseFloat(timeSlots[slot][canalealtro] || 0)
-              minuto += parseFloat(timeSlots[slot][canalealtre] || 0)
-          }
-      });
-      const audienceByMinute = minuto;
-      const shareSlotCanale = (((audienceByMinute/intervalValue) || 0)/ (audienceSlotCanali/intervalValue))*100 || 0 ;
-      let retSh = "*";
-      if (shareSlotCanale > 0) retSh = shareSlotCanale.toFixed(1).toString()
-      return retSh;
-    };  
+    
     const formattedData = [];
 
     // Iterate through each time slot
@@ -87,17 +68,14 @@ const GraphChartArr = ({ data,intervalValue,channels,importantChannels,nonImport
       const timeSlotData = { name: timeSlot };
       if ((timeSlot !== "06:00 - 23:59")&&(timeSlot !== "00:00 - 23:59")) {
       // Iterate through each radio station within the time slot
-        Object.entries(data[timeSlot]).forEach(([radioStation]) => {
-          const isImportantChannel = importantChannels.includes(radioStation);
-          if (isImportantChannel){
-            const shareslotcanale = calculateShareSlotCanale(radioStation,timeSlot);
-            timeSlotData[radioStation] = shareslotcanale;
+      Object.entries(data[timeSlot]).forEach(([radioStation]) => {
+        // Convert the value to a number
+        // const numericValue = parseInt(value, 10);
+        // Add the radio station and its numeric value to the data object
+        const shareslotcanale = calculateShareSlotCanale(radioStation,timeSlot);
+        timeSlotData[radioStation] = shareslotcanale;
+      });
 
-          }
-        });
-        const shareslotcanale = calculateShareSlotCanaleAltre(timeSlot);
-        timeSlotData.ALTRERADIO = shareslotcanale;
- 
       // Push the data object to the formattedData array
       formattedData.push(timeSlotData);
       }
@@ -115,8 +93,12 @@ const GraphChartArr = ({ data,intervalValue,channels,importantChannels,nonImport
       return minutesA - minutesB;
     });
     return formattedData;
-  }, [data,channels,importantChannels,nonImportantChannels,timeSlots,intervalValue]);
+  }, [data,importantChannels,intervalValue]);
 
+  
+  
+
+ 
   
   // Generate lines for each radio station with toggle functionality
 // Correctly render lines based on visibility
@@ -135,7 +117,7 @@ const lines = Object.keys(data[Object.keys(data)[0]] || {}).map(radioStation => 
     <LineChart data={chartData}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="name" />
-        <YAxis label={{ value: 'SHARE %', angle: -90, position: 'outsideLeft' }}  domain={[0, 100]} orientation="right" />
+        <YAxis domain={[0, 100]} orientation="right" />
         <Tooltip />
         <Legend onClick={(e) => toggleLineVisibility(e.value)} />
         {lines}
@@ -147,10 +129,7 @@ const lines = Object.keys(data[Object.keys(data)[0]] || {}).map(radioStation => 
 GraphChartArr.propTypes = {
     data: PropTypes.object.isRequired, // Validate userListeningMap as an object and is required
     intervalValue: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
-    channels: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
     importantChannels: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
-    nonImportantChannels: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
-    timeSlots: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
     tipoRadioTV: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
     activeButton: PropTypes.any.isRequired, // Validate userListeningMap as an object and is required
   };

@@ -44,6 +44,12 @@ const navConfig = [
     icon: icon('ic_analytics'),
     role:2
   },
+  { /*
+    title: 'Analisi Xmediale',
+    path: '/crossmediale',
+    icon: icon('ic_analytics'),
+    role:2 */
+  },
   {
     title: 'Download',
     path: '/risultatinull',
