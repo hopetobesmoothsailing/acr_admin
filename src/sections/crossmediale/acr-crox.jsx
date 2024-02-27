@@ -12,7 +12,7 @@ import TableContainer from '@mui/material/TableContainer';
 
 // Define TV and radio channels
 const TV_CHANNELS = ["RAI1", "RAI2", "RAI3", "CANALE5", "RETE4", "ITALIA1", "LA7"];
-const RADIO_CHANNELS = ['RadioDeejay', 'RAIRadio1','RAIRadio2','RAIRadio3','RAIIsoradio','RDS','RTL','Radio24','RadioM2O', 'RADIOBELLAEMONELLA','RADIOITALIAANNI60','RADIOKISSKISS','RADIOKISSKISSNAPOLI','RADIOKISSKISSITALIA','RadioFRECCIA','RadioCapital','R101','VIRGINRadio','RADIOMONTECARLO','Radio105','RadioBRUNO','RadioItaliaSMI'];
+const RADIO_CHANNELS = ['RAIRadio1','RAIRadio2','RAIRadio3','RAIIsoradio','RadioDeejay','RDS','RTL','Radio24','RadioM2O', 'RADIOBELLAEMONELLA','RADIOITALIAANNI60','RADIOKISSKISS','RADIOKISSKISSNAPOLI','RADIOKISSKISSITALIA','RadioFRECCIA','RadioCapital','R101','VIRGINRadio','RADIOMONTECARLO','Radio105','RadioBRUNO','RadioItaliaSMI'];
 
 
 const DataProcessor = ({ acrDetails }) => {
@@ -170,12 +170,17 @@ const processTransitions = (details) => {
     return hour >= 21 || hour < 6;
   };
 */
-  
+const getColor = (value) => {
+  const percentage = parseFloat(value);
+  const hue = 120 - ((percentage > 100 ? 100 : percentage) * 120 / 100);
+  return `hsl(${hue}, 100%, 50%)`; // Change saturation and lightness as needed
+};
+
 
   return (
     <Paper sx={{ overflow: 'hidden', pl:2, mt:2,mb:2 }} >
       <Typography sx={{mb:2}}>
-        <strong>Percentuale calcolata sulla base delle &quot;interazioni&quot; tra radio ascoltate dagli utenti dalle 6 alle 17 e le TV dagli stessi viste dalle 18 in poi.</strong><br />
+        <strong>Percentuale calc. sulla base delle &quot;transizioni&quot; tra radio ascoltate dalle 6 alle 17 e le TV viste dagli stessi dalle 18 in poi nell&apos;intervallo.</strong><br />
       </Typography>
       { /* <TableContainer sx={{ maxHeight: 440 }}>
         <Table stickyHeader aria-label="sticky table">
@@ -224,32 +229,32 @@ const processTransitions = (details) => {
         </Table>
                 </TableContainer> */ }
 
-<TableContainer component={Paper}>
-  <Table aria-label="transition matrix">
-    <TableHead>
-      <TableRow>
-        <TableCell>Radio \ TV</TableCell>
-        {TV_CHANNELS.map(tv => (
-          <TableCell key={tv}>{tv}</TableCell>
-        ))}
-      </TableRow>
-    </TableHead>
-    <TableBody>
-      {Object.keys(transitionMatrix).map(radio => (
-        <TableRow key={radio}>
-          <TableCell component="th" scope="row">
-            {radio}
-          </TableCell>
-          {TV_CHANNELS.map(tv => (
-            <TableCell key={tv}>
-              {transitionMatrix[radio][tv] ? `${transitionMatrix[radio][tv]}%` : '0%'}
-            </TableCell>
-          ))}
-        </TableRow>
-      ))}
-    </TableBody>
-  </Table>
-</TableContainer>
+    <TableContainer component={Paper}>
+        <Table aria-label="transition matrix">
+          <TableHead>
+            <TableRow>
+              <TableCell>Radio \ TV</TableCell>
+              {TV_CHANNELS.map(tv => (
+                <TableCell key={tv}>{tv.toLocaleUpperCase()}</TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {Object.keys(transitionMatrix).map(radio => (
+              <TableRow key={radio}>
+                <TableCell component="th" scope="row">
+                  {radio.toLocaleUpperCase()}
+                </TableCell>
+                {TV_CHANNELS.map(tv => (
+                  <TableCell key={tv} style={{ backgroundColor: getColor(transitionMatrix[radio][tv] || 0) }}>
+                    {transitionMatrix[radio][tv] || 0}%
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
        </Paper>
   
   );

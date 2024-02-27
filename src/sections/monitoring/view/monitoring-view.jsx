@@ -1,6 +1,8 @@
-import axios from 'axios';
+import 'dayjs/locale/it'; // Import the Italian locale
+import axios from "axios";
 import dayjs from "dayjs";
 import React, {useState, useEffect} from 'react';
+import customParseFormat from 'dayjs/plugin/customParseFormat'; // For parsing custom formats
 
 import Card from '@mui/material/Card';
 // import Button from '@mui/material/Button';
@@ -16,15 +18,17 @@ import ResultsTable from '../results-table';
 import ExportExcel from "../export-to-excel"; 
 import { SERVER_URL } from "../../../utils/consts";
 
+dayjs.extend(customParseFormat); // Extend dayjs with the customParseFormat plugin
+dayjs.locale('it'); // Set the locale to Italian
+
 export default function MonitoringView() {
     const [loading, setLoading] = useState(true);
-    const today = new Date(); // Get today's date
-    const yesterday = new Date(today); // Create a new date object with today's date
+    const maxDates = dayjs('26/02/2024', 'DD/MM/YYYY');
+    const today = new Date(maxDates); // Get today's date
+    const yesterday = new Date(maxDates); // Create a new date object with today's date
     yesterday.setDate(today.getDate() - 1); // Set it to yesterday
-    // Format the date to DD/MM/YYYY
-    const formattedYesterday = `${yesterday.getDate().toString().padStart(2, '0')}/${(yesterday.getMonth() + 1).toString().padStart(2, '0')}/${yesterday.getFullYear()}`;
-    // Set yesterday's date as selectedDate
-    const [selectedDate, setSelectedDate] = useState(formattedYesterday);
+    const [selectedDate, setSelectedDate] = useState(dayjs(yesterday).format('DD/MM/YYYY'));
+    
     const formattedDateExp = selectedDate.replace(/\//g, '-');
     const [acrDetails, setACRDetails] = useState([]);
     const [palDetails, setPALDetails] = useState([]);
@@ -64,8 +68,12 @@ export default function MonitoringView() {
       { label: 'Radio Montecarlo', value: 'RADIOMONTECARLO'},
       { label: 'Radio KissKiss', value: 'RADIOKISSKISS'},
       { label: 'Radio 24', value: 'Radio24'},
+      { label: 'Radio RTL', value: 'RTL'},
+      { label: 'Radio Gamma', value: 'RadioGamma'},
+      { label: 'Radio RDS', value: 'RDS'},
       { label: 'Radio Italia SMI', value: 'RadioItaliaSMI'},
     ];
+         
     useEffect(() => {
         // Function to fetch ACR details by date
       const fetchBmonitorByDateAndChannel = async () => {

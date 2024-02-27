@@ -140,7 +140,7 @@ export default function CrossmedialeView() {
   
 
     if (loading) {
-        return <p>Caricamento dati raccolti in corso... </p>; // You can replace this with your loading indicator component
+        return <p>Caricamento e calcolo dati crossmediali in corso... </p>; // You can replace this with your loading indicator component
         }
 
             return (

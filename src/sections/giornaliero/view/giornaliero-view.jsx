@@ -45,15 +45,12 @@ export default function GiornalieroView() {
     const [acrDetails, setACRDetails] = useState([]);
     const [palDetails, setPALDetails] = useState([]);
     // const [acrDetailsTimeslot, setACRDetailsTimeslot] = useState([])
-    const today = new Date(); // Get today's date
-    const yesterday = new Date(today); // Create a new date object with today's date
-    yesterday.setDate(today.getDate() - 2); // Set it to 2 days ago
-        
-    // Format the date to DD/MM/YYYY
-    // const formattedYesterday = `${yesterday.getDate().toString().padStart(2, '0')}/${(yesterday.getMonth() + 1).toString().padStart(2, '0')}/${yesterday.getFullYear()}`;
-  
-    // Set yesterday's date as selectedDate
+    const maxDates = dayjs('26/02/2024', 'DD/MM/YYYY');
+    const today = new Date(maxDates); // Get today's date
+    const yesterday = new Date(maxDates); // Create a new date object with today's date
+    yesterday.setDate(today.getDate() - 1); // Set it to yesterday
     const [selectedDate, setSelectedDate] = useState(dayjs(yesterday).format('DD/MM/YYYY'));
+    
     const formattedDateExp = selectedDate.replace(/\//g, '-');
    
     // const [selectedDate, setSelectedDate] = useState('04/12/2023');
@@ -532,6 +529,33 @@ export default function GiornalieroView() {
 
        
     console.log(recordsm);
+    const disableDates = (date) => {
+        // Define the minimum date that can be selected (29/01/2024)
+        const minDate = dayjs('29/01/2024', 'DD/MM/YYYY');
+        const maxDate = dayjs('25/02/2024', 'DD/MM/YYYY');
+        // Get the current date and time
+        // const now = dayjs();
+        // Check if the date is before the minimum date
+        if (date.isBefore(minDate, 'day')) {
+          // Disable dates before 29/01/2024
+          return true;
+        }
+        if (date.isAfter(maxDate, 'day')) {
+            // Disable dates before 29/01/2024
+            return true;
+          }
+      
+        // Check if the date is today and the current time is before 11:59 AM
+        /* if (date.isSame(now, 'day') && now.hour() < 12) {
+          // Disable today's date selection until 11:59 AM
+          return true;
+        } 
+        */
+      
+        // Don't disable the date
+        return false;
+      };
+
 if (loading) {
     return <p>Caricamento dati raccolti in corso... </p>; // You can replace this with your loading indicator component
   }
@@ -553,6 +577,7 @@ if (loading) {
                                 onChange={handleDateChange}
                                 inputFormat="DD/MM/YYYY" // Explicitly specify the input format here
                                 renderInput={(params) => <TextField {...params} />}
+                                shouldDisableDate={disableDates}
                             />
                     <select id="intervalSelect" value={intervalValue} onChange={handleIntervalChange}>
                                 {intervalOptions.map((option) => (
