@@ -71,10 +71,12 @@ export default function FascicoloprodView() {
 
 
     const [acrDetails, setACRDetails] = useState([]);
-    const today = new Date(); // Get today's date
-    const yesterday = new Date(today); // Create a new date object with today's date
+    const maxDates = dayjs('26/02/2024', 'DD/MM/YYYY');
+    const today = new Date(maxDates); // Get today's date
+    const yesterday = new Date(maxDates); // Create a new date object with today's date
     yesterday.setDate(today.getDate() - 1); // Set it to yesterday
     const [selectedDate, setSelectedDate] = useState(dayjs(yesterday).format('DD/MM/YYYY'));
+    
 
     const [users, setUsers] = useState([]);
    
@@ -743,6 +745,7 @@ export default function FascicoloprodView() {
     const disableDates = (date) => {
         // Define the minimum date that can be selected (29/01/2024)
         const minDate = dayjs('29/01/2024', 'DD/MM/YYYY');
+        const maxDate = dayjs('25/02/2024', 'DD/MM/YYYY');
         // Get the current date and time
         // const now = dayjs();
         // Check if the date is before the minimum date
@@ -750,6 +753,10 @@ export default function FascicoloprodView() {
           // Disable dates before 29/01/2024
           return true;
         }
+        if (date.isAfter(maxDate, 'day')) {
+            // Disable dates before 29/01/2024
+            return true;
+          }
       
         // Check if the date is today and the current time is before 11:59 AM
         /* if (date.isSame(now, 'day') && now.hour() < 12) {
