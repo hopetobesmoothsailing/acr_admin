@@ -36,7 +36,7 @@ dayjs.locale('it'); // Set the locale to Italian
 
 // ----------------------------------------------------------------------
 
-export default function FascicolorevView() {
+export default function FascicoloView() {
 
     const channels = [];
     const pesoNum = 1
@@ -47,7 +47,7 @@ export default function FascicolorevView() {
 
     
      // State to track the active button ("share" or "ascolti")
-     const [activeButton, setActiveButton] = useState('share'); // Default to showing "share"
+     const [activeButton, setActiveButton] = useState('contatti'); // Default to showing "share"
 
      // Modify your button click handlers to simply update the activeButton state
      const handleShareClick = () => {
@@ -90,13 +90,13 @@ export default function FascicolorevView() {
     if ((tipo === null)||(tipo === 'RADIO')) { 
         tipoRadioTV = 'RADIO';
         
-        importantChannels = ['RadioDeejay', 'RAIRadio1','RAIRadio2','RAIRadio3','RDS','RTL','Radio24','RadioM2O','RADIOKISSKISS','RadioFRECCIA','RadioCapital','R101','VIRGINRadio','RADIOMONTECARLO','Radio105','RadioItaliaSMI'];
+        importantChannels = ['RadioDeejay', 'RAIRadio1','RAIRadio2','RAIRadio3','RDS','RTL','Radio24','RadioM2O','RADIOKISSKISS','RadioFRECCIA','RadioCapital','R101','VIRGINRadio','RADIOMONTECARLO','Radio105','RadioItaliaSMI','NULL'];
         ascoltatoriRadioLabel = 'ASCOLTATORI RADIO';
 
     }
     else { 
         tipoRadioTV = 'TV';
-        importantChannels = ['RAI1', 'RAI2','RAI3','RETE4','CANALE5','ITALIA1','LA7'];
+        importantChannels = ['RAI1', 'RAI2','RAI3','RETE4','CANALE5','ITALIA1','LA7','NULL'];
         ascoltatoriRadioLabel = 'SPETTATORI TV';
     }
 
@@ -108,7 +108,7 @@ export default function FascicolorevView() {
                 setLoading(true);
                 const formattedDate = selectedDate; // Encode the date for URL
 
-                const response = (await axios.post(`${SERVER_URL}/getACRDetailsByDateRTV`, {'date': formattedDate,'type':tipoRadioTV,'notnull':'yes'})).data; // Adjust the endpoint to match your server route
+                const response = (await axios.post(`${SERVER_URL}/getACRDetailsByDateRTV`, {'date': formattedDate,'type':tipoRadioTV,'notnull':'no'})).data; // Adjust the endpoint to match your server route
                 setACRDetails(response.acrDetails);
             } catch (error) {
                 console.error('Error fetching ACR details:', error);
@@ -134,7 +134,7 @@ export default function FascicolorevView() {
         const idToWeight = {};
         users.forEach(user => { 
             if (user.weight_s > 0) {
-            idToWeight[user._id] = user.weight_s;
+            idToWeight[user._id] = 1; // user.weight_s = 1 just for internal use;
             }
              
         });
@@ -166,6 +166,8 @@ export default function FascicolorevView() {
       
     // Usage example:
     const intervalOptions = [
+        { label: '15 min', value: 15 },
+        { label: '30 min', value: 30 },
         { label: '1 ora', value: 60 },
         { label: '3 ore', value: 180 },
         { label: '24 ore', value: 1440 },
@@ -175,7 +177,7 @@ export default function FascicolorevView() {
         { label: 'Almeno 5 minuti', value: 5 },
         { label: 'Almeno 15 minuti', value: 15 },
     ];
-    const defaultInterval = 180; // Default interval value
+    const defaultInterval = 60; // Default interval value
     const defaultStepInterval = 1; // Default interval value
     const [intervalValue, setIntervalValue] = useState(getIntervalFromURL() || defaultInterval); // Initialize with default interval or from URL
     const [intervalStepValue, setIntervalStepValue] = useState(getIntervalStepFromURL() || defaultStepInterval); // Initialize with default interval or from URL
@@ -240,7 +242,7 @@ export default function FascicolorevView() {
         const [,time] = recordedDate.split(' ');
         const [hour,minute] = time.split(':');
         const minuteKey = parseInt(hour,10) * 60 + parseInt(minute,10);
-        if (item.acr_result !== 'NULL') {
+        // if (item.acr_result !== 'NULL') {
             if (channels.indexOf(item.acr_result) === -1) {
                 channels.push(item.acr_result);
              }
@@ -266,7 +268,7 @@ export default function FascicolorevView() {
                     }
                 }
             });
-        }
+        // }
     });
 
     
@@ -285,7 +287,7 @@ export default function FascicolorevView() {
             const [,time] = recordedDate.split(' ');
             const [hour,minute] = time.split(':');
             const minuteKey = parseInt(hour,10) * 60 + parseInt(minute,10);
-            if (item.acr_result !== 'NULL') {
+            // if (item.acr_result !== 'NULL') {
                 Object.keys(timeSlots).forEach(slotKey => {
                     const [start, end] = slotKey.split(' - ');
                     const [startHour, startMinute] = start.split(':').map(Number);
@@ -314,7 +316,7 @@ export default function FascicolorevView() {
                  // New logic to populate userListening5minMapWeight based on 5-minute recognition criterion
             
             
-            }
+            // }
     });
     // console.log("ORDERED",orderedACRDetails);
     const userRecognitionCounts = {}; // Format: { [slotKey]: { [userId]: count } }
@@ -337,14 +339,27 @@ export default function FascicolorevView() {
                     userRecognitionCounts[slotKey] = {};
                 }
                 // Initialize the channel within the slot if not already done
-                if (!userRecognitionCounts[slotKey][item.acr_result]) {
-                    userRecognitionCounts[slotKey][item.acr_result] = {};
+                
+                if (!importantChannels.includes(item.acr_result) && (item.acr_result !== 'NULL')) {
+                    if (!userRecognitionCounts[slotKey].ALTRERADIO) {
+                        userRecognitionCounts[slotKey].ALTRERADIO = {};
+                    }
+                    if (!userRecognitionCounts[slotKey].ALTRERADIO[item.user_id]) {
+                        userRecognitionCounts[slotKey].ALTRERADIO[item.user_id] = 1;
+                    } else {
+                        userRecognitionCounts[slotKey].ALTRERADIO[item.user_id] += 1;
+                    }
                 }
-                // Initialize the user within the channel of a slot if not already done, then increment
-                if (!userRecognitionCounts[slotKey][item.acr_result][item.user_id]) {
-                    userRecognitionCounts[slotKey][item.acr_result][item.user_id] = 1;
-                } else {
-                    userRecognitionCounts[slotKey][item.acr_result][item.user_id] += 1;
+                else {
+                    if (!userRecognitionCounts[slotKey][item.acr_result]) {
+                        userRecognitionCounts[slotKey][item.acr_result] = {};
+                    }
+                     // Initialize the user within the channel of a slot if not already done, then increment
+                    if (!userRecognitionCounts[slotKey][item.acr_result][item.user_id]) {
+                        userRecognitionCounts[slotKey][item.acr_result][item.user_id] = 1;
+                    } else {
+                        userRecognitionCounts[slotKey][item.acr_result][item.user_id] += 1;
+                    }
                 }
             }
         });
@@ -425,7 +440,7 @@ export default function FascicolorevView() {
         }
         else
         audienceByMinute = minutoMedio*pesoNum/intervalValue;
-        let audienceByMinutestr = "*";
+        let audienceByMinutestr = 0;
         if (audienceByMinute > 0) {
             audienceByMinutestr = audienceByMinute.toFixed(0).toString().replace(".", ",");
         }
@@ -452,7 +467,7 @@ export default function FascicolorevView() {
         }
         else
         audienceByMinute = minutoMedio*pesoNum/intervalValue;
-        let audienceByMinutestr = "*";
+        let audienceByMinutestr = 0;
         if (audienceByMinute > 0) {
             audienceByMinutestr = audienceByMinute.toFixed(0).toString().replace(".", ",");
         }
@@ -474,7 +489,7 @@ export default function FascicolorevView() {
         const audienceByMinute = minuto;
  
         const shareSlotCanale = (((audienceByMinute/intervalValue) || 0)/ (audienceSlotCanali/intervalValue))*100 || 0 ;
-        let retSh = "*";
+        let retSh = 0;
         if (shareSlotCanale > 0) retSh = shareSlotCanale.toFixed(1).toString()
         return retSh;
 
@@ -499,7 +514,7 @@ export default function FascicolorevView() {
         });
         const audienceByMinute = minuto;
         const shareSlotCanale = (((audienceByMinute/intervalValue) || 0)/ (audienceSlotCanali/intervalValue))*100 || 0 ;
-        let retSh = "*";
+        let retSh = 0;
         if (shareSlotCanale > 0) retSh = shareSlotCanale.toFixed(1).toString()
         return retSh;
     };    
@@ -539,7 +554,8 @@ export default function FascicolorevView() {
         const perc_ar = ar.toFixed(0);
         return perc_ar;
     } */
-    const calculateAscoltoRadio = (slot) => {
+    
+    const calculateAscoltoRadioAttivo = (slot) => {
         // console.log("uniquetimeSlots",uniquetimeSlots[slot]);
         const dati = uniquetimeSlots[slot];
         let ar = 0;
@@ -548,7 +564,19 @@ export default function FascicolorevView() {
             ar += item
 
         });
-        const perc_ar = ar.toFixed(0);
+        const perc_ar = ar;
+        return perc_ar;
+    }
+    const calculateAscoltoRadioNonAttivo = (slot) => {
+        // console.log("uniquetimeSlots",uniquetimeSlots[slot]);
+        const dati = uniquetimeSlots[slot];
+        let ar = 0;
+        dati.forEach((item) => {
+            // console.log("ar:item",item)
+            ar += item
+
+        });
+        const perc_ar = 1249 - ar;
         return perc_ar;
     }
 
@@ -576,7 +604,7 @@ export default function FascicolorevView() {
         if (ar > 0)
             perc_ar = ar.toFixed(0);
         else 
-            perc_ar = "*";
+            perc_ar = 0;
         return perc_ar;
     };
     const calculateAscoltoRadioCanale5min = (channel, slot) => {
@@ -596,7 +624,7 @@ export default function FascicolorevView() {
         if (ar > 0)
             perc_ar = ar.toFixed(0);
         else 
-            perc_ar = "*";
+            perc_ar = 0;
         return perc_ar;
     };
     
@@ -624,7 +652,7 @@ export default function FascicolorevView() {
         if (ar > 0)
             perc_ar = ar.toFixed(0);
         else 
-            perc_ar = "*";
+            perc_ar = 0;
         return perc_ar;
     };
    
@@ -641,31 +669,32 @@ export default function FascicolorevView() {
            return `( ${perc_ar}% (popolazione italiana) )`;
 
     }
-    const displayAscoltiRadio = (slot) => {
+    const displayAttivi = (slot) => {
         // console.log("uniquetimeSlots",uniquetimeSlots[slot]);
-        // const dati = uniquetimeSlots[slot];
+        const dati = uniquetimeSlots[slot];
         let ar = 0;
-        channels.forEach(canalealtro => {
-            if ((canalealtro !== "NULL")) {
-                const dati = userListeningMap[canalealtro]?.[slot];
-                if (dati) {
-                dati.forEach((item) => {
-                    // console.log("ar:item",item)
-                    ar += item
+        dati.forEach((item) => {
+            // console.log("ar:item",item)
+            ar += item
 
-                });
-                }
-                // const uniqueUsersListeningch = userListeningMap[channel]?.[slot]?.size || 0;
-                // audienceSlotCanali += uniqueUsersListeningch*parseFloat(timeSlots[slot][canalealtro] || 0)
-                // ar += parseFloat(timeSlots[slot][canalealtro] || 0)
-            }
         });
-        ar = (ar/52231073)*100;
-           return `( ${ar.toFixed(0)}% (popolazione italiana) )`;
+  
+        return `( ${ar} panelisti attivi sul totale di 1249)`;
+    }
+    const displayNonAttivi = (slot) => {
+        // console.log("uniquetimeSlots",uniquetimeSlots[slot]);
+        const dati = uniquetimeSlots[slot];
+        let ar = 0;
+        dati.forEach((item) => {
+            // console.log("ar:item",item)
+            ar += item
 
+        });
+        const perc_ar = 1249 - ar;
+        return `(${perc_ar} panelisti non attivi sul totale di 1249)`;
     }
     function convertMinutesToTimeString(minutesDecimal) {
-        let str = "*";
+        let str = 0;
         if (minutesDecimal > 0) {
         const totalMinutes = Math.floor(minutesDecimal); // Total minutes
         const hours = Math.floor(totalMinutes / 60); // Calculate hours
@@ -703,6 +732,7 @@ export default function FascicolorevView() {
                 minuto += parseFloat(timeSlots[slot][canalealtre] || 0)
             }
         });
+        
         let audienceChannel=0;
         if (intstep === 1)
             audienceChannel = calculateAscoltoRadioCanale1minAltre(slot);
@@ -802,11 +832,20 @@ export default function FascicolorevView() {
                 }
             }
         });
+        ar = 0;
+        const dati2 = userListening1minMapWeight.ALTRERADIO?.[slot];
+        if (dati2) {
+            dati2.forEach((item) => {
+                const pesoitem = idToWeightMap[item]; // Corrected access to idToWeightMap
+                
+                ar += pesoitem || 0; // Added a fallback to 0 if pesoitem is undefined
+            });
+        }
         let perc_ar = 0;
         if (ar > 0)
             perc_ar = ar.toFixed(0);
         else 
-            perc_ar = "*";
+            perc_ar = 0;
         return perc_ar;
     };
     const calculateAscoltoRadioCanale5minAltre = (slot) => {
@@ -824,11 +863,20 @@ export default function FascicolorevView() {
                 }
             }
         });
+        ar = 0;
+        const dati2 = userListening5minMapWeight.ALTRERADIO?.[slot];
+        if (dati2) {
+            dati2.forEach((item) => {
+                const pesoitem = idToWeightMap[item]; // Corrected access to idToWeightMap
+                
+                ar += pesoitem || 0; // Added a fallback to 0 if pesoitem is undefined
+            });
+        }
         let perc_ar = 0;
         if (ar > 0)
             perc_ar = ar.toFixed(0);
         else 
-            perc_ar = "*";
+            perc_ar = 0;
         return perc_ar;
     };
     const calculateAscoltoRadioCanale15minAltre = (slot) => {
@@ -846,26 +894,38 @@ export default function FascicolorevView() {
                 }
             }
         });
+        // resetto di nuovo con ALTRERADIO
+        ar = 0;
+        const dati2 = userListening15minMapWeight.ALTRERADIO?.[slot];
+        if (dati2) {
+            dati2.forEach((item) => {
+                const pesoitem = idToWeightMap[item]; // Corrected access to idToWeightMap
+                
+                ar += pesoitem || 0; // Added a fallback to 0 if pesoitem is undefined
+            });
+        }
         let perc_ar = 0;
         if (ar > 0)
             perc_ar = ar.toFixed(0);
         else 
-            perc_ar = "*";
+            perc_ar = 0;
         return perc_ar;
     };
     
         if (loading) {
-        return <p>Caricamento dati raccolti in corso... </p>; // You can replace this with your loading indicator component
+        return <p>Il Caricamento dei dati con i null raccolti in corso richiede più tempo ... </p>; // You can replace this with your loading indicator component
         }
  
             return (
                 <Container>
                     <Scrollbar style={{ width: '100%'}}>
                 
-                    <Typography variant="h4" sx={{mb: 5}}>
-                        FASCICOLO degli ascolti  {tipoRadioTV} per la data {selectedDate}
+                    <Typography variant="h4" sx={{mb: 2}}>
+                        FASCICOLO INTERNO 
                     </Typography>
-
+                    <Typography variant="p" sx={{mb: 5}}>
+                   PRESENZA NULL + PESO PANELISTA = 1 {tipoRadioTV} per la data {selectedDate}
+                    </Typography>
                     {/* ... (existing code) */}
                     {/* Material-UI DatePicker component */}
 
@@ -880,20 +940,20 @@ export default function FascicolorevView() {
                                 renderInput={(params) => <TextField {...params} />}
                                 shouldDisableDate={disableDates}
                             />
-                            <Button
+                            <Button style={{ display: 'none' }}
                             variant={activeButton === 'share' ? 'contained' : 'outlined'}
                             onClick={handleShareClick}
                             >
                             SHARE
                             </Button>
-                            <Button
+                            <Button style={{ display: 'none' }}
                             disabled= {tipo === 'TV' ? 'disabled': ''}
                             variant={activeButton === 'ascolti' ? 'contained' : 'outlined'}
                             onClick={handleAscoltiClick}
                             >
                             ASCOLTI
                             </Button>
-                            <Button
+                            <Button 
                             disabled= {tipo === 'TV' ? 'disabled': ''}
                             variant={activeButton === 'minuti' ? 'contained' : 'outlined'}
                             onClick={handleMinutiClick}
@@ -901,7 +961,7 @@ export default function FascicolorevView() {
                             MINUTI
                             </Button>
                             <Button
-                            disabled= {tipo === 'TV' ? 'disabled': ''}
+                             
                             variant={activeButton === 'contatti' ? 'contained' : 'outlined'}
                             onClick={handleContattiClick}
                             >
@@ -954,7 +1014,7 @@ export default function FascicolorevView() {
                                     GRAFICO CONTATTI
                                     </Typography>
                                         <CardContent  sx={{ pl: 0 }}>
-                                        <GraphChartContatti activeButton={activeButton} userListeningMapWeight={userListeningMapWeight}  tipoRadioTV={tipoRadioTV} idToWeightMap={idToWeightMap} channels={channels} importantChannels={importantChannels} /> {/* Render the GraphChart component */}
+                                        <GraphChartContatti activeButton={activeButton} userListeningMapWeight={userListening1minMapWeight}  tipoRadioTV={tipoRadioTV} idToWeightMap={idToWeightMap} channels={channels} importantChannels={importantChannels} /> {/* Render the GraphChart component */}
                                         </CardContent>
                                     </Card>
                                 )}
@@ -1223,10 +1283,7 @@ export default function FascicolorevView() {
                             <Card style={{ display: 'block', overflow:'auto' }}>
                             
                             <CardContent style={{ display:intervalStepValue === 1 ? 'block':'none'}}>
-                                <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>CONTATTI NETTI</Typography>
-                                <Typography variant="p" sx={{ml: 2, mt: 2}}>
-                                (Numero di ASCOLTATORI che hanno ascoltato almeno 1 minuto della specifica emittente nell’intervallo di riferimento | pop 52.231.073)
-                                </Typography>
+                                <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>CONTATTI NETTI PANELISTI CON PESO = 1</Typography>
 
 
                                 <ExportExcel fileName="Excel-Export-Contatti-Global" idelem={`export-table-contatti-global_${tipoRadioTV}`}/>
@@ -1266,16 +1323,24 @@ export default function FascicolorevView() {
                                                         </TableRow>                                                        
 
                                                         <TableRow >
-
-                                                            <TableCell>{ascoltatoriRadioLabel}</TableCell>
+                                                            <TableCell><strong>UNICI ATTIVI</strong> </TableCell>
                                                             {Object.keys(aggregatedTimeSlots).map((timeSlotKey) => (
                                                                 <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
-                                                                    <strong><span data-tooltip-id="my-tooltip" data-tooltip-content={displayAscoltiRadio(timeSlotKey)} >{calculateAscoltoRadio(timeSlotKey)}</span></strong>
+                                                                    <strong><span data-tooltip-id="my-tooltip" data-tooltip-content={displayAttivi}  >{calculateAscoltoRadioAttivo(timeSlotKey)}</span></strong>
                                         
                                                                 </TableCell>
-
                                                             ))}
                                                         </TableRow>
+                                                        <TableRow >
+                                                            <TableCell><strong>UNICI NON ATTIVI</strong> </TableCell>
+                                                            {Object.keys(aggregatedTimeSlots).map((timeSlotKey) => (
+                                                                <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
+                                                                    <strong><span data-tooltip-id="my-tooltip" data-tooltip-content={displayNonAttivi}   >{calculateAscoltoRadioNonAttivo(timeSlotKey)}</span></strong>
+                                        
+                                                                </TableCell>
+                                                            ))}
+                                                        </TableRow>                                                       
+
                                                     
                                                 </TableBody>
                                             </Table>
@@ -1288,12 +1353,16 @@ export default function FascicolorevView() {
 
 
                                     <CardContent style={{ display:intervalStepValue === 5 ? 'block':'none'}}>
-                                        
-                                        <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>IPOTESI {ascoltatoriRadioLabel} - almeno 5 minuti </Typography>
-                                        <Typography variant="p" sx={{ml: 2, mt: 2}}>
-                                        (Numero di {ascoltatoriRadioLabel} sul totale popolazione 14+ nell’intervallo di riferimento passo 5min | pop 52.231.073)
+                                        <Card style={{ display: 'hide' }}>
+                                        <Typography variant="h6" sx={{ml: 2, pt: 5}}>
+                                        GRAFICO CONTATTI IPOTESI 5 MINUTI
                                         </Typography>
-                                        
+                                            <CardContent  sx={{ pl: 0 }}>
+                                            <GraphChartContatti activeButton={activeButton} userListeningMapWeight={userListening5minMapWeight}  tipoRadioTV={tipoRadioTV} importantChannels={channels} idToWeightMap={idToWeightMap} /> 
+                                            </CardContent>
+                                        </Card>
+                                        <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>IPOTESI {ascoltatoriRadioLabel} - almeno 5 minuti </Typography>
+                                         
 
                                 <ExportExcel fileName="Excel-Export-Contatti5-Global" idelem={`export-table-contatti5-global_${tipoRadioTV}`}/>
                                 
@@ -1332,16 +1401,24 @@ export default function FascicolorevView() {
                                                             ))}
                                                         </TableRow>
                                                         <TableRow >
-
-                                                            <TableCell>{ascoltatoriRadioLabel}</TableCell>
+                                                            <TableCell><strong>UNICI ATTIVI</strong> </TableCell>
                                                             {Object.keys(aggregatedTimeSlots).map((timeSlotKey) => (
                                                                 <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
-                                                                    <strong><span data-tooltip-id="my-tooltip" data-tooltip-content={displayAscoltiRadio(timeSlotKey)} >{calculateAscoltoRadio(timeSlotKey)}</span></strong>
+                                                                    <strong><span data-tooltip-id="my-tooltip" data-tooltip-content={displayAttivi}  >{calculateAscoltoRadioAttivo(timeSlotKey)}</span></strong>
                                         
                                                                 </TableCell>
-
                                                             ))}
-                                                        </TableRow>                                                        
+                                                        </TableRow>
+                                                        <TableRow >
+                                                            <TableCell><strong>UNICI NON ATTIVI</strong> </TableCell>
+                                                            {Object.keys(aggregatedTimeSlots).map((timeSlotKey) => (
+                                                                <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
+                                                                    <strong><span data-tooltip-id="my-tooltip" data-tooltip-content={displayNonAttivi}   >{calculateAscoltoRadioNonAttivo(timeSlotKey)}</span></strong>
+                                        
+                                                                </TableCell>
+                                                            ))}
+                                                        </TableRow>                                                       
+                                                       
                                                 </TableBody>
                                             </Table>
                                         </TableContainer>
@@ -1350,17 +1427,20 @@ export default function FascicolorevView() {
                                         </Typography>
                                         </CardContent>
                                         <CardContent style={{ display:intervalStepValue === 15 ? 'block':'none'}}>
-
+                                        <Card style={{ display: 'hide' }}>
+                                        <Typography variant="h6" sx={{ml: 2, pt: 5}}>
+                                        GRAFICO CONTATTI IPOTESI 15 MINUTI
+                                        </Typography>
+                                            <CardContent  sx={{ pl: 0 }}>
+                                            <GraphChartContatti activeButton={activeButton} userListeningMapWeight={userListening15minMapWeight}  tipoRadioTV={tipoRadioTV} importantChannels={channels} idToWeightMap={idToWeightMap} /> 
+                                            </CardContent>
+                                        </Card>
                                         
                                         <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>IPOTESI {ascoltatoriRadioLabel} - almeno 15 minuti </Typography>
-                                        <Typography variant="p" sx={{ml: 2, mt: 2}}>
-                                        (Numero di {ascoltatoriRadioLabel} sul totale popolazione 14+ nell’intervallo di riferimento passo 15min | pop 52.231.073)
-                                        </Typography>
-                                        
-
-                                <ExportExcel fileName="Excel-Export-Contatti5-Global" idelem={`export-table-contatti5-global_${tipoRadioTV}`}/>
+                                       
+                                <ExportExcel fileName="Excel-Export-Contatti15-Global" idelem={`export-table-contatti15-global_${tipoRadioTV}`}/>
                                 
-                                <TableContainer id={`export-table-contatti5-global_${tipoRadioTV}`}  sx={{overflow: 'unset'}}>
+                                <TableContainer id={`export-table-contatti15-global_${tipoRadioTV}`}  sx={{overflow: 'unset'}}>
                                             <Table sx={{minWidth: 800}}>
                                                 <TableHead>
                                                     <TableRow>
@@ -1394,16 +1474,24 @@ export default function FascicolorevView() {
                                                             ))}
                                                         </TableRow>                                                        
                                                         <TableRow >
-
-                                                            <TableCell>{ascoltatoriRadioLabel}</TableCell>
+                                                            <TableCell><strong>UNICI ATTIVI</strong> </TableCell>
                                                             {Object.keys(aggregatedTimeSlots).map((timeSlotKey) => (
                                                                 <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
-                                                                    <strong><span data-tooltip-id="my-tooltip" data-tooltip-content={displayAscoltiRadio(timeSlotKey)} >{calculateAscoltoRadio(timeSlotKey)}</span></strong>
+                                                                    <strong><span data-tooltip-id="my-tooltip" data-tooltip-content={displayAttivi}  >{calculateAscoltoRadioAttivo(timeSlotKey)}</span></strong>
                                         
                                                                 </TableCell>
-
                                                             ))}
                                                         </TableRow>
+                                                        <TableRow >
+                                                            <TableCell><strong>UNICI NON ATTIVI</strong> </TableCell>
+                                                            {Object.keys(aggregatedTimeSlots).map((timeSlotKey) => (
+                                                                <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
+                                                                    <strong><span data-tooltip-id="my-tooltip" data-tooltip-content={displayNonAttivi}   >{calculateAscoltoRadioNonAttivo(timeSlotKey)}</span></strong>
+                                        
+                                                                </TableCell>
+                                                            ))}
+                                                        </TableRow>                                                       
+
                                                 </TableBody>
                                             </Table>
                                         </TableContainer>

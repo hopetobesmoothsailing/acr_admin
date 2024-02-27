@@ -21,26 +21,26 @@ const navConfig = [
     role:2
   },
   {
+    title: 'Controllo Utenti RTV ',
+    path: '/acr',
+    icon: icon('ic_user'),
+    role:2
+  },
+  {
     title: 'Sintesi',
     path: '/sintesi',
     icon: icon('ic_analytics'),
     role:1
   },
   {
-    title: 'Risultati Radio',
-    path: '/acr',
-    icon: icon('ic_analytics'),
-    role:2
-  },
-  {
-    title: 'Risultati TV',
-    path: '/acr?type=TV',
-    icon: icon('ic_analytics'),
-    role:2
-  },
-  {
-    title: 'Monitoraggio',
+    title: 'B. Monitoraggio ',
     path: '/monitoring',
+    icon: icon('ic_analytics'),
+    role:2
+  },
+  {
+    title: 'Fascicolo Interno',
+    path: '/fascicolorev',
     icon: icon('ic_analytics'),
     role:2
   },

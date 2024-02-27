@@ -21,7 +21,7 @@ import Scrollbar from 'src/components/scrollbar';
 
 import ExportExcel from "../export-to-excel"; 
 import {SERVER_URL} from "../../../utils/consts";
-// import AppWebsiteAudience from "../app-website-audience";
+import AppWebsiteAudience from "../app-website-audience";
 
 
 // ----------------------------------------------------------------------
@@ -35,10 +35,8 @@ export default function RisultatiView() {
     // const audienceMediaMinuto = 0; 
     // Share: Lo share indica la percentuale dell'audience totale che ha guardato un particolare programma rispetto all'audience totale al momento della messa in onda. Se si conosce l'audience totale al momento della trasmissione, basta dividere l'audience del programma per l'audience totale e moltiplicare per 100 per ottenere la percentuale.
     // const [groupedData] = useState([]);
-    const populationNum = 52155073;
-    const panelNum = 2000;
-    let pesoNum = parseFloat(populationNum / panelNum).toFixed(0)
-    pesoNum = 1;
+ //   const populationNum = 52155073;
+ //   const panelNum = 1249;
     const channels = [];
     const location = useLocation();
     const [loading, setLoading] = useState(true);
@@ -96,7 +94,7 @@ export default function RisultatiView() {
 
     console.log("AGGREGATED ARRAY",aggregatedArray);
     const paginatedAcrDetails = aggregatedArray
-    .filter(row => row.acr_result !== "NULL") // Filter out rows with null acr_result
+    // .filter(row => row.acr_result !== "NULL") // Filter out rows with null acr_result
     .slice(page * rowsPerPage, (page + 1) * rowsPerPage);
 
     /* const paginatedAcrDetails = acrDetails
@@ -118,10 +116,10 @@ export default function RisultatiView() {
     };
     // Function to handle date change from date picker
 
-    let tipoRadioTV = 'RADIO';
+    let tipoRadioTV = 'RADIOTV';
     const searchParams = new URLSearchParams(location.search);
     const tipo = searchParams.get('type');
-    if (tipo === null) { tipoRadioTV = 'RADIO';}
+    if (tipo === null) { tipoRadioTV = 'RADIOTV';}
     else { tipoRadioTV = 'TV';}
 
     useEffect(() => {
@@ -132,7 +130,7 @@ export default function RisultatiView() {
                 setLoading(true);
                 const formattedDate = selectedDate; // Encode the date for URL
 
-                const response = (await axios.post(`${SERVER_URL}/getACRDetailsByDateRTV`, {date: formattedDate,type:tipoRadioTV})).data; // Adjust the endpoint to match your server route
+                const response = (await axios.post(`${SERVER_URL}/getACRDetailsByDateRTV`, {date: formattedDate,type:tipoRadioTV,'notnull':'no' })).data; // Adjust the endpoint to match your server route
                 setACRDetails(response.acrDetails);
             } catch (error) {
                 console.error('Error fetching ACR details:', error);
@@ -186,7 +184,7 @@ export default function RisultatiView() {
         acrDetails
         .forEach(
             (item) => {
-                if (item.acr_result !== "NULL") {
+            //    if (item.acr_result !== "NULL") {
             const recordedDate = item.recorded_at;
             // Extracting minuteKey from the recorded_at string
             const [date, time] = recordedDate.split(' ');
@@ -199,7 +197,7 @@ export default function RisultatiView() {
             }
 //      console.log(minuteKeyX)
             let weight_s = 1
-            weight_s = idToWeightMap[item.user_id];
+            weight_s = 1;
 
             if (!minuteData[minuteKeyX][item.acr_result]) {
                 // console.log(minuteData[minuteKeyX][item.acr_result]);
@@ -208,7 +206,7 @@ export default function RisultatiView() {
                 // console.log(minuteData[minuteKeyX][item.acr_result]);
                 minuteData[minuteKeyX][item.acr_result] += 1*weight_s;
             }
-            }
+            // }
 
             // console.log(item.acr_result);
             // console.log(minuteData[minuteKeyX][item.acr_result]);
@@ -260,7 +258,7 @@ export default function RisultatiView() {
         };
 
 
-    }, [selectedDate, acrDetails,idToWeightMap]);
+    }, [selectedDate, acrDetails]);
 
 
     const timeSlots = {
@@ -273,14 +271,23 @@ export default function RisultatiView() {
         '18:00 - 20:59': [],
         '21:00 - 23:59': [],
     };
-
+    const uniquetimeSlots = {
+        '00:00 - 02:59': [],
+        '03:00 - 05:59': [],
+        '06:00 - 08:59': [],
+        '09:00 - 11:59': [],
+        '12:00 - 14:59': [],
+        '15:00 - 17:59': [],
+        '18:00 - 20:59': [],
+        '21:00 - 23:59': [],
+    };
     acrDetails.forEach((item) => {
         const recordedDate = item.recorded_at;
         const [, time] = recordedDate.split(' ');
         const [hours] = time.split(':');
         const minuteKey = `${hours.padStart(2, '0')}`;
         // console.log(minuteKey);
-        if (item.acr_result !== 'NULL') {
+        // if (item.acr_result !== 'NULL') {
       
         const slot = (() => {
             const hour = parseInt(minuteKey, 10);
@@ -302,22 +309,25 @@ export default function RisultatiView() {
          }
         if (slot !== '') {
             let weight_s = 1
-            weight_s = idToWeightMap[item.user_id];
+            // weight_s = idToWeightMap[item.user_id];
+            weight_s = 1;
         
             if (!timeSlots[slot][item.acr_result]) {
                 timeSlots[slot][item.acr_result] = 1*weight_s;
             } else {
                 timeSlots[slot][item.acr_result] += 1*weight_s;
             }
+            if (!uniquetimeSlots[slot][item.user_id]) {
+                uniquetimeSlots[slot][item.user_id]=1;
+            }
         }
-        }
+        // }
     });
 
     // console.log ("MINUTI TOTALI GIORNO: %s", audienceGiornaliera);
     // let audienceGiornalieraReale = audienceGiornaliera/pesoNum 
     // audienceGiornalieraReale = parseFloat(audienceGiornalieraReale).toFixed(0);
     const timeSlotLabels = Object.keys(timeSlots);
-   
     // const channelNames = Object.keys(timeSlotSeries);
     const channelNames = Array.from(
         new Set(Object.values(timeSlots).flatMap((data) => Object.keys(data)))
@@ -346,7 +356,7 @@ export default function RisultatiView() {
                 return '';
             })();
             // console.log(date);
-            if (item.acr_result !== 'NULL') {
+            // if (item.acr_result !== 'NULL') {
       
             if (slot !== '') {
                 if (!userListeningMap[item.acr_result]) {
@@ -358,8 +368,11 @@ export default function RisultatiView() {
                 }
 
                 userListeningMap[item.acr_result][slot].add(item.user_id); // Add user to the set for the corresponding time slot and channel
+
+                
+
             }
-            }
+            // }
         });
         // console.log("USER LISTENING MAP");
         // console.log(userListeningMap);
@@ -412,32 +425,48 @@ export default function RisultatiView() {
             const [user_id, email] = key.split('-');
             return { user_id: parseInt(user_id, 10), email, count: counts[key] };
           });
+
+          const calculateAscoltoRadioAttivo = (slot) => {
+            // console.log("uniquetimeSlots",uniquetimeSlots[slot]);
+            const dati = uniquetimeSlots[slot];
+            let ar = 0;
+            dati.forEach((item) => {
+                // console.log("ar:item",item)
+                ar += item
+    
+            });
+            const perc_ar = ar;
+            return perc_ar;
+        }
+        const calculateAscoltoRadioNonAttivo = (slot) => {
+            // console.log("uniquetimeSlots",uniquetimeSlots[slot]);
+            const dati = uniquetimeSlots[slot];
+            let ar = 0;
+            dati.forEach((item) => {
+                // console.log("ar:item",item)
+                ar += item
+    
+            });
+            const perc_ar = 1249 - ar;
+            return perc_ar;
+        }
+
+
           // console.log("Unique Details",uniqueDetails);
           if (loading) {
-            return <p>Caricamento dati raccolti in corso... </p>; // You can replace this with your loading indicator component
-          }
+            return <p>Il Caricamento dei dati con i null raccolti in corso richiede più tempo ... </p>; // You can replace this with your loading indicator component
+        }
     return (
         <Container>
             <Typography variant="h4" sx={{mb: 5}}>
                 Dati {tipoRadioTV} 
             </Typography>
-            <Typography variant="p" sx={{mb: 5, display:'none'}}>
-            Ascolto minuto	AMM. Indica il numero di persone sintonizzate su una determinata stazione.	Giornaliero	No	<br />
-Ascoltatori Radio	AU	∑AMM x minuto	Giornaliero	No	<br />
-Ascolto medio	AMR	∑AMM di un canale-programma/Minuti periodo selezionato	Giornaliero	Sì	In caso di periodo pari a 1 minuto AMR=AMM<br />
-Share	SH	AMR/AU	Giornaliero	Sì	<br />
-Penetrazione	PE	Percentuale ascoltatori riferiti ad uno specifico target (es. donne)  sull&apos;universo (es. totale donne del panel)	Da decidere	?	Si riesce a dare giornaliero?<br />
-Copertura netta	CO	Numero di pesone (senza duplicazioni) che ascoltano un certo programma (anche canale?) per almeno 5 minuti (?)	Giornaliero	Sì	Sono i contatti netti<br />
-Minuti ascoltati	MA	AMR*Durata programma/CO	Giornaliero	Sì	Si riesce a dare giornaliero?<br />
-Permanenza	PR	MA/Durata programma	Giornaliero	Sì	Si riesce a dare giornaliero?<br />
-Share cumulato		Non è chiaro esattamente su cosa va calcolato	Da decidere	Sì	Solo riferito ai programmi o anche alle reti?<br />
-Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
-            </Typography>
+ 
             {/* ... (existing code) */}
             {/* Material-UI DatePicker component */}
 
             {/* Display graph for a single day with x-axis corresponding to every minute */}
-            <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en-gb">
+            <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="it">
                 <DemoContainer components={['DatePicker']}>
                     <DatePicker
                         onChange={handleDateChange}
@@ -446,17 +475,18 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
                   <Button onClick={handlePrint}>STAMPA</Button>
                   </DemoContainer>
             </LocalizationProvider>
-           
+            <AppWebsiteAudience
+                title="UTENTI PER MINUTO RADIO / TV"
+                subheader="Grafico con tutti i canali RADIO e TV"
+                chart={minuteBasedData}
+            />
             
            
                 <Typography variant="h5" sx={{ml: 2, mt: 3,mb:2}}>
-                CONTATTI
+                UTENTI UNICI GIORNALIERI TUTTI CANALI RADIO E TV
                 <ExportExcel  exdata={channelNames} fileName="Excel-Export-Contatti" idelem="export-table-contatti"/>
                 </Typography>
-                <Typography variant="p" sx={{ml: 2, mt: 3,mb:2}}>
-                Data dal prodotto degli utenti per canale nell&apos;intervallo considerato e valore &quot;pesato&quot; dove 1 utente unico è pari a {pesoNum} individui
-                </Typography>
-
+                
                 {/* Remaining pagination logic */}
             
                 <Card>
@@ -473,6 +503,24 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
+                                <TableRow >
+                                                            <TableCell><strong>UNICI ATTIVI</strong> </TableCell>
+                                                            {timeSlotLabels.map((timeSlotKey) => (
+                                                             <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
+                                                                    <strong><span data-tooltip-id="my-tooltip"  >{calculateAscoltoRadioAttivo(timeSlotKey)}</span></strong>
+                                        
+                                                                </TableCell>
+                                                            ))}
+                                                        </TableRow>
+                                                        <TableRow >
+                                                            <TableCell><strong>UNICI NON ATTIVI</strong> </TableCell>
+                                                            {timeSlotLabels.map((timeSlotKey) => (
+                                                                <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
+                                                                    <strong><span data-tooltip-id="my-tooltip"     >{calculateAscoltoRadioNonAttivo(timeSlotKey)}</span></strong>
+                                        
+                                                                </TableCell>
+                                                            ))}
+                                                        </TableRow>  
                                     {Object.keys(userListeningMap).sort().reverse().map((channel, index) => (
                                         <TableRow key={index}>
                                             <TableCell>{channel}</TableCell>
@@ -484,6 +532,9 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
                                             ))}
                                         </TableRow>
                                     ))}
+                                                        
+
+                                    
                                 </TableBody>
                             </Table>
                         </TableContainer>
@@ -501,8 +552,8 @@ Dati target		Disaggregazioni per target di AMR e SH + PE	Da decidere	Sì	<br />
                 <Typography variant="p" sx={{ml: 2, mt: 3,mb:2}}>
                 Dettaglio aggregato riconoscimenti per utente {selectedDate}
                <br /> </Typography>
-                    <Typography variant="p" sx={{ml: 2, mt: 3,mb:2}}>
-                    Utenti attivi {uniqueDetails.length}, utenti non attivi {(users.length - uniqueDetails.length)} su un totale di {users.length} utenti. 
+                    <Typography variant="p" sx={{ml: 2, mt: 3,mb:2, display:'none'}}>
+                    Utenti attivi {uniqueDetails.length}, utenti non attivi {(1249 - uniqueDetails.length)} su un totale di 1249 utenti. 
                      </Typography>
                 <TableContainer id="export-table-dett" sx={{overflow: 'unset'}}>
                     <Table sx={{ minWidth: 800 }}>

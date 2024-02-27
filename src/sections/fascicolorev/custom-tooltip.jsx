@@ -8,7 +8,7 @@ const CustomTooltip = ({ active, payload, label }) => {
           <p className="label">{`${label}`}</p>
           {payload.map((entry, index) => {
             // Check if the payload entry name is 'contacts' to apply transformation
-            const valueDisplay = `${(entry.value / 1000000).toLocaleString()} Milioni` // Apply x1000 transformation and append 'K'
+            const valueDisplay = `${(entry.value ).toLocaleString()} Utenti ` // Apply x1000 transformation and append 'K'
             
             return (
               <p key={`item-${index}`} style={{ color: entry.color }}>

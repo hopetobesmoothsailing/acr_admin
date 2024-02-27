@@ -84,7 +84,7 @@ export default function AppWebsiteAudience({ title, subheader, chart, ...other }
           series={continuousSeries}
           options={chartOptions}
           width="100%"
-          height={364}
+          height={800}
         />
 
        </Box>
