@@ -39,7 +39,6 @@ dayjs.locale('it'); // Set the locale to Italian
 export default function FascicoloView() {
 
     const channels = [];
-    const pesoNum = 1
     // const navigate = useNavigate();
   
     const location = useLocation();
@@ -83,23 +82,15 @@ export default function FascicoloView() {
     };
     // Function to handle date change from date picker
 
-    let tipoRadioTV = 'RADIO';
+    const tipoRadioTV = 'RADIOTV';
     const searchParams = new URLSearchParams(location.search);
     const tipo = searchParams.get('type');
     let ascoltatoriRadioLabel = '';
-    if ((tipo === null)||(tipo === 'RADIO')) { 
-        tipoRadioTV = 'RADIO';
         
-        importantChannels = ['RadioDeejay', 'RAIRadio1','RAIRadio2','RAIRadio3','RDS','RTL','Radio24','RadioM2O','RADIOKISSKISS','RadioFRECCIA','RadioCapital','R101','VIRGINRadio','RADIOMONTECARLO','Radio105','RadioItaliaSMI','NULL'];
-        ascoltatoriRadioLabel = 'ASCOLTATORI RADIO';
+    importantChannels = ['RAI1', 'RAI2','RAI3','RETE4','CANALE5','ITALIA1','LA7','RadioDeejay', 'RAIRadio1','RAIRadio2','RAIRadio3','RDS','RTL','Radio24','RadioM2O','RADIOKISSKISS','RadioFRECCIA','RadioCapital','R101','VIRGINRadio','RADIOMONTECARLO','Radio105','RadioItaliaSMI','NULL'];
+    ascoltatoriRadioLabel = 'ASCOLTATORI RADIOTV';
 
-    }
-    else { 
-        tipoRadioTV = 'TV';
-        importantChannels = ['RAI1', 'RAI2','RAI3','RETE4','CANALE5','ITALIA1','LA7','NULL'];
-        ascoltatoriRadioLabel = 'SPETTATORI TV';
-    }
-
+  
     useEffect(() => {
         // Function to fetch ACR details by date
         const fetchACRDetailsByDate = async () => {
@@ -424,100 +415,7 @@ export default function FascicoloView() {
     // console.log("USER LISTENING MAP WEIGHT 15 min",userListening15minMapWeight);
     // console.log("USER LISTENING MAP ",userListeningMap);
     // console.log("USER WEIGHT ",idToWeightMap);
-
-    
-   
-    const calculateAudienceByMinute = (channel, slot) => {
-        const minutoMedio = timeSlots[slot][channel] || 0 ;
-        let audienceByMinute = 0;
-        if (slot === '00:00 - 23:59') {
-        const day_interval = 1440;
-        audienceByMinute = minutoMedio*pesoNum/(day_interval);
-        }
-        else if (slot === '06:00 - 23:59') {
-            const day_interval = 1440 - 360;
-            audienceByMinute = minutoMedio*pesoNum/(day_interval);
-        }
-        else
-        audienceByMinute = minutoMedio*pesoNum/intervalValue;
-        let audienceByMinutestr = 0;
-        if (audienceByMinute > 0) {
-            audienceByMinutestr = audienceByMinute.toFixed(0).toString().replace(".", ",");
-        }
-        
-        return audienceByMinutestr;
-    };
-    const calculateAudienceByMinuteAltre = (slot) => {
-        let minutoMedio = 0 ;
-       
-       
-        nonImportantChannels.forEach(canalealtre => {
-            if ((canalealtre !== "NULL")) {
-                   minutoMedio += parseFloat(timeSlots[slot][canalealtre] || 0)
-            }
-        });
-        let audienceByMinute = 0;
-        if (slot === '00:00 - 23:59') {
-        const day_interval = 1440;
-        audienceByMinute = minutoMedio*pesoNum/(day_interval);
-        }
-        else if (slot === '06:00 - 23:59') {
-            const day_interval = 1440 - 360;
-            audienceByMinute = minutoMedio*pesoNum/(day_interval);
-        }
-        else
-        audienceByMinute = minutoMedio*pesoNum/intervalValue;
-        let audienceByMinutestr = 0;
-        if (audienceByMinute > 0) {
-            audienceByMinutestr = audienceByMinute.toFixed(0).toString().replace(".", ",");
-        }
-        
-        return audienceByMinutestr;
-    };    
- 
-            
-    const calculateShareSlotCanale = (channel, slot) => {
-        let audienceSlotCanali = 0
-        channels.forEach(canalealtro => {
-            if ((canalealtro !== "NULL")) {
-                // const uniqueUsersListeningch = userListeningMap[channel]?.[slot]?.size || 0;
-                // audienceSlotCanali += uniqueUsersListeningch*parseFloat(timeSlots[slot][canalealtro] || 0)
-                audienceSlotCanali += parseFloat(timeSlots[slot][canalealtro] || 0)
-            }
-        });
-        const minuto = timeSlots[slot][channel] || 0 ;
-        const audienceByMinute = minuto;
- 
-        const shareSlotCanale = (((audienceByMinute/intervalValue) || 0)/ (audienceSlotCanali/intervalValue))*100 || 0 ;
-        let retSh = 0;
-        if (shareSlotCanale > 0) retSh = shareSlotCanale.toFixed(1).toString()
-        return retSh;
-
-    };
-    const calculateShareSlotCanaleAltre = (slot) => {
-        let audienceSlotCanali = 0;
-
-        channels.forEach(canalealtro => {
-            if ((canalealtro !== "NULL")) {
-                // const uniqueUsersListeningch = userListeningMap[channel]?.[slot]?.size || 0;
-                // audienceSlotCanali += uniqueUsersListeningch*parseFloat(timeSlots[slot][canalealtro] || 0)
-                audienceSlotCanali += parseFloat(timeSlots[slot][canalealtro] || 0)
-            }
-        });
-        let minuto = 0;
-        nonImportantChannels.forEach(canalealtre => {
-            if ((canalealtre !== "NULL")) {
-                // const uniqueUsersListeningch = userListeningMap[channel]?.[slot]?.size || 0;
-                // audienceSlotCanali += uniqueUsersListeningch*parseFloat(timeSlots[slot][canalealtro] || 0)
-                minuto += parseFloat(timeSlots[slot][canalealtre] || 0)
-            }
-        });
-        const audienceByMinute = minuto;
-        const shareSlotCanale = (((audienceByMinute/intervalValue) || 0)/ (audienceSlotCanali/intervalValue))*100 || 0 ;
-        let retSh = 0;
-        if (shareSlotCanale > 0) retSh = shareSlotCanale.toFixed(1).toString()
-        return retSh;
-    };    
+  
     const calculateShareRadio = (slot) => {
         // console.log("uniquetimeSlots",uniquetimeSlots[slot]);
         const dati = uniquetimeSlots[slot];
@@ -530,31 +428,7 @@ export default function FascicoloView() {
         const perc_ar = ((ar/52231073)*100).toFixed(1);
         return perc_ar;
     }
-    /* const calculateAscoltoRadio = (slot) => {
-        // console.log("uniquetimeSlots",uniquetimeSlots[slot]);
-        // const dati = uniquetimeSlots[slot];
-        let ar = 0;
-        channels.forEach(canalealtro => {
-            if ((canalealtro !== "NULL")) {
-                const dati = userListeningMap[canalealtro]?.[slot];
-                if (dati) {
-                dati.forEach((item) => {
-                    // console.log("ar:item",item)
-                    ar += item
-
-                });
-                }
-                // const uniqueUsersListeningch = userListeningMap[channel]?.[slot]?.size || 0;
-                // audienceSlotCanali += uniqueUsersListeningch*parseFloat(timeSlots[slot][canalealtro] || 0)
-                // ar += parseFloat(timeSlots[slot][canalealtro] || 0)
-            }
-        });
-        console.log("AR Tot userlistmap dati",ar);
-
-        const perc_ar = ar.toFixed(0);
-        return perc_ar;
-    } */
-    
+   
     const calculateAscoltoRadioAttivo = (slot) => {
         // console.log("uniquetimeSlots",uniquetimeSlots[slot]);
         const dati = uniquetimeSlots[slot];
@@ -1019,120 +893,7 @@ export default function FascicoloView() {
                                     </Card>
                                 )}
 
-                                {activeButton === 'ascolti'  && (
-                                <Card style={{ display: 'block' }}>
-                                    <CardContent>
-                                        <Typography variant="h5" sx={{ml: 2, mt: 3}}>
-                                                ASCOLTO MEDIO (AMR)
-                                        </Typography>
-                                            
-                                    <Typography variant="p" sx={{ml: 2, mt: 3}}>
-                                    (Rapporto tra Ascolto Medio (AMR) e il totale {ascoltatoriRadioLabel} nell’intervallo di riferimento | almeno 1 minuto di ascolto)
-                                    </Typography>
-                                    <ExportExcel   fileName={`Export-Ascolti-${tipoRadioTV}-${dayjs(selectedDate).format('MM-DD-YYYY')}`} idelem={`Export-Ascolti-${tipoRadioTV}-${dayjs(selectedDate).format('MM-DD-YYYY')}`}/>
-                            
-                                        <TableContainer id={`Export-Ascolti-${tipoRadioTV}-${dayjs(selectedDate).format('MM-DD-YYYY')}`}  sx={{maxHeight: '500px',overflow: 'auto'}}>
-                                            <Table sx={{minWidth: 800}}>
-                                                
-                                                <TableHead>
-                                                <TableRow>
-                                                    <TableCell style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 1000 }}>
-                                                    EMITTENTE
-                                                    </TableCell>
-                                                    {Object.keys(aggregatedTimeSlots).map((timeSlotKey) => (
-                                                    <TableCell key={timeSlotKey} style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 1000 }}>
-                                                    <strong> {timeSlotKey} </strong> 
-                                                    </TableCell>
-                                                    ))}
-                                                </TableRow>
-
-                                                </TableHead>
-
-                                                <TableBody>
-                                                    {sortedFilteredChannelNames.map((channel, index) => (
-                                                        <TableRow key={index}>
-
-                                                            <TableCell>{channel}</TableCell>
-                                                            {Object.keys(aggregatedTimeSlots).map((timeSlotKey) => (
-                                                                <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
-                                                                    <span data-tooltip-id="my-tooltip" data-tooltip-content={calculateAudienceByMinute(channel, timeSlotKey)} >{calculateAudienceByMinute(channel, timeSlotKey)}</span>
-
-
-                                                                </TableCell>
-
-                                                            ))}
-                                                        </TableRow>
-                                                        
-                                                    ))}
-                                                         <TableRow>
-                                                            <TableCell>ALTRERADIO</TableCell>
-                                                            {Object.keys(aggregatedTimeSlots).map((timeSlotKey) => (
-                                                                <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
-                                                                    <span>{calculateAudienceByMinuteAltre(timeSlotKey)}</span>
-                                                                </TableCell>
-                                                            ))}
-                                                        </TableRow>                                                    
-                                                </TableBody>
-                                            </Table>
-                                        </TableContainer>
-                                        <Typography variant="small" sx={{ml:2, mt:8, mb:10, color:"#999"}}>
-                                        (*) Il dato non è statisticamente significativo per la bassa numerosità dei casi
-                                        </Typography>
-                                    </CardContent>
-                                </Card>
-                                )}
-                            {activeButton === 'share'  && (
-                                <Card style={{ display: 'block' }}>
-                            <CardContent>
-                                <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>SHARE (SH)</Typography>
-                                <Typography variant="p" sx={{ml: 2, mt: 2}}>
-                                (Rapporto tra Ascolto Medio (AMR) e il totale ascoltatori nell’intervallo di riferimento)
-                                </Typography>
-                                    <ExportExcel  fileName={`Export-SHARE-${tipoRadioTV}-${dayjs(selectedDate).format('MM-DD-YYYY')}`} idelem={`Export-SHARE-${tipoRadioTV}-${dayjs(selectedDate).format('MM-DD-YYYY')}`}/>
-                                <br />
-                                <TableContainer id={`Export-SHARE-${tipoRadioTV}-${dayjs(selectedDate).format('MM-DD-YYYY')}`}  sx={{maxHeight: '500px',overflow: 'auto'}}>
-                                            <Table sx={{minWidth: 800}}>
-                                                <TableHead>
-                                                    <TableRow>
-                                                        <TableCell style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 1000 }}>EMITTENTE</TableCell>
-                                                        {Object.keys(aggregatedTimeSlots).map((timeSlotKey) => (
-                                                            <TableCell key={timeSlotKey} style={{ position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 1000 }}>{timeSlotKey} </TableCell>
-                                                        ))}
-                                                    </TableRow>
-                                                </TableHead>
-
-                                                <TableBody>
-                                                    {sortedFilteredChannelNames.map((channel, index) => (
-                                                        <TableRow key={index}>
-
-                                                            <TableCell>{channel}%</TableCell>
-                                                            {Object.keys(aggregatedTimeSlots).map((timeSlotKey) => (
-                                                                <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
-                                                                    <span data-tooltip-id="my-tooltip" data-tooltip-content={calculateShareSlotCanale(channel, timeSlotKey)} >{calculateShareSlotCanale(channel, timeSlotKey)}</span>
-                                        
-                                                                </TableCell>
-
-                                                            ))}
-                                                        </TableRow>
-                                                    ))}
-                                                        <TableRow>
-                                                            <TableCell>ALTRERADIO</TableCell>
-                                                            {Object.keys(aggregatedTimeSlots).map((timeSlotKey) => (
-                                                                <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
-                                                                    <span>{calculateShareSlotCanaleAltre(timeSlotKey)}</span>
-                                                                </TableCell>
-                                                            ))}
-                                                        </TableRow>
-                                                </TableBody>
-                                            </Table>
-                                        </TableContainer>
-                                        <Typography variant="small" sx={{ml:2, mt:8, mb:10, color:"#999"}}>
-                                        (*) Il dato non è statisticamente significativo per la bassa numerosità dei casi
-                                        </Typography>
-
-                            </CardContent>
-                            </Card>
-                            )}
+                           
                             {activeButton === 'share' && (tipo !== 'TV') && (
                                 <Card style={{ display: 'block', overflow:'auto' }}>
                             <CardContent>
@@ -1212,14 +973,7 @@ export default function FascicoloView() {
                                                             ))}
                                                         </TableRow>
                                                     ))}
-                                                        <TableRow>
-                                                            <TableCell>ALTRERADIO</TableCell>
-                                                            {Object.keys(aggregatedTimeSlots).map((timeSlotKey) => (
-                                                                <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
-                                                                    <span>{calculateDurataMediaCanaleAltre(timeSlotKey,intervalStepValue)}</span>
-                                                                </TableCell>
-                                                            ))}
-                                                        </TableRow>                                                    
+                                                                                                          
                                          
                                                 </TableBody>
                                                 <TableBody style={{ display:intervalStepValue === 5 ? 'block':'none'}}>
@@ -1300,6 +1054,26 @@ export default function FascicoloView() {
                                                 </TableHead>
 
                                                 <TableBody>
+                                                <TableRow >
+                                                            <TableCell><strong>UNICI ATTIVI</strong> </TableCell>
+                                                            {Object.keys(aggregatedTimeSlots).map((timeSlotKey) => (
+                                                                <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
+                                                                    <strong><span data-tooltip-id="my-tooltip" data-tooltip-content={displayAttivi}  >{calculateAscoltoRadioAttivo(timeSlotKey)}</span></strong>
+                                        
+                                                                </TableCell>
+                                                            ))}
+                                                        </TableRow>
+                                                        <TableRow >
+                                                            <TableCell><strong>UNICI NON ATTIVI</strong> </TableCell>
+                                                            {Object.keys(aggregatedTimeSlots).map((timeSlotKey) => (
+                                                                <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
+                                                                    <strong><span data-tooltip-id="my-tooltip" data-tooltip-content={displayNonAttivi}   >{calculateAscoltoRadioNonAttivo(timeSlotKey)}</span></strong>
+                                        
+                                                                </TableCell>
+                                                            ))}
+                                                        </TableRow>                                                       
+
+                                                    
                                                     {   sortedFilteredChannelNames.map((channel, index) => (
                                                          <TableRow key={index}>
 
@@ -1322,26 +1096,7 @@ export default function FascicoloView() {
                                                             ))}
                                                         </TableRow>                                                        
 
-                                                        <TableRow >
-                                                            <TableCell><strong>UNICI ATTIVI</strong> </TableCell>
-                                                            {Object.keys(aggregatedTimeSlots).map((timeSlotKey) => (
-                                                                <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
-                                                                    <strong><span data-tooltip-id="my-tooltip" data-tooltip-content={displayAttivi}  >{calculateAscoltoRadioAttivo(timeSlotKey)}</span></strong>
-                                        
-                                                                </TableCell>
-                                                            ))}
-                                                        </TableRow>
-                                                        <TableRow >
-                                                            <TableCell><strong>UNICI NON ATTIVI</strong> </TableCell>
-                                                            {Object.keys(aggregatedTimeSlots).map((timeSlotKey) => (
-                                                                <TableCell style={{textAlign: 'center'}} key={timeSlotKey}>
-                                                                    <strong><span data-tooltip-id="my-tooltip" data-tooltip-content={displayNonAttivi}   >{calculateAscoltoRadioNonAttivo(timeSlotKey)}</span></strong>
-                                        
-                                                                </TableCell>
-                                                            ))}
-                                                        </TableRow>                                                       
-
-                                                    
+                                                       
                                                 </TableBody>
                                             </Table>
                                         </TableContainer>

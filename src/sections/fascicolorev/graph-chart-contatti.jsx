@@ -7,7 +7,7 @@ import {RADIOSTATIONCOLORS} from "../../utils/consts";
 // import Button  from '@mui/material/Button';
 
 const GraphChartContatti = ({ userListeningMapWeight,tipoRadioTV,activeButton,idToWeightMap,importantChannels}) => {
-  let initiallyVisibleChannels = ['RAIRadio1', 'RAIRadio2', 'RAIRadio3'];
+  let initiallyVisibleChannels = ['RAI1','RAI2','RAI3','RAIRadio1', 'RAIRadio2', 'RAIRadio3'];
   if (tipoRadioTV === "TV") {
     initiallyVisibleChannels = ['RAI1', 'RAI2', 'RAI3'];
   }

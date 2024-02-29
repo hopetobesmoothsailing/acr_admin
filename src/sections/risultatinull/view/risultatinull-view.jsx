@@ -81,6 +81,8 @@ export default function RisultatinullView() {
 
           {acrDetailsMessage && <Typography variant="body1" color="error">{acrDetailsMessage}</Typography>}
           <Button onClick={handleDownloadCSV}>Download CSV</Button>
+<br />
+          <a href="https://radiomonitor.welcomeland.it:3001/uploads/export-finale.zip" style={{marginLeft:'8px',fontWeight:'bold'}}>SCARICA TUTTI I DATI DELLA SPERIMENTAZIONE</a>
       </Container>
   );
 }

@@ -33,13 +33,13 @@ const navConfig = [
     role:1
   },
   {
-    title: 'B. Monitoraggio ',
+    title: 'Monitoraggio',
     path: '/monitoring',
     icon: icon('ic_analytics'),
     role:2
   },
   {
-    title: 'Fascicolo Interno',
+    title: 'Fascicolo Interno RTV',
     path: '/fascicolorev',
     icon: icon('ic_analytics'),
     role:2
