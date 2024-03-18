@@ -975,7 +975,7 @@ export default function FascicoloprodView() {
                         </DemoContainer>
                     </LocalizationProvider>
                      
-                                {activeButton === 'share'  && (
+                                {activeButton === 'share' && intervalValue > 10  && (
                                 <Card style={{ display: 'block' }}>
                                     <Typography variant="h6" sx={{ml: 2, pt: 5}}>
                                     GRAFICO SHARE
@@ -986,7 +986,7 @@ export default function FascicoloprodView() {
                                 </Card>
                                 )}
 
-                                {activeButton === 'ascolti'   && (
+                                {activeButton === 'ascolti' && intervalValue > 10  && (
                                 <Card style={{ display: 'block' }}>
                                     <Typography variant="h6" sx={{ml: 2, pt: 5}}>
                                     GRAFICO AMR
@@ -997,7 +997,7 @@ export default function FascicoloprodView() {
                                     </Card>
                                 )}
 
-                                {activeButton === 'contatti'   && (
+                                {activeButton === 'contatti' && intervalValue > 10   && (
                                     <Card style={{ display:intervalStepValue === 1 ? 'block':'none'}}>
                                     <Typography variant="h6" sx={{ml: 2, pt: 5}}>
                                     GRAFICO CONTATTI
@@ -1010,6 +1010,7 @@ export default function FascicoloprodView() {
 
                                 {activeButton === 'ascolti'  && (
                                 <Card style={{ display: 'block' }}>
+                                    { intervalValue > 10 && (
                                     <CardContent>
                                         <Typography variant="h5" sx={{ml: 2, mt: 3}}>
                                                 ASCOLTO MEDIO (AMR)
@@ -1068,10 +1069,13 @@ export default function FascicoloprodView() {
                                         (*) Il dato non è statisticamente significativo per la bassa numerosità dei casi
                                         </Typography>
                                     </CardContent>
+                                    )}
                                 </Card>
                                 )}
                             {activeButton === 'share'  && (
                                 <Card style={{ display: 'block' }}>
+                            { intervalValue > 10 && (
+                                   
                             <CardContent>
                                 <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>SHARE (SH)</Typography>
                                 <Typography variant="p" sx={{ml: 2, mt: 2}}>
@@ -1120,11 +1124,13 @@ export default function FascicoloprodView() {
                                         </Typography>
 
                             </CardContent>
+                            )}
                             </Card>
                             )}
                             {activeButton === 'share' && (tipo !== 'TV') && (
                                 <Card style={{ display: 'block', overflow:'auto' }}>
-                            <CardContent>
+                                { intervalValue > 10 && (
+                                <CardContent>
                                 <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>{ascoltatoriRadioLabel}</Typography>
                                 <Typography variant="p" sx={{ml: 2, mt: 2}}>
                                 (Percentuale di individui che hanno ascoltato almeno 1 minuto la radio nell&apos;intervallo di riferimento | pop 52.231.0733)
@@ -1165,11 +1171,13 @@ export default function FascicoloprodView() {
                                         </Typography>
 
                             </CardContent>
+                                )}
                             </Card>
                             )}
                             {activeButton === 'minuti'  && (
                                 <Card style={{ display: 'block' }}>
-                            <CardContent>
+                                    { intervalValue > 10 && (
+                                <CardContent>
                                 <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>DURATA MEDIA </Typography>
                                 <Typography variant="p" sx={{ml: 2, mt: 2}}>
                                 Durata media intervallo di riferimento
@@ -1266,9 +1274,10 @@ export default function FascicoloprodView() {
                                         </Typography>
 
                             </CardContent>
+                                    )}
                             </Card>
                             )}
-                            {activeButton === 'contatti' && (
+                            {activeButton === 'contatti'  && (
                             <Card style={{ display: 'block', overflow:'auto' }}>
                             
                             <CardContent style={{ display:intervalStepValue === 1 ? 'block':'none'}}>
@@ -1336,6 +1345,7 @@ export default function FascicoloprodView() {
 
 
 
+                                    { intervalValue > 10 && (
                                     <CardContent style={{ display:intervalStepValue === 5 ? 'block':'none'}}>
                                         <Card style={{ display: 'hide' }}>
                                         <Typography variant="h6" sx={{ml: 2, pt: 5}}>
@@ -1345,6 +1355,7 @@ export default function FascicoloprodView() {
                                             <GraphChartContatti activeButton={activeButton} userListeningMapWeight={userListening5minMapWeight}  tipoRadioTV={tipoRadioTV} importantChannels={channels} idToWeightMap={idToWeightMap} /> 
                                             </CardContent>
                                         </Card>
+                                     
                                         <Typography variant="h5" sx={{ ml: 2, mt: 3, mb: 2 }}>IPOTESI {ascoltatoriRadioLabel} - almeno 5 minuti </Typography>
                                         <Typography variant="p" sx={{ml: 2, mt: 2}}>
                                         (Numero di {ascoltatoriRadioLabel} sul totale popolazione 14+ nell’intervallo di riferimento passo 5min | pop 52.231.073)
@@ -1352,7 +1363,7 @@ export default function FascicoloprodView() {
 
 
                                 <ExportExcel fileName="Excel-Export-Contatti5-Global" idelem={`export-table-contatti5-global_${tipoRadioTV}`}/>
-                                
+                                      
                                 <TableContainer id={`export-table-contatti5-global_${tipoRadioTV}`}  sx={{overflow: 'unset'}}>
                                             <Table sx={{minWidth: 800}}>
                                                 <TableHead>
@@ -1401,10 +1412,13 @@ export default function FascicoloprodView() {
                                                 </TableBody>
                                             </Table>
                                         </TableContainer>
+                                
                                         <Typography variant="small" sx={{ml:2, mt:8, mb:10, color:"#999"}}>
                                         (*) Il dato non è statisticamente significativo per la bassa numerosità dei casi
                                         </Typography>
+                                        
                                         </CardContent>
+                                        )};
                                         <CardContent style={{ display:intervalStepValue === 15 ? 'block':'none'}}>
                                         <Card style={{ display: 'hide' }}>
                                         <Typography variant="h6" sx={{ml: 2, pt: 5}}>

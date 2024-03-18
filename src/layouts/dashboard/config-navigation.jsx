@@ -33,6 +33,12 @@ const navConfig = [
     role:1
   },
   {
+    title: 'Crossmediale',
+    path: '/crossmediale',
+    icon: icon('ic_analytics'),
+    role:2
+  },
+  {
     title: 'Monitoraggio',
     path: '/monitoring',
     icon: icon('ic_analytics'),

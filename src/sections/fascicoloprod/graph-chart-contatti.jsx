@@ -129,17 +129,18 @@ const GraphChartContatti = ({ userListeningMapWeight,tipoRadioTV,activeButton,id
   }, [activeButton]); // Dependency on the state that toggles visibility
 
   // Assuming 'chartData' is your dataset array and you want to calculate for 'audience'
-  const maxAudience = chartData.reduce((max,dati) => {
+  /* const maxAudience = chartData.reduce((max,dati) => {
     const maxma = Math.max(max, dati.amr);
-    console.log("MAXC",maxma);
+    // console.log("MAXC",maxma);
     // Assuming 'audience' values are stored under the key 'audience' in your data objects
     return maxma;
   }, 0);
+  */
 
   // Add a buffer to the max value, adjust the buffer size based on your needs
-  const buffer = 50; // Or any other logic to determine an appropriate buffer
-  const maxDomainValue = maxAudience + buffer;
-  console.log(maxDomainValue);
+  // const buffer = 50; // Or any other logic to determine an appropriate buffer
+  // const maxDomainValue = maxAudience + buffer;
+  // console.log(maxDomainValue);
   return (
       <ResponsiveContainer key={activeButton} width="100%" height={400}>
       <LineChart data={chartData}>

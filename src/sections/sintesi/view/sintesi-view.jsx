@@ -55,15 +55,18 @@ export default function SintesiView() {
 
     const [acrDetails, setACRDetails] = useState([]);
     // const [acrDetailsTimeslot, setACRDetailsTimeslot] = useState([])
-    const today = new Date(); // Get today's date
+    const maxDates = dayjs('26/02/2024', 'DD/MM/YYYY');
+    const today = new Date(maxDates); // Get today's date
     const yesterday = new Date(today); // Create a new date object with today's date
     yesterday.setDate(today.getDate() - 4); // Set it to yesterday  
     // Format the date to DD/MM/YYYY
     const formattedYesterday = `${yesterday.getDate().toString().padStart(2, '0')}/${(yesterday.getMonth() + 1).toString().padStart(2, '0')}/${yesterday.getFullYear()}`;  
     // Set yesterday's date as selectedDate
     const [selectedDate, setSelectedDate] = useState(dayjs(yesterday).format('DD/MM/YYYY'));
-    const [startDate,setStartDate] = useState(dayjs().subtract(7, 'day').format('DD/MM/YYYY'));
-    const [stopDate, setStopDate ] = useState(dayjs().add(0, 'day').format('DD/MM/YYYY'));
+    const [startDate,setStartDate] = useState(dayjs(yesterday).subtract(5, 'day').format('DD/MM/YYYY'));
+    const [stopDate, setStopDate ] = useState(dayjs(yesterday).add(0, 'day').format('DD/MM/YYYY'));
+    // Set yesterday's date as selectedDate
+
     const [users, setUsers] = useState([]);
     console.log("SEL_DATE",selectedDate);
     console.log("START_DATE",startDate);

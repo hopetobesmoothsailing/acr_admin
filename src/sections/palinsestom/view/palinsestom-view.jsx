@@ -17,7 +17,8 @@ import { SERVER_URL } from "../../../utils/consts";
 export default function PalinsestomView() {
     const [file, setFile] = useState(null);
     const [loading, setLoading] = useState(true);
-    const today = new Date(); // Get today's date
+    const maxDates = dayjs('26/02/2024', 'DD/MM/YYYY');
+    const today = new Date(maxDates); // Get today's date
     const yesterday = new Date(today); // Create a new date object with today's date
     yesterday.setDate(today.getDate() - 1); // Set it to yesterday
     // Format the date to DD/MM/YYYY
